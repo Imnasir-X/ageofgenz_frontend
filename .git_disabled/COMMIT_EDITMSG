@@ -1,0 +1,30 @@
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# On branch master
+# Changes to be committed:
+#	modified:   package-lock.json
+#	modified:   package.json
+#	modified:   public/index.html
+#	modified:   src/App.js
+#	new file:   src/assets/images/logo.png
+#	new file:   src/components/ArticleCard.js
+#	new file:   src/components/DonationPlaceholder.js
+#	new file:   src/components/Footer.js
+#	new file:   src/components/Header.js
+#	new file:   src/components/Home.js
+#	new file:   src/components/LoginForm.js
+#	new file:   src/components/Newsletter.js
+#	new file:   src/components/SearchBar.js
+#	new file:   src/components/SocialShare.js
+#	new file:   src/hooks/useAuth.js
+#	modified:   src/index.css
+#	modified:   src/index.js
+#	new file:   src/pages/ArticleDetail.js
+#	new file:   src/pages/Categorypage.js
+#	new file:   src/pages/Home.js
+#	new file:   src/pages/SearchResults.js
+#	new file:   src/tailwind.config.js
+#	new file:   src/utils/api.js
+#

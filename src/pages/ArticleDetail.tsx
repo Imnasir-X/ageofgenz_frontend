@@ -1,0 +1,374 @@
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { getArticleById, getArticles } from '../utils/api';
+import DonationPlaceholder from '../components/DonationPlaceholder';
+import SocialShare from '../components/SocialShare';
+import { Clock, Eye, User, Calendar, Tag } from 'lucide-react';
+import { Article } from '../types';
+
+// Cache for articles to avoid refetching
+const articleCache = new Map<number, Article>();
+const relatedCache = new Map<string, Article[]>();
+
+const ArticleDetail: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const [article, setArticle] = useState<Article | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [imageLoaded, setImageLoaded] = useState<boolean>(false);
+
+  // Memoize article ID
+  const articleId = useMemo(() => id ? parseInt(id) : null, [id]);
+
+  // Memoized date formatter
+  const formatDate = useCallback((dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', { 
+        month: 'long', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+    } catch {
+      return 'Unknown date';
+    }
+  }, []);
+
+  // Memoized content formatter - only run when content changes
+  const formattedContent = useMemo(() => {
+    if (!article?.content) return { __html: '<p>No content available.</p>' };
+    
+    const content = article.content;
+    
+    // If content already has HTML tags, enhance spacing
+    if (content.includes('<p>') || content.includes('<br')) {
+      return { 
+        __html: content
+          .replace(/<p>/g, '<p class="mb-4 text-gray-700 leading-relaxed">')
+          .replace(/<h2>/g, '<h2 class="text-2xl font-bold mt-6 mb-3 text-gray-900">')
+          .replace(/<h3>/g, '<h3 class="text-xl font-semibold mt-4 mb-2 text-gray-900">')
+          .replace(/<ul>/g, '<ul class="list-disc list-inside mb-4 text-gray-700">')
+          .replace(/<ol>/g, '<ol class="list-decimal list-inside mb-4 text-gray-700">')
+      };
+    }
+    
+    // Convert plain text to paragraphs
+    const paragraphs = content.split('\n\n').filter(p => p.trim());
+    const formatted = paragraphs
+      .map(p => `<p class="mb-4 text-gray-700 leading-relaxed">${p.trim()}</p>`)
+      .join('');
+    return { __html: formatted };
+  }, [article?.content]);
+
+  // Optimized fetch function with caching and parallel requests
+  useEffect(() => {
+    if (!articleId) {
+      setError('Article ID missing');
+      setLoading(false);
+      return;
+    }
+
+    const fetchArticle = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Check cache first
+        const cachedArticle = articleCache.get(articleId);
+        const cacheKey = `${articleId}`;
+        const cachedRelated = relatedCache.get(cacheKey);
+
+        if (cachedArticle && cachedRelated) {
+          // ⚡ INSTANT LOAD from cache
+          setArticle(cachedArticle);
+          setRelatedArticles(cachedRelated);
+          setLoading(false);
+          
+          // Update page metadata immediately
+          document.title = `${cachedArticle.title} - The Age of GenZ`;
+          window.scrollTo(0, 0);
+          return;
+        }
+
+        // ⚡ PARALLEL API CALLS - Don't wait for article to fetch related
+        const [articleResponse, allArticlesResponse] = await Promise.all([
+          getArticleById(articleId),
+          cachedRelated ? Promise.resolve({ data: { results: [] } }) : getArticles()
+        ]);
+
+        const articleData = articleResponse.data;
+        setArticle(articleData);
+
+        // Cache the article immediately
+        articleCache.set(articleId, articleData);
+
+        // Handle related articles
+        if (!cachedRelated) {
+          const related = (allArticlesResponse.data.results || [])
+            .filter((a: Article) => 
+              a.category?.slug === articleData.category?.slug && 
+              a.id !== articleId
+            )
+            .slice(0, 4);
+          
+          setRelatedArticles(related);
+          relatedCache.set(cacheKey, related);
+        } else {
+          setRelatedArticles(cachedRelated);
+        }
+
+        // Update page metadata
+        document.title = `${articleData.title} - The Age of GenZ`;
+        window.scrollTo(0, 0);
+        
+      } catch (err: any) {
+        console.error('Error fetching article:', err);
+        setError(err.message || 'Could not load article');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchArticle();
+  }, [articleId]);
+
+  // ⚡ INSTANT SKELETON LOADER - Show structure immediately
+  if (loading && !article) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <nav className="bg-white border-b">
+          <div className="container mx-auto px-4 py-3">
+            <div className="flex items-center space-x-2 text-sm text-gray-400">
+              <div className="w-12 h-4 bg-gray-200 rounded animate-pulse"></div>
+              <span>›</span>
+              <div className="w-20 h-4 bg-gray-200 rounded animate-pulse"></div>
+              <span>›</span>
+              <div className="w-32 h-4 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+        </nav>
+
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+          <div className="lg:flex lg:gap-8">
+            <article className="lg:w-8/12 bg-white rounded-lg shadow-sm p-6 lg:p-8">
+              <div className="animate-pulse">
+                <div className="w-24 h-6 bg-orange-200 rounded-full mb-4"></div>
+                <div className="w-full h-12 bg-gray-200 rounded mb-4"></div>
+                <div className="w-3/4 h-6 bg-gray-200 rounded mb-6"></div>
+                <div className="w-full aspect-[16/10] bg-gray-200 rounded-lg mb-8"></div>
+                <div className="space-y-4">
+                  <div className="w-full h-4 bg-gray-200 rounded"></div>
+                  <div className="w-5/6 h-4 bg-gray-200 rounded"></div>
+                  <div className="w-4/5 h-4 bg-gray-200 rounded"></div>
+                </div>
+              </div>
+            </article>
+            <aside className="lg:w-4/12 mt-8 lg:mt-0">
+              <div className="bg-white rounded-lg shadow-sm p-6 animate-pulse">
+                <div className="w-32 h-6 bg-gray-200 rounded mb-4"></div>
+                <div className="space-y-4">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="flex gap-3">
+                      <div className="w-20 h-20 bg-gray-200 rounded"></div>
+                      <div className="flex-1">
+                        <div className="w-full h-4 bg-gray-200 rounded mb-2"></div>
+                        <div className="w-2/3 h-3 bg-gray-200 rounded"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !article) {
+    return (
+      <div className="container mx-auto px-4 py-12 text-center">
+        <h1 className="text-3xl font-bold mb-4">Article Not Found</h1>
+        <p className="mb-6 text-gray-600">{error || 'This article is not available'}</p>
+        <Link to="/" className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg transition-colors">
+          Back to Home
+        </Link>
+      </div>
+    );
+  }
+
+  const articleUrl = `${window.location.origin}/article/${article.id}`;
+  const publishedDate = formatDate(article.published_at || article.created_at);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Breadcrumb Navigation */}
+      <nav className="bg-white border-b">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center space-x-2 text-sm text-gray-600">
+            <Link to="/" className="hover:text-orange-500 transition-colors">Home</Link>
+            <span>›</span>
+            <Link to={`/${article.category?.slug}`} className="hover:text-orange-500 transition-colors">
+              {article.category?.name || 'Uncategorized'}
+            </Link>
+            <span>›</span>
+            <span className="text-gray-900 truncate max-w-xs">
+              {article.title}
+            </span>
+          </div>
+        </div>
+      </nav>
+
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="lg:flex lg:gap-8">
+          {/* Main Content */}
+          <article className="lg:w-8/12 bg-white rounded-lg shadow-sm p-6 lg:p-8">
+            {/* Article Header */}
+            <header className="mb-6">
+              <div className="mb-4">
+                <Link 
+                  to={`/${article.category?.slug}`}
+                  className="inline-block bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-medium hover:bg-orange-600 transition-colors"
+                >
+                  {article.category?.name || 'Uncategorized'}
+                </Link>
+              </div>
+              
+              <h1 className="text-3xl md:text-4xl font-bold mb-4 leading-tight text-gray-900">
+                {article.title}
+              </h1>
+              
+              {article.excerpt && (
+                <p className="text-lg text-gray-600 mb-4 leading-relaxed">
+                  {article.excerpt}
+                </p>
+              )}
+              
+              {/* Article Meta */}
+              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 pb-4 border-b">
+                <div className="flex items-center">
+                  <User size={16} className="mr-2" />
+                  <span>{article.author?.name || 'The Age of GenZ'}</span>
+                </div>
+                <div className="flex items-center">
+                  <Calendar size={16} className="mr-2" />
+                  <span>{publishedDate}</span>
+                </div>
+                <div className="flex items-center">
+                  <Eye size={16} className="mr-2" />
+                  <span>{article.view_count || 0} views</span>
+                </div>
+                <div className="flex items-center">
+                  <Clock size={16} className="mr-2" />
+                  <span>{article.estimated_read_time || 5} min read</span>
+                </div>
+              </div>
+            </header>
+
+            {/* ⚡ OPTIMIZED Featured Image - Progressive loading */}
+            {article.featured_image && (
+              <div className="mb-8 max-w-2xl mx-auto">
+                <div className="relative">
+                  {!imageLoaded && (
+                    <div className="absolute inset-0 bg-gray-200 rounded-lg animate-pulse aspect-[16/10]"></div>
+                  )}
+                  <img
+                    src={article.featured_image}
+                    alt={article.title}
+                    className={`w-full aspect-[16/10] object-cover rounded-lg shadow-sm transition-opacity duration-300 ${
+                      imageLoaded ? 'opacity-100' : 'opacity-0'
+                    }`}
+                    onLoad={() => setImageLoaded(true)}
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                    loading="eager" // Load featured image immediately
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* ⚡ OPTIMIZED Article Content - Pre-formatted */}
+            <div 
+              className="prose prose-lg max-w-none mb-8"
+              dangerouslySetInnerHTML={formattedContent}
+            />
+
+            {/* Tags */}
+            {article.tags && article.tags.length > 0 && (
+              <div className="mb-8 pb-8 border-b">
+                <div className="flex items-center flex-wrap gap-2">
+                  <Tag size={16} className="text-gray-500" />
+                  {article.tags.map((tag, index) => (
+                    <span 
+                      key={index}
+                      className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Social Share */}
+            <SocialShare
+              url={articleUrl}
+              title={article.title}
+              description={article.excerpt || ''}
+              hashtags={article.tags}
+            />
+          </article>
+
+          {/* Sidebar */}
+          <aside className="lg:w-4/12 mt-8 lg:mt-0">
+            <div className="sticky top-24 space-y-6">
+              {/* Donation */}
+              <DonationPlaceholder />
+              
+              {/* ⚡ OPTIMIZED Related Articles - Lazy loaded images */}
+              {relatedArticles.length > 0 && (
+                <div className="bg-white rounded-lg shadow-sm p-6">
+                  <h3 className="text-xl font-bold mb-4 pb-2 border-b-2 border-orange-500">
+                    Related Articles
+                  </h3>
+                  <div className="space-y-4">
+                    {relatedArticles.map((relatedArticle) => (
+                      <div key={relatedArticle.id} className="group">
+                        <Link to={`/article/${relatedArticle.id}`} className="block">
+                          <div className="flex gap-3">
+                            {relatedArticle.featured_image && (
+                              <img
+                                src={relatedArticle.featured_image}
+                                alt={relatedArticle.title}
+                                className="w-20 h-20 object-cover rounded flex-shrink-0"
+                                loading="lazy" // Lazy load related images
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                            )}
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-sm mb-1 line-clamp-2 group-hover:text-orange-500 transition-colors">
+                                {relatedArticle.title}
+                              </h4>
+                              <span className="text-xs text-gray-500">
+                                {formatDate(relatedArticle.published_at || relatedArticle.created_at)}
+                              </span>
+                            </div>
+                          </div>
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ArticleDetail;
