@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet'; 
 import { getArticleById, getArticles } from '../utils/api';
 import DonationPlaceholder from '../components/DonationPlaceholder';
 import SocialShare from '../components/SocialShare';
@@ -202,6 +203,35 @@ const ArticleDetail: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* ADD THIS HELMET SECTION FOR META TAGS */}
+      <Helmet>
+        <title>{article.title} - The Age of GenZ</title>
+        <meta name="description" content={article.excerpt || article.title} />
+        
+        {/* Open Graph Meta Tags for Rich Previews */}
+        <meta property="og:title" content={article.title} />
+        <meta property="og:description" content={article.excerpt || article.title} />
+        <meta property="og:image" content={article.featured_image || `${window.location.origin}/default-og-image.jpg`} />
+        <meta property="og:url" content={articleUrl} />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="The Age of GenZ" />
+        
+        {/* Twitter Card Meta Tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={article.title} />
+        <meta name="twitter:description" content={article.excerpt || article.title} />
+        <meta name="twitter:image" content={article.featured_image || `${window.location.origin}/default-og-image.jpg`} />
+        
+        {/* Article Specific Meta Tags */}
+        <meta property="article:published_time" content={article.published_at || article.created_at} />
+        <meta property="article:author" content={article.author?.name || 'The Age of GenZ'} />
+        <meta property="article:section" content={article.category?.name || 'News'} />
+        {article.tags && article.tags.map((tag, index) => (
+          <meta key={index} property="article:tag" content={tag} />
+        ))}
+      </Helmet>
+      {/* END OF ADDED META TAGS SECTION */}
+
       {/* Breadcrumb Navigation */}
       <nav className="bg-white border-b">
         <div className="container mx-auto px-4 py-3">
