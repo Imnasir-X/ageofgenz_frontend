@@ -59,7 +59,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
 
   return (
     <article className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden group">
-      <Link to={`/article/${article.id}`} className="block">
+      <Link to={`/article/${article.slug}`} className="block">
         {/* Compact Image Container */}
         <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
           <img
