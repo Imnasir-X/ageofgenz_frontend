@@ -198,7 +198,7 @@ const ArticleDetail: React.FC = () => {
     );
   }
 
-  const articleUrl = `${window.location.origin}/article/${article.id}`;
+  const articleUrl = `https://www.theageofgenz.com/article/${article.id}`;
   const publishedDate = formatDate(article.published_at || article.created_at);
 
   return (
