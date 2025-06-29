@@ -1,26 +1,23 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet'; 
-import { getArticleById, getArticles } from '../utils/api';
+import { getArticleBySlug, getArticles } from '../utils/api';
 import DonationPlaceholder from '../components/DonationPlaceholder';
 import SocialShare from '../components/SocialShare';
 import { Clock, Eye, User, Calendar, Tag } from 'lucide-react';
 import { Article } from '../types';
 
-// Cache for articles to avoid refetching
-const articleCache = new Map<number, Article>();
+// Cache for articles to avoid refetching - NOW USING SLUG AS KEY
+const articleCache = new Map<string, Article>();
 const relatedCache = new Map<string, Article[]>();
 
 const ArticleDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const [article, setArticle] = useState<Article | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [imageLoaded, setImageLoaded] = useState<boolean>(false);
-
-  // Memoize article ID
-  const articleId = useMemo(() => id ? parseInt(id) : null, [id]);
 
   // Memoized date formatter
   const formatDate = useCallback((dateString: string) => {
@@ -61,10 +58,10 @@ const ArticleDetail: React.FC = () => {
     return { __html: formatted };
   }, [article?.content]);
 
-  // Optimized fetch function with caching and parallel requests
+  // Optimized fetch function with caching and parallel requests - FIXED FOR SLUG
   useEffect(() => {
-    if (!articleId) {
-      setError('Article ID missing');
+    if (!slug) {
+      setError('Article slug missing');
       setLoading(false);
       return;
     }
@@ -74,9 +71,9 @@ const ArticleDetail: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        // Check cache first
-        const cachedArticle = articleCache.get(articleId);
-        const cacheKey = `${articleId}`;
+        // Check cache first - USING SLUG AS KEY
+        const cachedArticle = articleCache.get(slug);
+        const cacheKey = slug;
         const cachedRelated = relatedCache.get(cacheKey);
 
         if (cachedArticle && cachedRelated) {
@@ -91,24 +88,24 @@ const ArticleDetail: React.FC = () => {
           return;
         }
 
-        // ⚡ PARALLEL API CALLS - Don't wait for article to fetch related
+        // ⚡ PARALLEL API CALLS - Using slug instead of id
         const [articleResponse, allArticlesResponse] = await Promise.all([
-          getArticleById(articleId),
+          getArticleBySlug(slug),
           cachedRelated ? Promise.resolve({ data: { results: [] } }) : getArticles()
         ]);
 
         const articleData = articleResponse.data;
         setArticle(articleData);
 
-        // Cache the article immediately
-        articleCache.set(articleId, articleData);
+        // Cache the article immediately - USING SLUG AS KEY
+        articleCache.set(slug, articleData);
 
         // Handle related articles
         if (!cachedRelated) {
           const related = (allArticlesResponse.data.results || [])
             .filter((a: Article) => 
               a.category?.slug === articleData.category?.slug && 
-              a.id !== articleId
+              a.slug !== slug  // COMPARE BY SLUG INSTEAD OF ID
             )
             .slice(0, 4);
           
@@ -131,7 +128,7 @@ const ArticleDetail: React.FC = () => {
     };
 
     fetchArticle();
-  }, [articleId]);
+  }, [slug]); // DEPENDENCY CHANGED FROM articleId TO slug
 
   // ⚡ INSTANT SKELETON LOADER - Show structure immediately
   if (loading && !article) {
@@ -198,12 +195,13 @@ const ArticleDetail: React.FC = () => {
     );
   }
 
-  const articleUrl = `https://www.theageofgenz.com/article/${article.id}`;
+  // FIXED: USE SLUG FOR URL GENERATION
+  const articleUrl = `https://www.theageofgenz.com/article/${article.slug}`;
   const publishedDate = formatDate(article.published_at || article.created_at);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* ADD THIS HELMET SECTION FOR META TAGS */}
+      {/* META TAGS FOR RICH PREVIEWS */}
       <Helmet>
         <title>{article.title} - The Age of GenZ</title>
         <meta name="description" content={article.excerpt || article.title} />
@@ -211,7 +209,7 @@ const ArticleDetail: React.FC = () => {
         {/* Open Graph Meta Tags for Rich Previews */}
         <meta property="og:title" content={article.title} />
         <meta property="og:description" content={article.excerpt || article.title} />
-        <meta property="og:image" content={article.featured_image || `${window.location.origin}/default-og-image.jpg`} />
+        <meta property="og:image" content={article.featured_image || `https://www.theageofgenz.com/default-og-image.jpg`} />
         <meta property="og:url" content={articleUrl} />
         <meta property="og:type" content="article" />
         <meta property="og:site_name" content="The Age of GenZ" />
@@ -220,7 +218,7 @@ const ArticleDetail: React.FC = () => {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={article.title} />
         <meta name="twitter:description" content={article.excerpt || article.title} />
-        <meta name="twitter:image" content={article.featured_image || `${window.location.origin}/default-og-image.jpg`} />
+        <meta name="twitter:image" content={article.featured_image || `https://www.theageofgenz.com/default-og-image.jpg`} />
         
         {/* Article Specific Meta Tags */}
         <meta property="article:published_time" content={article.published_at || article.created_at} />
@@ -230,7 +228,6 @@ const ArticleDetail: React.FC = () => {
           <meta key={index} property="article:tag" content={tag} />
         ))}
       </Helmet>
-      {/* END OF ADDED META TAGS SECTION */}
 
       {/* Breadcrumb Navigation */}
       <nav className="bg-white border-b">
@@ -356,7 +353,7 @@ const ArticleDetail: React.FC = () => {
               {/* Donation */}
               <DonationPlaceholder />
               
-              {/* ⚡ OPTIMIZED Related Articles - Lazy loaded images */}
+              {/* ⚡ OPTIMIZED Related Articles - FIXED TO USE SLUG */}
               {relatedArticles.length > 0 && (
                 <div className="bg-white rounded-lg shadow-sm p-6">
                   <h3 className="text-xl font-bold mb-4 pb-2 border-b-2 border-orange-500">
@@ -365,7 +362,7 @@ const ArticleDetail: React.FC = () => {
                   <div className="space-y-4">
                     {relatedArticles.map((relatedArticle) => (
                       <div key={relatedArticle.id} className="group">
-                        <Link to={`/article/${relatedArticle.id}`} className="block">
+                        <Link to={`/article/${relatedArticle.slug}`} className="block">
                           <div className="flex gap-3">
                             {relatedArticle.featured_image && (
                               <img
