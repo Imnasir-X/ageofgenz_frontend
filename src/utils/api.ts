@@ -360,24 +360,24 @@ export const getArticleById = async (id: number) => {
 export const getArticleBySlug = async (slug: string) => {
   console.log('📄 Fetching article by slug:', slug);
   
-  // Since direct slug endpoint might not exist, search by slug in all articles
   try {
-    const allArticlesResponse = await getArticles();
-    const allArticles = allArticlesResponse.data.results;
+    // Use direct endpoint - this works with your ViewSet
+    const response = await retryRequest<any>(() =>
+      api.get(`/api/articles/${slug}/`)
+    );
     
-    const foundArticle = allArticles.find(article => article.slug === slug);
-    
-    if (!foundArticle) {
-      throw new Error(`Article with slug ${slug} not found`);
-    }
+    console.log('📄 Raw backend response:', response.data);
+    const transformedArticle = transformArticle(response.data);
+    console.log('📄 Transformed article:', transformedArticle);
     
     return {
-      ...allArticlesResponse,
-      data: foundArticle
+      ...response,
+      data: transformedArticle
     } as AxiosResponse<Article>;
-  } catch (error) {
+  } catch (error: any) {
     console.error('📄 Failed to get article by slug:', error);
-    throw error;
+    console.error('📄 Error details:', error.response?.data);
+    throw new Error(`Article with slug "${slug}" not found: ${error.response?.data?.detail || error.message}`);
   }
 };
 
