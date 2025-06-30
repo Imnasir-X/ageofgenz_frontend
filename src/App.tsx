@@ -14,7 +14,7 @@ import Category from './pages/Category';
 import Privacy from './pages/Privacy';
 import Login from './pages/Login';
 import ArticleDetail from './pages/ArticleDetail';
-import Join from './pages/Join';
+import Subscribe from './pages/Subscribe';
 import SearchResults from './pages/SearchResults';
 import ForgotPassword from './pages/ForgotPassword';
 import Politics from './pages/Politics';
@@ -62,7 +62,7 @@ const App: React.FC = () => {
               <Route path="/category/:slug" element={<Category />} />
               
               <Route path="/privacy" element={<Privacy />} />
-              <Route path="/join" element={<Join />} />
+              <Route path="/subscribe" element={<Subscribe />} />
               <Route path="/login" element={<Login />} />
               <Route path="/search" element={<SearchResults />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
