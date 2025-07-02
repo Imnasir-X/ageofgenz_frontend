@@ -1,7 +1,8 @@
 import axios, { AxiosResponse, AxiosError } from 'axios';
 import type { Article, Category } from '../types';
 
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// ✅ FIXED: Use production backend URL as fallback
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://ageofgenz-backend.onrender.com';
 
 interface PaginatedArticlesResponse {
   results: Article[];
@@ -57,6 +58,14 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+});
+
+// ✅ ENHANCED: Add debug logging for API URL
+console.log('🚀 API Configuration:', {
+  VITE_API_URL: import.meta.env.VITE_API_URL,
+  API_BASE_URL: API_BASE_URL,
+  isDevelopment: import.meta.env.DEV,
+  isProduction: import.meta.env.PROD
 });
 
 api.interceptors.request.use(
@@ -145,7 +154,10 @@ const transformArticle = (backendArticle: any): Article => {
     slug: backendArticle.slug || '',
     excerpt: backendArticle.excerpt || '',
     content: backendArticle.content || '',
-    featured_image: backendArticle.featured_image || null,
+    
+    // ✅ CRITICAL FIX: Use featured_image_url from backend API
+    featured_image: backendArticle.featured_image_url || backendArticle.featured_image || null,
+    featured_image_url: backendArticle.featured_image_url || null,
     
     // Enhanced author handling
     author: backendArticle.author ? 
@@ -168,8 +180,8 @@ const transformArticle = (backendArticle: any): Article => {
     updated_at: backendArticle.updated_at,
     estimated_read_time: Math.ceil((backendArticle.content || '').split(' ').length / 200) || 1,
     
-    // Backward compatibility fields
-    image: backendArticle.featured_image,
+    // ✅ FIXED: Backward compatibility fields use new image URL
+    image: backendArticle.featured_image_url || backendArticle.featured_image,
     description: backendArticle.excerpt || '',
     date: backendArticle.published_at || backendArticle.created_at,
     views: Number(backendArticle.view_count) || 0,
@@ -179,6 +191,8 @@ const transformArticle = (backendArticle: any): Article => {
   console.log('🔄 Transformed article:', {
     id: transformed.id,
     title: transformed.title,
+    featured_image: transformed.featured_image,
+    featured_image_url: transformed.featured_image_url,
     category: transformed.category,
     is_featured: transformed.is_featured
   });
