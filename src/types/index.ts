@@ -45,7 +45,7 @@ export interface Article {
   excerpt: string;
   content: string;
   featured_image: string | null;
-  featured_image_url?: string | null;  // 🔧 ADD THIS LINE
+  featured_image_url?: string | null; 
   author: Author;
   category: Category;
   category_name: string;
