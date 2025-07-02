@@ -45,6 +45,7 @@ export interface Article {
   excerpt: string;
   content: string;
   featured_image: string | null;
+  featured_image_url?: string | null;  // 🔧 ADD THIS LINE
   author: Author;
   category: Category;
   category_name: string;
@@ -74,6 +75,7 @@ export interface BackendArticle {
   content: string;
   excerpt: string;
   featured_image: string | null;
+  featured_image_url?: string | null;  // 🔧 ADD THIS LINE
   is_published: boolean;
   is_featured: boolean;
   created_at: string;

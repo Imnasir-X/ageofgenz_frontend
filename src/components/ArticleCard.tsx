@@ -63,7 +63,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
         {/* Compact Image Container */}
         <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
           <img
-            src={article.image || article.featured_image || '/api/placeholder/400/250'}
+            src={article.featured_image_url || article.image || article.featured_image || '/api/placeholder/400/250'}
             alt={article.title || 'Article image'}
             className={`w-full h-full object-cover ${getObjectPosition()} transition-transform duration-200 group-hover:scale-105`}
             onError={(e) => {

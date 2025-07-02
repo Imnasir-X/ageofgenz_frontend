@@ -209,7 +209,7 @@ const ArticleDetail: React.FC = () => {
         {/* Open Graph Meta Tags for Rich Previews */}
         <meta property="og:title" content={article.title} />
         <meta property="og:description" content={article.excerpt || article.title} />
-        <meta property="og:image" content={article.featured_image || `https://www.theageofgenz.com/default-og-image.jpg`} />
+        <meta property="og:image" content={article.featured_image_url || article.featured_image || `https://www.theageofgenz.com/default-og-image.jpg`} />
         <meta property="og:url" content={articleUrl} />
         <meta property="og:type" content="article" />
         <meta property="og:site_name" content="The Age of GenZ" />
@@ -218,7 +218,7 @@ const ArticleDetail: React.FC = () => {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={article.title} />
         <meta name="twitter:description" content={article.excerpt || article.title} />
-        <meta name="twitter:image" content={article.featured_image || `https://www.theageofgenz.com/default-og-image.jpg`} />
+        <meta name="twitter:image" content={article.featured_image_url || article.featured_image || `https://www.theageofgenz.com/default-og-image.jpg`} />
         
         {/* Article Specific Meta Tags */}
         <meta property="article:published_time" content={article.published_at || article.created_at} />
@@ -293,14 +293,14 @@ const ArticleDetail: React.FC = () => {
             </header>
 
             {/* ⚡ OPTIMIZED Featured Image - Progressive loading */}
-            {article.featured_image && (
+            {(article.featured_image_url || article.featured_image) && (
               <div className="mb-8 max-w-2xl mx-auto">
                 <div className="relative">
                   {!imageLoaded && (
                     <div className="absolute inset-0 bg-gray-200 rounded-lg animate-pulse aspect-[16/10]"></div>
                   )}
                   <img
-                    src={article.featured_image}
+                    src={article.featured_image_url || article.featured_image || '/api/placeholder/400/250'}
                     alt={article.title}
                     className={`w-full aspect-[16/10] object-cover rounded-lg shadow-sm transition-opacity duration-300 ${
                       imageLoaded ? 'opacity-100' : 'opacity-0'
@@ -364,9 +364,9 @@ const ArticleDetail: React.FC = () => {
                       <div key={relatedArticle.id} className="group">
                         <Link to={`/article/${relatedArticle.slug}`} className="block">
                           <div className="flex gap-3">
-                            {relatedArticle.featured_image && (
+                            {(relatedArticle.featured_image_url || relatedArticle.featured_image) && (
                               <img
-                                src={relatedArticle.featured_image}
+                                src={relatedArticle.featured_image_url || relatedArticle.featured_image || '/api/placeholder/400/250'}
                                 alt={relatedArticle.title}
                                 className="w-20 h-20 object-cover rounded flex-shrink-0"
                                 loading="lazy" // Lazy load related images
