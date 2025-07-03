@@ -205,8 +205,10 @@ const Insights: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {insightsArticles.map((article) => {
                   console.log('Rendering Insights Article:', article);
-                  if (!article.id) {
-                    console.warn('Skipping article due to missing ID:', article);
+                  
+                  // ✅ CRITICAL FIX: Skip articles without slug
+                  if (!article.id || !article.slug) {
+                    console.warn('Skipping article due to missing slug:', article);
                     return null;
                   }
                   
@@ -221,10 +223,12 @@ const Insights: React.FC = () => {
                   
                   return (
                     <div key={`insights-${article.id}`} className="relative group">
-                      <Link to={`/article/${article.id}`} className="block">
+                      {/* ✅ FIXED: Use slug instead of id for article URL */}
+                      <Link to={`/article/${article.slug}`} className="block">
                         <div className="relative aspect-video overflow-hidden rounded">
                           <img
-                            src={article.image || article.featured_image || '/api/placeholder/400/300'}
+                            // ✅ ENHANCED: Use featured_image_url first, then fallbacks
+                            src={article.featured_image_url || article.image || article.featured_image || '/api/placeholder/400/300'}
                             onError={(e) => { 
                               (e.target as HTMLImageElement).src = '/api/placeholder/400/300'; 
                             }}

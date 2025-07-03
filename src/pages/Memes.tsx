@@ -153,9 +153,9 @@ const Memes: React.FC = () => {
               {memesArticles.map((article) => {
                 console.log('Rendering Memes Article:', article);
                 
-                // Skip if no ID
-                if (!article.id) {
-                  console.warn('Skipping article due to missing ID:', article);
+                // ✅ CRITICAL FIX: Skip articles without slug
+                if (!article.id || !article.slug) {
+                  console.warn('Skipping article due to missing slug:', article);
                   return null;
                 }
                 
@@ -171,10 +171,12 @@ const Memes: React.FC = () => {
                 
                 return (
                   <div key={article.id} className="relative group">
-                    <Link to={`/article/${article.id}`} className="block">
+                    {/* ✅ FIXED: Use slug instead of id for article URL */}
+                    <Link to={`/article/${article.slug}`} className="block">
                       <div className="relative aspect-video overflow-hidden rounded">
                         <img
-                          src={article.image || article.featured_image || '/api/placeholder/400/300'}
+                          // ✅ ENHANCED: Use featured_image_url first, then fallbacks
+                          src={article.featured_image_url || article.image || article.featured_image || '/api/placeholder/400/300'}
                           onError={(e) => { 
                             e.currentTarget.src = '/api/placeholder/400/300'; 
                           }}
