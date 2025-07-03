@@ -1,8 +1,40 @@
 {
+  "redirects": [
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://ageofgenz-backend.onrender.com/sitemap.xml",
+      "permanent": true
+    },
+    {
+      "source": "/robots.txt", 
+      "destination": "https://ageofgenz-backend.onrender.com/robots.txt",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",
       "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/sitemap.xml",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/xml"
+        }
+      ]
+    },
+    {
+      "source": "/robots.txt",
+      "headers": [
+        {
+          "key": "Content-Type", 
+          "value": "text/plain"
+        }
+      ]
     }
   ]
 }
