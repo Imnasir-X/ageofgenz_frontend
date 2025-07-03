@@ -122,7 +122,12 @@ const World: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {worldArticles.map((article) => {
-                if (!article.id) return null;
+                // ✅ CRITICAL FIX: Skip articles without slug
+                if (!article.id || !article.slug) {
+                  console.warn('Skipping article due to missing slug:', article);
+                  return null;
+                }
+                
                 const cleanDescription = article.description || article.excerpt
                   ? stripHtml(article.description || article.excerpt).substring(0, 100) + '...'
                   : 'No description available.';
@@ -131,11 +136,13 @@ const World: React.FC = () => {
 
                 return (
                   <div key={article.id} className="relative group">
-                    <Link to={`/article/${article.id}`} className="block">
+                    {/* ✅ FIXED: Use slug instead of id for article URL */}
+                    <Link to={`/article/${article.slug}`} className="block">
                       <div className="relative aspect-[16/10] overflow-hidden rounded">
                         <img
                           loading="lazy"
-                          src={article.image || article.featured_image || '/api/placeholder/400/250'}
+                          // ✅ ENHANCED: Use featured_image_url first, then fallbacks
+                          src={article.featured_image_url || article.image || article.featured_image || '/api/placeholder/400/250'}
                           onError={(e) => (e.currentTarget.src = '/api/placeholder/400/250')}
                           alt={article.title || 'Article Image'}
                           className="w-full h-full object-cover transition-transform group-hover:scale-105"
