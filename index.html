@@ -3,7 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     
-    <!-- ✅ UPDATED: Your Logo Instead of Vite -->
+    <!-- ✅ PRELOAD: Critical assets for performance (LCP optimization) -->
+    <link rel="preload" href="/logo.png" as="image" type="image/png" />
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Inknut+Antiqua:wght@700&display=swap" as="style" />
+    
+    <!-- ✅ FAVICON: Complete favicon setup -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/logo192.png" />
@@ -12,72 +16,176 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="google-site-verification" content="qLnHhIXeMAmBziKg2oKO4XsALvo15pfc6ZfIyTHWaik" />
     
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <!-- ✅ FONTS: Multiple weights with system fallbacks for professional typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Inknut+Antiqua:wght@700&display=swap" rel="stylesheet">
     
-    <!-- ✅ SEO Meta Tags with Your Motto -->
-    <title>The Age of GenZ - News You Can Vibe With</title>
-    <meta name="description" content="The Age of GenZ delivers news you can vibe with! Fresh perspectives on politics, culture, tech, and trends that matter to Gen Z. Where young voices shape the conversation." />
-    <meta name="keywords" content="Gen Z news, youth culture, politics, technology, social media, trends, opinion, viral news, millennial news" />
-    <meta name="author" content="The Age of GenZ" />
+    <!-- ✅ FIXED: SEO Meta Tags with Proper "Of" Capitalization -->
+    <title>The Age Of GenZ - News You Can Vibe With</title>
+    <meta name="description" content="The Age Of GenZ delivers News You Can Vibe With! Fresh perspectives on politics, culture, tech, and trends that matter to Gen Z. Where young voices shape the conversation." />
+    <meta name="keywords" content="Age Of GenZ, theageofgenz, Gen Z news, youth culture, politics, technology, social media, trends, opinion, viral news, millennial news, GenZ media" />
+    <meta name="author" content="The Age Of GenZ" />
     <meta name="robots" content="index, follow" />
     
-    <!-- ✅ Open Graph Meta Tags (for social media sharing) -->
-    <meta property="og:site_name" content="The Age of GenZ" />
-    <meta property="og:title" content="The Age of GenZ - News You Can Vibe With" />
-    <meta property="og:description" content="Fresh perspectives on politics, culture, tech, and trends that matter to Gen Z. News you can vibe with!" />
+    <!-- ✅ BRAND RECOGNITION: Additional meta tags for search visibility -->
+    <meta name="application-name" content="The Age Of GenZ" />
+    <meta name="apple-mobile-web-app-title" content="Age Of GenZ" />
+    <meta name="msapplication-TileColor" content="#f97316" />
+    <meta name="msapplication-TileImage" content="/logo192.png" />
+    <meta name="theme-color" content="#f97316" />
+    
+    <!-- ✅ IMPROVED: Open Graph Meta Tags with High-Quality Images -->
+    <meta property="og:site_name" content="The Age Of GenZ" />
+    <meta property="og:title" content="The Age Of GenZ - News You Can Vibe With" />
+    <meta property="og:description" content="Fresh perspectives on politics, culture, tech, and trends that matter to Gen Z. News You Can Vibe With!" />
     <meta property="og:image" content="https://theageofgenz.com/logo.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:alt" content="The Age Of GenZ Logo - News You Can Vibe With" />
     <meta property="og:url" content="https://theageofgenz.com" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="en_US" />
     
-    <!-- ✅ Twitter Card Meta Tags -->
+    <!-- ✅ ENHANCED: Twitter Card Meta Tags with Optimized Images -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@theageofgenz" />
-    <meta name="twitter:title" content="The Age of GenZ - News You Can Vibe With" />
-    <meta name="twitter:description" content="Fresh perspectives on politics, culture, tech, and trends that matter to Gen Z." />
-    <meta name="twitter:image" content="https://theageofgenz.com/logo.png" />
     <meta name="twitter:creator" content="@theageofgenz" />
+    <meta name="twitter:title" content="The Age Of GenZ - News You Can Vibe With" />
+    <meta name="twitter:description" content="Fresh perspectives on politics, culture, tech, and trends that matter to Gen Z. News You Can Vibe With!" />
+    <meta name="twitter:image" content="https://theageofgenz.com/logo.png" />
+    <meta name="twitter:image:alt" content="The Age Of GenZ Logo - News You Can Vibe With" />
     
-    <!-- ✅ Additional SEO Meta Tags -->
-    <meta name="theme-color" content="#f97316" />
-    <meta name="msapplication-TileColor" content="#f97316" />
-    <meta name="msapplication-TileImage" content="/logo192.png" />
-    
-    <!-- ✅ Canonical URL -->
+    <!-- ✅ CANONICAL URL -->
     <link rel="canonical" href="https://theageofgenz.com" />
     
-    <!-- ✅ Schema.org Structured Data -->
+    <!-- ✅ RSS FEED: For news aggregators -->
+    <link rel="alternate" type="application/rss+xml" title="The Age Of GenZ RSS Feed" href="https://theageofgenz.com/rss.xml" />
+    
+    <!-- ✅ ENHANCED: Schema.org Structured Data for News Organization -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "NewsMediaOrganization",
-      "name": "The Age of GenZ",
-      "alternateName": "Age of GenZ",
+      "name": "The Age Of GenZ",
+      "alternateName": ["Age Of GenZ", "theageofgenz", "AOZ"],
       "url": "https://theageofgenz.com",
       "logo": {
         "@type": "ImageObject",
         "url": "https://theageofgenz.com/logo.png",
         "width": 512,
-        "height": 512
+        "height": 512,
+        "caption": "The Age Of GenZ Logo"
       },
-      "description": "News you can vibe with! Fresh perspectives on politics, culture, tech, and trends that matter to Gen Z.",
+      "description": "News You Can Vibe With! Fresh perspectives on politics, culture, tech, and trends that matter to Gen Z.",
+      "slogan": "News You Can Vibe With",
+      "foundingDate": "2025",
       "founder": {
         "@type": "Organization",
-        "name": "The Age of GenZ"
+        "name": "The Age Of GenZ"
+      },
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "US"
       },
       "sameAs": [
-        "https://twitter.com/theageofgenz"
+        "https://twitter.com/theageofgenz",
+        "https://instagram.com/theageofgenz",
+        "https://facebook.com/theageofgenz"
       ],
       "contactPoint": {
         "@type": "ContactPoint",
         "contactType": "Editorial",
         "url": "https://theageofgenz.com/contact"
+      },
+      "publishingPrinciples": "https://theageofgenz.com/editorial-guidelines",
+      "diversityPolicy": "https://theageofgenz.com/diversity",
+      "ethicsPolicy": "https://theageofgenz.com/ethics",
+      "masthead": "https://theageofgenz.com/about",
+      "missionCoveragePrioritiesPolicy": "https://theageofgenz.com/mission",
+      "ownershipFundingInfo": "https://theageofgenz.com/funding"
+    }
+    </script>
+    
+    <!-- ✅ BREADCRUMB: Schema for better navigation understanding -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://theageofgenz.com"
+        }
+      ]
+    }
+    </script>
+    
+    <!-- ✅ WEBSITE: Additional schema for search engines -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "The Age Of GenZ",
+      "alternateName": "theageofgenz",
+      "url": "https://theageofgenz.com",
+      "description": "News You Can Vibe With - Fresh perspectives on politics, culture, tech, and trends that matter to Gen Z",
+      "inLanguage": "en-US",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://theageofgenz.com/search?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "The Age Of GenZ",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://theageofgenz.com/logo.png"
+        }
       }
     }
     </script>
+    
+    <!-- ✅ PERFORMANCE: DNS prefetch for external resources -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link rel="dns-prefetch" href="//cloudinary.com">
+    
+    <!-- ✅ CSS: System font fallbacks for better loading -->
+    <style>
+      /* Professional font stack with system fallbacks */
+      :root {
+        --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+        --font-display: 'Inknut Antiqua', Georgia, 'Times New Roman', Times, serif;
+        --color-primary: #f97316;
+        --color-text: #1f2937;
+      }
+      
+      body {
+        font-family: var(--font-primary);
+        color: var(--color-text);
+        font-weight: 400;
+        line-height: 1.6;
+      }
+      
+      h1, h2, h3, h4, h5, h6 {
+        font-family: var(--font-display);
+        font-weight: 700;
+        line-height: 1.2;
+      }
+      
+      /* Critical CSS for above-the-fold content */
+      .bg-gray-50 {
+        background-color: #f9fafb;
+      }
+    </style>
   </head>
   <body class="bg-gray-50">
     <div id="root"></div>
