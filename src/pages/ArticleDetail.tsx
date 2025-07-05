@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet'; 
+import { Helmet } from 'react-helmet-async'; 
 import { getArticleBySlug, getArticles } from '../utils/api';
 import DonationPlaceholder from '../components/DonationPlaceholder';
 import SocialShare from '../components/SocialShare';

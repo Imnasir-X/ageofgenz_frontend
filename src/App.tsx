@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import { Helmet } from 'react-helmet';
+import { Helmet, HelmetProvider } from 'react-helmet-async';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -31,53 +31,55 @@ import Signup from './pages/Signup';
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="flex flex-col min-h-screen">
-          <Helmet>
-            <title>The Age of GenZ</title>
-            <meta name="description" content="Your trusted source for news that matters to Generation Z." />
-            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          </Helmet>
-          <Header />
-          <main className="flex-grow">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/home" element={<Home />} />
-              <Route path="/trending" element={<Trending />} />
-              <Route path="/opinion" element={<Opinion />} />
-              <Route path="/ai" element={<AI />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              
-              {/* Category-specific routes that map to your components */}
-              <Route path="/culture" element={<Culture />} />
-              <Route path="/sports" element={<Sports />} />
-              <Route path="/politics" element={<Politics />} />
-              <Route path="/world" element={<World />} />
-              <Route path="/insights" element={<Insights />} />
-              <Route path="/memes" element={<Memes />} />
-              
-              {/* Generic category route for any other categories */}
-              <Route path="/category/:slug" element={<Category />} />
-              
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/subscribe" element={<Subscribe />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/search" element={<SearchResults />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/article/:slug" element={<ArticleDetail />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/donate" element={<DonationPlaceholder />} />
-              <Route path="/thank-you" element={<ThankYou />} />
-              <Route path="/cancel" element={<Cancel />} />
-              <Route path="/signup" element={<Signup />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
-      </Router>
-    </AuthProvider>
+    <HelmetProvider>
+      <AuthProvider>
+        <Router>
+          <div className="flex flex-col min-h-screen">
+            <Helmet>
+              <title>The Age of GenZ</title>
+              <meta name="description" content="Your trusted source for news that matters to Generation Z." />
+              <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            </Helmet>
+            <Header />
+            <main className="flex-grow">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/home" element={<Home />} />
+                <Route path="/trending" element={<Trending />} />
+                <Route path="/opinion" element={<Opinion />} />
+                <Route path="/ai" element={<AI />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                
+                {/* Category-specific routes that map to your components */}
+                <Route path="/culture" element={<Culture />} />
+                <Route path="/sports" element={<Sports />} />
+                <Route path="/politics" element={<Politics />} />
+                <Route path="/world" element={<World />} />
+                <Route path="/insights" element={<Insights />} />
+                <Route path="/memes" element={<Memes />} />
+                
+                {/* Generic category route for any other categories */}
+                <Route path="/category/:slug" element={<Category />} />
+                
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/subscribe" element={<Subscribe />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/search" element={<SearchResults />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/article/:slug" element={<ArticleDetail />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/donate" element={<DonationPlaceholder />} />
+                <Route path="/thank-you" element={<ThankYou />} />
+                <Route path="/cancel" element={<Cancel />} />
+                <Route path="/signup" element={<Signup />} />
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        </Router>
+      </AuthProvider>
+    </HelmetProvider>
   );
 };
 
