@@ -35,8 +35,8 @@
     <meta name="google-site-verification" content="qLnHhIXeMAmBziKg2oKO4XsALvo15pfc6ZfIyTHWaik" />
     <meta name="msvalidate.01" content="EED29729C3D319FCACF2A9D055894D7B" />
     
-    <!-- ✅ COLOR SCHEME: Support for dark mode -->
-    <meta name="color-scheme" content="light dark">
+    <!-- ✅ COLOR SCHEME: Force light mode to prevent text visibility issues -->
+    <meta name="color-scheme" content="light">
     
     <!-- ✅ FONTS: Inter only for better performance -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -213,23 +213,14 @@
     <link rel="dns-prefetch" href="//www.google-analytics.com">
     <link rel="dns-prefetch" href="//www.googletagmanager.com">
     
-    <!-- ✅ CRITICAL CSS: Inline for better FCP -->
+    <!-- ✅ CRITICAL CSS: Fixed to prevent text visibility issues -->
     <style>
-      /* Critical CSS for above-the-fold content */
+      /* Critical CSS for above-the-fold content - FIXED VERSION */
       :root {
         --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
         --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
         --color-primary: #f97316;
-        --color-text: #1f2937;
         --color-accent: #3b82f6;
-        --color-bg: #f9fafb;
-      }
-      
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --color-text: #f3f4f6;
-          --color-bg: #111827;
-        }
       }
       
       * {
@@ -246,8 +237,8 @@
       
       body {
         font-family: var(--font-primary);
-        color: var(--color-text);
-        background-color: var(--color-bg);
+        color: #1f2937 !important; /* Force dark text - prevents white text issues */
+        background-color: #f9fafb !important; /* Force light background */
         font-weight: 400;
         line-height: 1.6;
         text-rendering: optimizeLegibility;
@@ -261,10 +252,36 @@
         font-weight: 700;
         line-height: 1.2;
         margin-bottom: 0.5em;
+        color: #1f2937 !important; /* Ensure headings are always visible */
+      }
+      
+      p, span, div, a {
+        color: inherit !important; /* Inherit the forced dark color from body */
       }
       
       .bg-gray-50 {
-        background-color: #f9fafb;
+        background-color: #f9fafb !important;
+      }
+      
+      /* Ensure all Tailwind text colors work properly */
+      .text-gray-600 {
+        color: #4b5563 !important;
+      }
+      
+      .text-gray-700 {
+        color: #374151 !important;
+      }
+      
+      .text-gray-800 {
+        color: #1f2937 !important;
+      }
+      
+      .text-gray-900 {
+        color: #111827 !important;
+      }
+      
+      .text-white {
+        color: #ffffff !important;
       }
       
       /* Skip to content link for accessibility */
@@ -318,8 +335,8 @@
       /* Print styles */
       @media print {
         body {
-          color: black;
-          background: white;
+          color: black !important;
+          background: white !important;
         }
         .ad-container, .no-print {
           display: none !important;
@@ -365,33 +382,10 @@
         }).observe({ entryTypes: ['largest-contentful-paint', 'first-input', 'layout-shift'] });
       }
     </script>
-    
-    <!-- ✅ ERROR TRACKING: Sentry (optional - replace with your DSN) -->
-    <!-- <script
-      src="https://browser.sentry-cdn.com/7.0.0/bundle.min.js"
-      integrity="sha384-xxx"
-      crossorigin="anonymous"
-    ></script>
-    <script>
-      Sentry.init({ 
-        dsn: 'YOUR_SENTRY_DSN',
-        environment: 'production',
-        integrations: [new Sentry.BrowserTracing()],
-        tracesSampleRate: 0.1
-      });
-    </script> -->
-    
-    <!-- ✅ CONSENT MANAGEMENT: Cookie consent (if needed) -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/cookieconsent@3/build/cookieconsent.min.js" data-cfasync="false"></script> -->
   </head>
   <body class="bg-gray-50">
     <!-- ✅ ACCESSIBILITY: Skip to content link -->
     <a href="#main-content" class="skip-to-content">Skip to main content</a>
-    
-    <!-- ✅ BING SEO FIX: Static H1 for crawler detection -->
-    <div style="position: absolute; left: -9999px; top: -9999px;" aria-hidden="true">
-      <h1>theageofgenz - The Age Of GenZ | News You Can Vibe With</h1>
-    </div>
     
     <div id="root"></div>
     
