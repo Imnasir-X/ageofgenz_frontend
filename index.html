@@ -284,6 +284,41 @@
         color: #ffffff !important;
       }
       
+      /* ✅ BING SEO FIX: Static H1 that's visible to crawlers but hidden from users */
+      .seo-h1 {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        padding: 0 !important;
+        margin: -1px !important;
+        overflow: hidden !important;
+        clip: rect(0, 0, 0, 0) !important;
+        white-space: nowrap !important;
+        border: 0 !important;
+        color: #1f2937 !important;
+        font-size: 2rem !important;
+        font-weight: 700 !important;
+      }
+      
+      /* Alternative: Visible H1 that gets hidden when React loads */
+      .loading-h1 {
+        text-align: center;
+        padding: 2rem;
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1f2937 !important;
+        background: linear-gradient(135deg, #f97316, #fb923c);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 0;
+      }
+      
+      /* Hide loading content once React loads */
+      .react-loaded .loading-h1 {
+        display: none !important;
+      }
+      
       /* Skip to content link for accessibility */
       .skip-to-content {
         position: absolute;
@@ -338,7 +373,7 @@
           color: black !important;
           background: white !important;
         }
-        .ad-container, .no-print {
+        .ad-container, .no-print, .seo-h1, .loading-h1 {
           display: none !important;
         }
       }
@@ -381,11 +416,30 @@
           }
         }).observe({ entryTypes: ['largest-contentful-paint', 'first-input', 'layout-shift'] });
       }
+      
+      // Mark when React has loaded to hide loading content
+      document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+          if (document.getElementById('root').children.length > 0) {
+            document.body.classList.add('react-loaded');
+          }
+        }, 1000);
+      });
     </script>
   </head>
   <body class="bg-gray-50">
     <!-- ✅ ACCESSIBILITY: Skip to content link -->
     <a href="#main-content" class="skip-to-content">Skip to main content</a>
+    
+    <!-- ✅ BING SEO FIX: Multiple H1 approaches for maximum compatibility -->
+    <!-- Approach 1: Screen reader accessible H1 -->
+    <h1 class="seo-h1">theageofgenz - The Age Of GenZ | Breaking News, Politics, Culture & Tech</h1>
+    
+    <!-- Approach 2: Visible H1 that gets hidden when React loads -->
+    <header class="loading-h1">
+      <h1>theageofgenz - News You Can Vibe With</h1>
+      <p style="font-size: 1rem; margin-top: 0.5rem; color: #6b7280;">Breaking news, politics, culture & tech from a Gen Z perspective</p>
+    </header>
     
     <div id="root"></div>
     
