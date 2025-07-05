@@ -41,11 +41,11 @@
     <!-- ✅ FONTS: Inter only for better performance -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- ✅ CRITICAL FIX: Brand Recognition - "theageofgenz" in title -->
-    <title>theageofgenz - The Age Of GenZ | News You Can Vibe With</title>
-    <meta name="description" content="theageofgenz delivers News You Can Vibe With! The Age Of GenZ - Breaking news, politics, culture, tech & trends that matter to Gen Z. Where young voices lead." />
-    <meta name="keywords" content="theageofgenz, the age of genz, age of genz, gen z news, breaking news, politics, culture, technology, social media, viral news, youth news, trending, millennial news" />
-    <meta name="author" content="theageofgenz - The Age Of GenZ" />
+    <!-- ✅ BING SEO FIX: Exact keyword matching in title (Bing priority) -->
+    <title>theageofgenz - Breaking News, Politics, Culture & Tech | Gen Z News</title>
+    <meta name="description" content="theageofgenz delivers breaking news, politics, culture & tech from a Gen Z perspective. News you can vibe with - where young voices lead the conversation." />
+    <meta name="keywords" content="theageofgenz, breaking news, politics, culture, technology, gen z news, youth news, social media, viral news, trending news, millennial news" />
+    <meta name="author" content="theageofgenz Editorial Team" />
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
     <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
     <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
@@ -63,14 +63,14 @@
     
     <!-- ✅ ENHANCED: Open Graph for better social sharing -->
     <meta property="og:site_name" content="theageofgenz" />
-    <meta property="og:title" content="theageofgenz - News You Can Vibe With" />
+    <meta property="og:title" content="theageofgenz - Breaking News & Politics for Gen Z" />
     <meta property="og:description" content="Breaking news, politics, culture & tech from a Gen Z perspective. theageofgenz delivers news you can vibe with!" />
     <meta property="og:image" content="https://theageofgenz.com/og-image.jpg" />
     <meta property="og:image:secure_url" content="https://theageofgenz.com/og-image.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:type" content="image/jpeg" />
-    <meta property="og:image:alt" content="theageofgenz - The Age Of GenZ - News You Can Vibe With" />
+    <meta property="og:image:alt" content="theageofgenz logo - Breaking news for Gen Z" />
     <meta property="og:url" content="https://theageofgenz.com" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="en_US" />
@@ -80,10 +80,10 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@theageofgenz" />
     <meta name="twitter:creator" content="@theageofgenz" />
-    <meta name="twitter:title" content="theageofgenz - News You Can Vibe With" />
+    <meta name="twitter:title" content="theageofgenz - Breaking News for Gen Z" />
     <meta name="twitter:description" content="Breaking news, politics, culture & tech from a Gen Z perspective. #theageofgenz" />
     <meta name="twitter:image" content="https://theageofgenz.com/twitter-card.jpg" />
-    <meta name="twitter:image:alt" content="theageofgenz logo" />
+    <meta name="twitter:image:alt" content="theageofgenz breaking news logo" />
     <meta name="twitter:domain" content="theageofgenz.com" />
     
     <!-- ✅ CANONICAL URL & LANGUAGE -->
@@ -112,18 +112,20 @@
             "url": "https://theageofgenz.com/logo.png",
             "width": 512,
             "height": 512,
-            "caption": "theageofgenz - The Age Of GenZ Logo"
+            "caption": "theageofgenz - Breaking News for Gen Z",
+            "contentUrl": "https://theageofgenz.com/logo.png"
           },
           "image": {
             "@type": "ImageObject",
-            "url": "https://theageofgenz.com/logo.png"
+            "url": "https://theageofgenz.com/logo.png",
+            "caption": "theageofgenz logo"
           },
-          "description": "theageofgenz delivers News You Can Vibe With! Breaking news, politics, culture, tech & trends from a Gen Z perspective.",
+          "description": "theageofgenz delivers breaking news, politics, culture & tech from a Gen Z perspective. News you can vibe with.",
           "slogan": "News You Can Vibe With",
           "foundingDate": "2025-01-01",
           "founder": {
             "@type": "Organization",
-            "name": "theageofgenz"
+            "name": "theageofgenz Editorial Team"
           },
           "address": {
             "@type": "PostalAddress",
@@ -165,7 +167,7 @@
           "name": "theageofgenz",
           "alternateName": "The Age Of GenZ",
           "url": "https://theageofgenz.com",
-          "description": "News You Can Vibe With - Breaking news, politics, culture & tech from a Gen Z perspective",
+          "description": "Breaking news, politics, culture & tech from a Gen Z perspective",
           "inLanguage": "en-US",
           "copyrightYear": "2025",
           "copyrightHolder": {
@@ -184,7 +186,7 @@
           },
           "mainEntity": {
             "@type": "CollectionPage",
-            "name": "Latest News",
+            "name": "Latest Breaking News",
             "description": "Breaking news and trending stories from theageofgenz"
           }
         },
@@ -284,7 +286,7 @@
         color: #ffffff !important;
       }
       
-      /* ✅ BING SEO FIX: Static H1 that's visible to crawlers but hidden from users */
+      /* ✅ BING SEO FIX: SINGLE H1 that's crawlable but hidden from visual design */
       .seo-h1 {
         position: absolute !important;
         width: 1px !important;
@@ -298,25 +300,12 @@
         color: #1f2937 !important;
         font-size: 2rem !important;
         font-weight: 700 !important;
+        font-family: var(--font-display) !important;
       }
       
-      /* Alternative: Visible H1 that gets hidden when React loads */
-      .loading-h1 {
-        text-align: center;
-        padding: 2rem;
-        font-size: 2rem;
-        font-weight: 700;
-        color: #1f2937 !important;
-        background: linear-gradient(135deg, #f97316, #fb923c);
-        background-clip: text;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin: 0;
-      }
-      
-      /* Hide loading content once React loads */
-      .react-loaded .loading-h1 {
-        display: none !important;
+      /* Ensure all images have proper alt attributes for Bing */
+      img:not([alt]) {
+        border: 2px solid red !important; /* Debug: highlight images missing alt */
       }
       
       /* Skip to content link for accessibility */
@@ -373,7 +362,7 @@
           color: black !important;
           background: white !important;
         }
-        .ad-container, .no-print, .seo-h1, .loading-h1 {
+        .ad-container, .no-print, .seo-h1 {
           display: none !important;
         }
       }
@@ -393,7 +382,7 @@
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', 'G-XXXXXXXXXX', {
-        page_title: 'theageofgenz - News You Can Vibe With',
+        page_title: 'theageofgenz - Breaking News for Gen Z',
         page_location: 'https://theageofgenz.com',
         content_group1: 'Homepage',
         send_page_view: true,
@@ -416,30 +405,14 @@
           }
         }).observe({ entryTypes: ['largest-contentful-paint', 'first-input', 'layout-shift'] });
       }
-      
-      // Mark when React has loaded to hide loading content
-      document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(function() {
-          if (document.getElementById('root').children.length > 0) {
-            document.body.classList.add('react-loaded');
-          }
-        }, 1000);
-      });
     </script>
   </head>
   <body class="bg-gray-50">
     <!-- ✅ ACCESSIBILITY: Skip to content link -->
     <a href="#main-content" class="skip-to-content">Skip to main content</a>
     
-    <!-- ✅ BING SEO FIX: Multiple H1 approaches for maximum compatibility -->
-    <!-- Approach 1: Screen reader accessible H1 -->
-    <h1 class="seo-h1">theageofgenz - The Age Of GenZ | Breaking News, Politics, Culture & Tech</h1>
-    
-    <!-- Approach 2: Visible H1 that gets hidden when React loads -->
-    <header class="loading-h1">
-      <h1>theageofgenz - News You Can Vibe With</h1>
-      <p style="font-size: 1rem; margin-top: 0.5rem; color: #6b7280;">Breaking news, politics, culture & tech from a Gen Z perspective</p>
-    </header>
+    <!-- ✅ BING SEO FIX: SINGLE H1 TAG ONLY - Crawlable but visually hidden -->
+    <h1 class="seo-h1">theageofgenz - Breaking News, Politics, Culture & Tech for Gen Z</h1>
     
     <div id="root"></div>
     
@@ -452,7 +425,7 @@
     <!-- ✅ NO-JS FALLBACK -->
     <noscript>
       <div style="padding: 20px; text-align: center; background-color: #fee; color: #c00;">
-        <h1>JavaScript Required</h1>
+        <h2>JavaScript Required</h2>
         <p>theageofgenz requires JavaScript to provide you with the best news experience. Please enable JavaScript in your browser settings.</p>
       </div>
     </noscript>
