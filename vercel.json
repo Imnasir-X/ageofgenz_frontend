@@ -13,6 +13,14 @@
   ],
   "rewrites": [
     {
+      "source": "/article/:slug*",
+      "destination": "https://ageofgenz-backend.onrender.com/article/:slug*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://ageofgenz-backend.onrender.com/api/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
