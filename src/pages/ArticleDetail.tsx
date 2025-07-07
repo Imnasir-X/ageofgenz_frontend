@@ -196,7 +196,7 @@ const ArticleDetail: React.FC = () => {
   }
 
   // FIXED: USE SLUG FOR URL GENERATION
-  const articleUrl = `https://www.theageofgenz.com/article/${article.slug}`;
+  const articleUrl = `https://theageofgenz.com/article/${article.slug}`;
   const publishedDate = formatDate(article.published_at || article.created_at);
 
   return (
@@ -205,24 +205,26 @@ const ArticleDetail: React.FC = () => {
       <Helmet>
         <title>{article.title} - The Age of GenZ</title>
         <meta name="description" content={article.excerpt || article.title} />
-        
+        <meta property="og:site_name" content="theageofgenz.com" />
+        <meta name="twitter:domain" content="theageofgenz.com" />
+
         {/* Open Graph Meta Tags for Rich Previews */}
         <meta property="og:title" content={article.title} />
         <meta property="og:description" content={article.excerpt || article.title} />
-        <meta property="og:image" content={article.featured_image_url || article.featured_image || `https://www.theageofgenz.com/default-og-image.jpg`} />
+        <meta property="og:image" content={article.featured_image_url || article.featured_image || `https://theageofgenz.com/default-og-image.jpg`} />
         <meta property="og:url" content={articleUrl} />
         <meta property="og:type" content="article" />
-        <meta property="og:site_name" content="The Age of GenZ" />
+        <meta property="og:site_name" content="The Age Of GenZ" />
         
         {/* Twitter Card Meta Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={article.title} />
         <meta name="twitter:description" content={article.excerpt || article.title} />
-        <meta name="twitter:image" content={article.featured_image_url || article.featured_image || `https://www.theageofgenz.com/default-og-image.jpg`} />
+        <meta name="twitter:image" content={article.featured_image_url || article.featured_image || `https://theageofgenz.com/default-og-image.jpg`} />
         
         {/* Article Specific Meta Tags */}
         <meta property="article:published_time" content={article.published_at || article.created_at} />
-        <meta property="article:author" content={article.author?.name || 'The Age of GenZ'} />
+        <meta property="article:author" content={article.author?.name || 'The Age Of GenZ'} />
         <meta property="article:section" content={article.category?.name || 'News'} />
         {article.tags && article.tags.map((tag, index) => (
           <meta key={index} property="article:tag" content={tag} />
