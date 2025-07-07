@@ -214,8 +214,8 @@ const ArticleDetail: React.FC = () => {
         <meta property="og:image" content={article.featured_image_url || article.featured_image || `https://theageofgenz.com/default-og-image.jpg`} />
         <meta property="og:url" content={articleUrl} />
         <meta property="og:type" content="article" />
-        <meta property="og:site_name" content="The Age Of GenZ" />
-        
+        <meta property="og:site_name" content="theageofgenz.com" />
+
         {/* Twitter Card Meta Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={article.title} />
