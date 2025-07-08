@@ -14,14 +14,7 @@
   "rewrites": [
     {
       "source": "/article/:path*",
-      "destination": "/api/article/:path*",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": ".*(bot|crawl|slurp|spider|facebookexternalhit|WhatsApp|Telegram|Twitter).*"
-        }
-      ]
+      "destination": "/api/article-proxy"
     },
     {
       "source": "/api/:path*",
