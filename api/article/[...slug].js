@@ -1,46 +1,47 @@
-export default async function handler(req, res) {
-  const { slug } = req.query;
-  const userAgent = req.headers['user-agent'] || '';
+export default async function handler(request, response) {
+  // Get the full slug path
+  const { slug } = request.query;
+  const fullSlug = Array.isArray(slug) ? slug.join('/') : slug;
   
-  // Join slug array into a single string
-  const articleSlug = Array.isArray(slug) ? slug.join('/') : slug;
-  
-  console.log(`[Article Function] Slug: ${articleSlug}`);
-  console.log(`[Article Function] User-Agent: ${userAgent}`);
-  
-  // Check if it's a bot/crawler
-  const isCrawler = /bot|crawler|spider|crawling|facebook|twitter|whatsapp|telegram|slack|discord|pinterest|tumblr|linkedin|twitterbot|facebookexternalhit/i.test(userAgent);
-  
-  if (!isCrawler) {
-    console.log('[Article Function] Not a crawler, redirecting to React app');
-    return res.redirect(301, `https://theageofgenz.com/article/${articleSlug}`);
-  }
+  // Log the request
+  console.log(`[Vercel Function] Article request: /article/${fullSlug}`);
+  console.log(`[Vercel Function] User-Agent: ${request.headers['user-agent']}`);
   
   try {
-    console.log(`[Article Function] Fetching from backend: ${articleSlug}`);
+    // Proxy to Django backend
+    const backendUrl = `https://ageofgenz-backend.onrender.com/article/${fullSlug}`;
+    console.log(`[Vercel Function] Fetching from: ${backendUrl}`);
     
-    const backendUrl = `https://ageofgenz-backend.onrender.com/article/${articleSlug}`;
-    const response = await fetch(backendUrl, {
+    const backendResponse = await fetch(backendUrl, {
       headers: {
-        'User-Agent': userAgent,
+        'user-agent': request.headers['user-agent'] || 'Vercel-Proxy/1.0',
       },
     });
     
-    if (!response.ok) {
-      console.log(`[Article Function] Backend error: ${response.status}`);
-      return res.redirect(301, `https://theageofgenz.com/article/${articleSlug}`);
+    if (!backendResponse.ok) {
+      console.log(`[Vercel Function] Backend returned: ${backendResponse.status}`);
+      return response.status(backendResponse.status).send('Article not found');
     }
     
-    const html = await response.text();
+    const html = await backendResponse.text();
+    console.log(`[Vercel Function] Received HTML: ${html.length} bytes`);
     
-    console.log(`[Article Function] Success! HTML length: ${html.length}`);
+    // Send the HTML with proper headers
+    response.setHeader('Content-Type', 'text/html; charset=utf-8');
+    response.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
+    response.setHeader('X-Robots-Tag', 'index, follow');
     
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 'public, s-maxage=3600, max-age=3600');
-    res.status(200).send(html);
+    return response.status(200).send(html);
     
   } catch (error) {
-    console.error('[Article Function] Error:', error);
-    return res.redirect(301, `https://theageofgenz.com/article/${articleSlug}`);
+    console.error('[Vercel Function] Error:', error);
+    return response.status(500).send('Server error');
   }
 }
+
+// Configuration for the function
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
