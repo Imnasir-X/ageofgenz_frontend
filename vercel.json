@@ -11,15 +11,15 @@
       "permanent": true
     },
     {
-      "source": "/robots.txt", 
+      "source": "/robots.txt",
       "destination": "https://ageofgenz-backend.onrender.com/robots.txt",
       "permanent": true
     }
   ],
   "rewrites": [
     {
-      "source": "/article/:path*",
-      "destination": "/api/article/:path*"
+      "source": "/article/:slug*",
+      "destination": "/api/article/:slug*"
     },
     {
       "source": "/api/:path*",
