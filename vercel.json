@@ -1,29 +1,27 @@
 {
-  "functions": {
-    "api/article/[...slug].js": {
-      "maxDuration": 10
-    }
-  },
-  "redirects": [
-    {
-      "source": "/sitemap.xml",
-      "destination": "https://ageofgenz-backend.onrender.com/sitemap.xml",
-      "permanent": true
-    },
-    {
-      "source": "/robots.txt", 
-      "destination": "https://ageofgenz-backend.onrender.com/robots.txt",
-      "permanent": true
-    }
-  ],
   "rewrites": [
     {
-      "source": "/article/:path*",
-      "destination": "/api/article/:path*"
+      "source": "/article/:slug*",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(Twitterbot|facebookexternalhit|WhatsApp|Telegram|LinkedInBot|Slackbot|Discordbot|Pinterest|Tumblr).*"
+        }
+      ],
+      "destination": "/api/article-proxy?slug=:slug*"
     },
     {
       "source": "/api/:path*",
       "destination": "https://ageofgenz-backend.onrender.com/api/:path*"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://ageofgenz-backend.onrender.com/sitemap.xml"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "https://ageofgenz-backend.onrender.com/robots.txt"
     },
     {
       "source": "/(.*)",
