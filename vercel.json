@@ -6,15 +6,15 @@
       "permanent": true
     },
     {
-      "source": "/robots.txt", 
+      "source": "/robots.txt",
       "destination": "https://ageofgenz-backend.onrender.com/robots.txt",
       "permanent": true
     }
   ],
   "rewrites": [
     {
-      "source": "/article/:path*",
-      "destination": "/api/article-proxy"
+      "source": "/article/:slug",
+      "destination": "/api/article-proxy?slug=:slug"
     },
     {
       "source": "/api/:path*",
@@ -31,7 +31,11 @@
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "s-maxage=3600, stale-while-revalidate"
+          "value": "public, s-maxage=3600, max-age=300, stale-while-revalidate=86400"
+        },
+        {
+          "key": "Vary",
+          "value": "User-Agent"
         }
       ]
     },
@@ -48,10 +52,15 @@
       "source": "/robots.txt",
       "headers": [
         {
-          "key": "Content-Type", 
+          "key": "Content-Type",
           "value": "text/plain"
         }
       ]
     }
-  ]
+  ],
+  "functions": {
+    "api/article-proxy.js": {
+      "maxDuration": 15
+    }
+  }
 }
