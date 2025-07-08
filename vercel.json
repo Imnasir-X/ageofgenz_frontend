@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/article/[...slug].js": {
+      "maxDuration": 10
+    }
+  },
   "redirects": [
     {
       "source": "/sitemap.xml",
@@ -13,8 +18,8 @@
   ],
   "rewrites": [
     {
-      "source": "/article/:slug*",
-      "destination": "https://ageofgenz-backend.onrender.com/article/:slug*"
+      "source": "/article/:path*",
+      "destination": "/api/article/:path*"
     },
     {
       "source": "/api/:path*",
@@ -23,26 +28,6 @@
     {
       "source": "/(.*)",
       "destination": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/sitemap.xml",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/xml"
-        }
-      ]
-    },
-    {
-      "source": "/robots.txt",
-      "headers": [
-        {
-          "key": "Content-Type", 
-          "value": "text/plain"
-        }
-      ]
     }
   ]
 }
