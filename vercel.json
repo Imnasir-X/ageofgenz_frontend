@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/article/:slug*",
-      "destination": "/api/article-proxy?slug=:slug*"
+      "destination": "/api/article/:slug*"
     },
     {
       "source": "/api/:path*",
