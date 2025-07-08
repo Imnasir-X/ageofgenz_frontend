@@ -2,13 +2,6 @@
   "rewrites": [
     {
       "source": "/article/:slug*",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": ".*(Twitterbot|facebookexternalhit|WhatsApp|Telegram|LinkedInBot|Slackbot|Discordbot|Pinterest|Tumblr).*"
-        }
-      ],
       "destination": "/api/article-proxy?slug=:slug*"
     },
     {
