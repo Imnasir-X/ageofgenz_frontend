@@ -972,3 +972,335 @@
     transition: opacity 0.3s ease;
   }
 }
+/* Add these CSS enhancements to your index.css for the improved components */
+
+@layer utilities {
+  /* Animation delays for success celebrations */
+  .animation-delay-300 {
+    animation-delay: 0.3s;
+  }
+  
+  .animation-delay-600 {
+    animation-delay: 0.6s;
+  }
+  
+  /* Enhanced hover effects for donation buttons */
+  .donation-option {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .donation-option:hover {
+    transform: translateY(-2px);
+  }
+  
+  .donation-option.selected {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Newsletter form enhancements */
+  .newsletter-input {
+    transition: all 0.3s ease;
+  }
+  
+  .newsletter-input:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+  }
+  
+  /* Gradient animations for backgrounds */
+  @keyframes gradient-wave {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+  
+  .gradient-wave {
+    background-size: 200% 200%;
+    animation: gradient-wave 6s ease infinite;
+  }
+  
+  /* Success state bounce animation */
+  @keyframes success-pop {
+    0% {
+      transform: scale(0.8);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.1);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
+  .success-pop {
+    animation: success-pop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+  
+  /* Floating emoji animations for celebrations */
+  @keyframes float-up {
+    0% {
+      transform: translateY(0) scale(0);
+      opacity: 0;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-30px) scale(1);
+      opacity: 0;
+    }
+  }
+  
+  .float-up {
+    animation: float-up 2s ease-out;
+  }
+  
+  /* Enhanced button shine effect */
+  @keyframes button-shine {
+    0% {
+      background-position: -200% center;
+    }
+    100% {
+      background-position: 200% center;
+    }
+  }
+  
+  .btn-shine {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn-shine::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+  }
+  
+  .btn-shine:hover::before {
+    transform: translateX(100%);
+  }
+  
+  /* Backdrop blur support */
+  .backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+  }
+  
+  .backdrop-blur {
+    backdrop-filter: blur(8px);
+  }
+  
+  /* Enhanced loading states */
+  .loading-dots {
+    display: inline-flex;
+    gap: 2px;
+  }
+  
+  .loading-dots > div {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: currentColor;
+    animation: loading-bounce 1.4s ease-in-out infinite both;
+  }
+  
+  .loading-dots > div:nth-child(1) { animation-delay: -0.32s; }
+  .loading-dots > div:nth-child(2) { animation-delay: -0.16s; }
+  .loading-dots > div:nth-child(3) { animation-delay: 0s; }
+  
+  @keyframes loading-bounce {
+    0%, 80%, 100% {
+      transform: scale(0);
+    }
+    40% {
+      transform: scale(1);
+    }
+  }
+  
+  /* Card hover effects */
+  .card-hover {
+    transition: all 0.3s ease;
+  }
+  
+  .card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Pulse ring effect for buttons */
+  @keyframes pulse-ring {
+    0% {
+      transform: scale(0.33);
+      opacity: 1;
+    }
+    80%, 100% {
+      transform: scale(2.4);
+      opacity: 0;
+    }
+  }
+  
+  .pulse-ring {
+    position: relative;
+  }
+  
+  .pulse-ring::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    background-color: currentColor;
+    opacity: 0;
+    animation: pulse-ring 1.25s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+  }
+  
+  /* Status indicator animations */
+  .status-success {
+    color: #10b981;
+    animation: success-pop 0.5s ease-out;
+  }
+  
+  .status-error {
+    color: #ef4444;
+    animation: shake 0.5s ease-in-out;
+  }
+  
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+    20%, 40%, 60%, 80% { transform: translateX(2px); }
+  }
+  
+  /* Enhanced form field states */
+  .form-field {
+    position: relative;
+    transition: all 0.3s ease;
+  }
+  
+  .form-field:focus-within {
+    transform: translateY(-1px);
+  }
+  
+  .form-field.error {
+    animation: shake 0.3s ease-in-out;
+  }
+  
+  /* Trust indicator styling */
+  .trust-indicator {
+    font-size: 0.75rem;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+  }
+  
+  .trust-indicator:hover {
+    opacity: 1;
+  }
+  
+  /* Amount selection grid */
+  .amount-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  @media (max-width: 640px) {
+    .amount-grid {
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+  }
+  
+  /* Popular badge styling */
+  .popular-badge {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: #1f2937;
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    position: absolute;
+    top: -0.5rem;
+    right: -0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    animation: pulse 2s infinite;
+  }
+  
+  /* Responsive enhancements */
+  @media (max-width: 768px) {
+    .newsletter-form {
+      padding: 1rem;
+    }
+    
+    .donation-form {
+      padding: 1rem;
+    }
+    
+    .amount-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .form-row {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+  }
+  
+  /* Dark mode compatibility */
+  @media (prefers-color-scheme: dark) {
+    .newsletter-input,
+    .donation-input {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+    
+    .newsletter-input::placeholder,
+    .donation-input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+  }
+  
+  /* Accessibility improvements */
+  @media (prefers-reduced-motion: reduce) {
+    .success-pop,
+    .gradient-wave,
+    .float-up,
+    .pulse-ring,
+    .loading-bounce {
+      animation: none;
+    }
+    
+    .card-hover:hover,
+    .donation-option:hover,
+    .form-field:focus-within {
+      transform: none;
+    }
+  }
+  
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .newsletter-input,
+    .donation-input {
+      border-width: 2px;
+    }
+    
+    .btn-primary,
+    .btn-secondary {
+      border: 2px solid currentColor;
+    }
+  }
+}
