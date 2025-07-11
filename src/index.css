@@ -1,4 +1,4 @@
-/* src/index.css */
+/* src/index.css - COMPLETE FILE */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -84,45 +84,8 @@
   }
 }
 
-/* HEADER AND NAVIGATION FIXES - REMOVE WHITE BAR */
+/* PROFESSIONAL ARTICLE CONTENT STYLING - UNIFIED APPROACH */
 @layer components {
-  /* Fix header white bar issue */
-  .header-fix,
-  header,
-  nav {
-    background-color: transparent !important;
-    box-shadow: none !important;
-    border: none !important;
-  }
-  
-  /* Ensure reading progress bar stays on top */
-  .reading-progress {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 2px; /* Slightly thicker for visibility */
-    background-color: rgba(229, 231, 235, 0.8);
-    z-index: 9999; /* Highest z-index */
-    backdrop-filter: blur(4px);
-  }
-  
-  .reading-progress-bar {
-    height: 100%;
-    background: linear-gradient(90deg, #f97316, #ea580c);
-    transition: width 0.3s ease;
-    box-shadow: 0 0 10px rgba(249, 115, 22, 0.3);
-  }
-  
-  /* Remove any conflicting backgrounds from breadcrumb area */
-  .breadcrumb-nav {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
-  }
-  
   /* Article typography system with explicit font families */
   .article-typography {
     font-family: var(--font-serif) !important;
@@ -136,16 +99,16 @@
     color: #111827 !important;
     line-height: 1.1;
     letter-spacing: -0.02em;
-    margin-bottom: 1rem; /* Reduced from 1.5rem for compactness */
+    margin-bottom: 1.5rem;
   }
   
   .article-subtitle {
     font-family: var(--font-serif) !important;
-    font-size: clamp(1.125rem, 2.5vw, 1.375rem); /* Reduced size */
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
     color: #6b7280 !important;
     font-weight: 400;
     line-height: 1.5;
-    margin: 1rem 0 1.5rem 0; /* Reduced spacing */
+    margin: 1.5rem 0 2rem 0;
   }
   
   .article-meta {
@@ -366,44 +329,30 @@
     margin-right: auto;
   }
   
-  /* COMPACT ARTICLE LAYOUT FOR WEB */
-  .article-header-compact {
-    margin-bottom: 1.5rem; /* Reduced from 2rem */
-  }
-  
-  .article-meta-compact {
-    padding: 1rem 0; /* Reduced from 1.5rem */
-    margin: 1rem 0; /* Reduced spacing */
-  }
-  
-  .featured-image-compact {
-    margin-bottom: 1.5rem; /* Reduced from 2.5rem */
-  }
-  
-  /* PROMINENT BUT COMPACT ARTICLE BYLINE STYLING */
+  /* PROMINENT ARTICLE BYLINE STYLING */
   .article-byline {
     font-family: var(--font-sans) !important;
     border-top: 1px solid #e5e7eb;
     border-bottom: 1px solid #e5e7eb;
-    padding: 1rem 0; /* Reduced from 1.5rem */
-    margin: 1rem 0; /* Reduced from 1.5rem */
+    padding: 1.5rem 0;
+    margin: 1.5rem 0;
     background-color: #fafafa;
     border-radius: 8px;
   }
   
   .article-byline .author-name {
     font-weight: 600;
-    font-size: 1rem; /* Slightly reduced */
+    font-size: 1.1rem;
     color: #1f2937 !important;
   }
   
   .article-byline .publish-date {
-    font-size: 0.875rem;
+    font-size: 0.95rem;
     color: #6b7280 !important;
   }
   
   .article-byline .read-time {
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     color: #9ca3af !important;
   }
   
@@ -463,18 +412,124 @@
     font-family: var(--font-sans) !important;
   }
   
-  /* NAVIGATION IMPROVEMENTS */
-  .nav-link {
+  /* NAVIGATION IMPROVEMENTS - EXCLUDE HEADER NAVIGATION */
+  nav:not(.header-desktop-nav):not(.header-mobile-nav),
+  .navbar:not(.header-nav),
+  .navigation:not(.header-nav) {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  nav:not(.header-desktop-nav):not(.header-mobile-nav) *,
+  .navbar:not(.header-nav) *,
+  .navigation:not(.header-nav) * {
+    color: #374151 !important;
+  }
+  
+  nav:not(.header-desktop-nav):not(.header-mobile-nav) a,
+  .navbar:not(.header-nav) a,
+  .navigation:not(.header-nav) a,
+  .nav-link:not(.header-nav .nav-link) {
     color: #374151 !important;
     font-weight: 500;
-    font-family: var(--font-sans) !important;
     transition: color 0.2s ease;
   }
   
-  .nav-link:hover {
+  nav:not(.header-desktop-nav):not(.header-mobile-nav) a:hover,
+  .navbar:not(.header-nav) a:hover,
+  .navigation:not(.header-nav) a:hover,
+  .nav-link:not(.header-nav .nav-link):hover {
+    color: #f97316 !important;
+  }
+
+  /* HEADER-SPECIFIC OVERRIDES TO PREVENT CONFLICTS */
+  .header-nav {
+    background-color: #000000 !important;
+    border-bottom: none !important;
+  }
+  
+  .header-nav *,
+  .header-nav span,
+  .header-nav a,
+  .header-nav button,
+  .header-nav svg {
+    color: #ffffff !important;
+  }
+  
+  .header-nav .text-white {
+    color: #ffffff !important;
+  }
+  
+  .header-nav .text-orange-500 {
     color: #f97316 !important;
   }
   
+  .header-nav .hover\:text-orange-500:hover {
+    color: #f97316 !important;
+  }
+  
+  .header-nav .bg-orange-500 {
+    background-color: #f97316 !important;
+    color: #ffffff !important;
+  }
+  
+  .header-nav .hover\:bg-orange-600:hover {
+    background-color: #ea580c !important;
+  }
+  
+  .header-nav .border-orange-500 {
+    border-color: #f97316 !important;
+  }
+  
+  /* Ensure desktop navigation stays transparent */
+  .header-desktop-nav {
+    background-color: transparent !important;
+  }
+  
+  .header-desktop-nav * {
+    color: inherit !important;
+  }
+  
+  /* Ensure mobile navigation stays black */
+  .header-mobile-nav {
+    background-color: #000000 !important;
+  }
+  
+  .header-mobile-nav *,
+  .header-mobile-nav span,
+  .header-mobile-nav a,
+  .header-mobile-nav button,
+  .header-mobile-nav svg {
+    color: #ffffff !important;
+  }
+  
+  .header-mobile-nav .text-orange-500 {
+    color: #f97316 !important;
+  }
+  
+  .header-mobile-nav .hover\:text-orange-500:hover {
+    color: #f97316 !important;
+  }
+  
+  .header-mobile-nav .bg-gray-800 {
+    background-color: #1f2937 !important;
+  }
+  
+  .header-mobile-nav .text-gray-400 {
+    color: #9ca3af !important;
+  }
+  
+  .header-mobile-nav .border-gray-700 {
+    border-color: #374151 !important;
+  }
+  
+  /* Fix for sticky positioning */
+  .header-nav.sticky {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 9999 !important;
+  }
+
   /* BUTTON IMPROVEMENTS */
   .btn-primary {
     background-color: #f97316 !important;
@@ -490,31 +545,6 @@
     font-weight: 500;
     font-family: var(--font-sans) !important;
     transition: all 0.2s ease;
-  }
-  
-  /* WEB-SPECIFIC LAYOUT IMPROVEMENTS */
-  @media (min-width: 1024px) {
-    .article-container-web {
-      padding-top: 1rem; /* Reduced top padding */
-      padding-bottom: 2rem;
-    }
-    
-    .article-content-web {
-      padding: 2rem 3rem; /* Reduced from 3rem 4rem */
-    }
-    
-    /* Make article header more compact on web */
-    .article-title {
-      margin-bottom: 0.75rem;
-    }
-    
-    .article-subtitle {
-      margin: 0.75rem 0 1.25rem 0;
-    }
-    
-    .article-byline {
-      margin: 0.75rem 0 1.25rem 0;
-    }
   }
   
   /* RESPONSIVE TYPOGRAPHY ADJUSTMENTS */
@@ -536,11 +566,6 @@
       font-size: 3rem; /* Smaller drop cap on mobile */
       margin-right: 0.5rem;
     }
-    
-    /* Mobile header stays as is */
-    .reading-progress {
-      height: 2px;
-    }
   }
   
   /* ACCESSIBILITY IMPROVEMENTS */
@@ -551,14 +576,10 @@
       font-size: inherit;
       margin: 0;
     }
-    
-    .reading-progress-bar {
-      transition: none;
-    }
   }
 }
 
-/* GLOBAL TEXT VISIBILITY FIXES - PRESERVED FROM ORIGINAL */
+/* GLOBAL TEXT VISIBILITY FIXES */
 @layer utilities {
   /* Category pages - Dark background with light text */
   .category-hero,
@@ -617,6 +638,120 @@
     box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
   }
+  
+  /* Trending/Featured sections */
+  .trending-section,
+  .featured-section {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%) !important;
+  }
+  
+  .trending-section *,
+  .featured-section * {
+    color: #ffffff !important;
+  }
+  
+  .trending-section h2,
+  .featured-section h2,
+  .trending-section h3,
+  .featured-section h3 {
+    color: #ffffff !important;
+    font-weight: 700;
+  }
+  
+  .trending-section p,
+  .featured-section p {
+    color: #d1d5db !important;
+  }
+  
+  .trending-section a,
+  .featured-section a {
+    color: #ffffff !important;
+    transition: color 0.2s ease;
+  }
+  
+  .trending-section a:hover,
+  .featured-section a:hover {
+    color: #fbbf24 !important;
+  }
+
+  /* Sidebar elements */
+  .sidebar,
+  aside {
+    background-color: transparent;
+  }
+  
+  .sidebar .widget,
+  aside .widget,
+  .sidebar > div,
+  aside > div {
+    background-color: #ffffff !important;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .sidebar *,
+  aside * {
+    color: #374151 !important;
+  }
+  
+  .sidebar h3,
+  aside h3,
+  .sidebar h4,
+  aside h4 {
+    color: #1f2937 !important;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+
+  /* Utility classes for manual overrides */
+  .text-force-dark {
+    color: #1f2937 !important;
+  }
+  
+  .text-force-light {
+    color: #ffffff !important;
+  }
+  
+  .text-force-muted {
+    color: #6b7280 !important;
+  }
+  
+  .bg-force-white {
+    background-color: #ffffff !important;
+  }
+  
+  .bg-force-dark {
+    background-color: #1f2937 !important;
+  }
+}
+
+/* Dark theme compatibility (for sections that need dark backgrounds) */
+@layer utilities {
+  .dark-section {
+    @apply bg-gray-900;
+  }
+  
+  .dark-section * {
+    @apply text-white;
+  }
+  
+  .dark-section .text-gray-600 {
+    @apply text-gray-300 !important;
+  }
+  
+  .dark-section .text-gray-500 {
+    @apply text-gray-400 !important;
+  }
+  
+  .dark-section a {
+    @apply text-orange-400 !important;
+  }
+  
+  .dark-section a:hover {
+    @apply text-orange-300 !important;
+  }
 }
 
 /* PRINT STYLES */
@@ -634,9 +769,5 @@
   
   .article-title {
     font-size: 18pt;
-  }
-  
-  .reading-progress {
-    display: none;
   }
 }

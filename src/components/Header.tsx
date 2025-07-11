@@ -5,28 +5,28 @@ import Logo from '../assets/images/logo.png';
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
 
-  // Desktop nav link styles - smaller and more compact
+  // Desktop nav link styles - with explicit colors to prevent CSS conflicts
   const navLinkClasses = ({ isActive }: { isActive: boolean }): string =>
     `transition-colors font-medium text-sm ${isActive ? 'text-orange-500' : 'text-white'} hover:text-orange-500`;
 
-  // Mobile nav link styles - MORE COMPACT
+  // Mobile nav link styles - with explicit colors
   const mobileNavLinkClasses = ({ isActive }: { isActive: boolean }): string =>
     `block py-2 px-3 text-sm ${isActive ? 'text-orange-500 font-semibold bg-gray-800 rounded' : 'text-white'} hover:text-orange-500 hover:bg-gray-800 rounded transition-all duration-200`;
 
   return (
-    <header className="bg-black text-white shadow-md sticky top-0 z-50">
+    <header className="header-nav bg-black text-white shadow-md sticky top-0 z-50">
       <div className="container mx-auto px-4 py-2">
         <div className="flex justify-between items-center">
-          {/* Logo and Title */}
+          {/* Logo and Title - Force white text */}
           <Link to="/" className="flex items-center space-x-2">
             <img src={Logo} alt="The Age of GenZ" className="h-10 w-auto" />
-            <span className="text-2xl md:text-3xl font-bold tracking-tight font-inknut">
+            <span className="text-2xl md:text-3xl font-bold tracking-tight font-inknut text-white">
               The Age Of GenZ 
             </span>
           </Link>
 
-          {/* Desktop Navigation - Compact design */}
-          <nav className="hidden lg:block">
+          {/* Desktop Navigation - Force styles to prevent conflicts */}
+          <nav className="hidden lg:block header-desktop-nav">
             <ul className="flex space-x-4 items-center">
               <li><NavLink to="/home" className={navLinkClasses}>Newsroom</NavLink></li>
               <li><NavLink to="/trending" className={navLinkClasses}>Hot</NavLink></li>
@@ -54,14 +54,13 @@ const Header: React.FC = () => {
             </ul>
           </nav>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Button - Force white color */}
           <button
             className="lg:hidden p-2 text-white hover:text-orange-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-orange-500 rounded-md transition-colors"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
             aria-expanded={isMenuOpen}
           >
-            {/* Hamburger/Close Icon */}
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {isMenuOpen ? (
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
@@ -72,63 +71,63 @@ const Header: React.FC = () => {
           </button>
         </div>
 
-        {/* IMPROVED Mobile Menu - Compact & Professional */}
+        {/* Mobile Menu - Force black background and white text */}
         {isMenuOpen && (
-          <nav className="lg:hidden pt-3 pb-3 border-t border-gray-800 bg-black text-white">
+          <nav className="lg:hidden pt-3 pb-3 border-t border-gray-800 bg-black text-white header-mobile-nav">
             <div className="px-2 space-y-1">
-              {/* Main Navigation - Professional Standard Icons */}
+              {/* Main Navigation */}
               <div className="space-y-1">
                 <NavLink to="/home" className={mobileNavLinkClasses} onClick={() => setIsMenuOpen(false)}>
                   <div className="flex items-center space-x-3">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m2.25-13.5h.75c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-2.25M3.75 5.25h.75c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.75m0 0h-.375c-.621 0-1.125-.504-1.125-1.125V5.625c0-.621.504-1.125 1.125-1.125H3.75z" />
                     </svg>
-                    <span>Newsroom</span>
+                    <span className="text-white">Newsroom</span>
                   </div>
                 </NavLink>
                 <NavLink to="/trending" className={mobileNavLinkClasses} onClick={() => setIsMenuOpen(false)}>
                   <div className="flex items-center space-x-3">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
                     </svg>
-                    <span>What's Hot</span>
+                    <span className="text-white">What's Hot</span>
                   </div>
                 </NavLink>
                 <NavLink to="/ai" className={mobileNavLinkClasses} onClick={() => setIsMenuOpen(false)}>
                   <div className="flex items-center space-x-3">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />
                     </svg>
-                    <span>AI & Tech</span>
+                    <span className="text-white">AI & Tech</span>
                   </div>
                 </NavLink>
                 <NavLink to="/opinion" className={mobileNavLinkClasses} onClick={() => setIsMenuOpen(false)}>
                   <div className="flex items-center space-x-3">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
                     </svg>
-                    <span>Voices</span>
+                    <span className="text-white">Voices</span>
                   </div>
                 </NavLink>
                 <NavLink to="/world" className={mobileNavLinkClasses} onClick={() => setIsMenuOpen(false)}>
                   <div className="flex items-center space-x-3">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
                     </svg>
-                    <span>World</span>
+                    <span className="text-white">World</span>
                   </div>
                 </NavLink>
                 <NavLink to="/politics" className={mobileNavLinkClasses} onClick={() => setIsMenuOpen(false)}>
                   <div className="flex items-center space-x-3">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15l-.75 18h-13.5L4.5 3z" />
                     </svg>
-                    <span>Politics</span>
+                    <span className="text-white">Politics</span>
                   </div>
                 </NavLink>
               </div>
               
-              {/* Action Buttons - Professional Standard Icons */}
+              {/* Action Buttons */}
               <div className="border-t border-gray-700 pt-3 mt-3 space-y-2">
                 <Link
                   to="/subscribe"
@@ -136,10 +135,10 @@ const Header: React.FC = () => {
                   className="block w-full text-center bg-orange-500 hover:bg-orange-600 text-white px-4 py-2.5 rounded-lg font-medium transition-colors text-sm"
                 >
                   <div className="flex items-center justify-center space-x-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
                     </svg>
-                    <span>Subscribe</span>
+                    <span className="text-white">Subscribe</span>
                   </div>
                 </Link>
                 <Link
@@ -156,7 +155,7 @@ const Header: React.FC = () => {
                 </Link>
               </div>
 
-              {/* Compact Social Links - Single Line */}
+              {/* Compact Social Links */}
               <div className="border-t border-gray-700 pt-3 mt-3">
                 <div className="flex justify-center items-center space-x-6">
                   <span className="text-gray-400 text-xs font-medium">Follow:</span>

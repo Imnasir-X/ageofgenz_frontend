@@ -182,14 +182,14 @@ const ArticleDetail: React.FC = () => {
   if (loading && !article) {
     return (
       <div className="min-h-screen bg-gray-50">
-        {/* Fixed reading progress bar */}
-        <div className="reading-progress">
-          <div className="reading-progress-bar" style={{ width: '0%' }}></div>
+        {/* Reading progress bar skeleton */}
+        <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 z-50">
+          <div className="h-full bg-orange-500 transition-all duration-300" style={{ width: '0%' }}></div>
         </div>
 
-        {/* Fixed breadcrumb */}
-        <nav className="breadcrumb-nav">
-          <div className="container mx-auto px-4 py-2">
+        {/* Breadcrumb skeleton */}
+        <nav className="bg-white border-b border-gray-200">
+          <div className="container mx-auto px-4 py-3">
             <div className="flex items-center space-x-2 text-sm">
               <div className="w-12 h-4 bg-gray-200 rounded animate-pulse"></div>
               <span className="text-gray-400">›</span>
@@ -200,31 +200,31 @@ const ArticleDetail: React.FC = () => {
           </div>
         </nav>
 
-        <div className="container mx-auto px-4 article-container-web max-w-6xl">
+        <div className="container mx-auto px-4 py-8 max-w-6xl">
           <div className="lg:flex lg:gap-12">
             {/* Main content skeleton */}
             <article className="lg:w-2/3">
-              <div className="bg-white rounded-xl shadow-sm article-content-web animate-pulse space-y-4">
-                <div className="w-24 h-6 bg-orange-200 rounded-full"></div>
-                <div className="space-y-2">
-                  <div className="w-full h-8 bg-gray-200 rounded"></div>
-                  <div className="w-4/5 h-8 bg-gray-200 rounded"></div>
+              <div className="bg-white rounded-xl shadow-sm p-8 lg:p-12 animate-pulse space-y-6">
+                <div className="w-24 h-7 bg-orange-200 rounded-full"></div>
+                <div className="space-y-3">
+                  <div className="w-full h-10 bg-gray-200 rounded"></div>
+                  <div className="w-4/5 h-10 bg-gray-200 rounded"></div>
                 </div>
-                <div className="w-3/4 h-5 bg-gray-200 rounded"></div>
-                <div className="article-byline bg-gray-100 rounded-lg">
-                  <div className="flex gap-6 py-3">
-                    <div className="w-20 h-4 bg-gray-200 rounded"></div>
+                <div className="w-3/4 h-6 bg-gray-200 rounded"></div>
+                <div className="article-byline bg-gray-100">
+                  <div className="flex gap-6 py-4">
                     <div className="w-24 h-4 bg-gray-200 rounded"></div>
-                    <div className="w-16 h-4 bg-gray-200 rounded"></div>
+                    <div className="w-28 h-4 bg-gray-200 rounded"></div>
+                    <div className="w-20 h-4 bg-gray-200 rounded"></div>
                   </div>
                 </div>
                 <div className="reading-width mx-auto">
                   <div className="w-full aspect-[16/10] bg-gray-200 rounded-xl"></div>
                 </div>
-                <div className="reading-width mx-auto space-y-3 pt-4">
-                  {[...Array(6)].map((_, i) => (
+                <div className="reading-width mx-auto space-y-4 pt-6">
+                  {[...Array(8)].map((_, i) => (
                     <div key={i} className={`bg-gray-200 rounded h-4 ${
-                      i === 1 ? 'w-11/12' : i === 3 ? 'w-4/5' : i === 5 ? 'w-3/4' : 'w-full'
+                      i === 1 ? 'w-11/12' : i === 3 ? 'w-4/5' : i === 5 ? 'w-3/4' : i === 7 ? 'w-5/6' : 'w-full'
                     }`}></div>
                   ))}
                 </div>
@@ -340,17 +340,17 @@ const ArticleDetail: React.FC = () => {
         </script>
       </Helmet>
 
-      {/* Fixed reading progress bar - no white bar issue */}
-      <div className="reading-progress">
+      {/* Reading progress bar */}
+      <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 z-50">
         <div 
-          className="reading-progress-bar" 
+          className="h-full bg-orange-500 transition-all duration-300" 
           style={{ width: `${readingProgress}%` }}
         ></div>
       </div>
 
-      {/* Fixed Breadcrumb Navigation - transparent background */}
-      <nav className="breadcrumb-nav">
-        <div className="container mx-auto px-4 py-2">
+      {/* Breadcrumb Navigation */}
+      <nav className="bg-white border-b border-gray-200">
+        <div className="container mx-auto px-4 py-3">
           <div className="flex items-center space-x-2 text-sm text-gray-600">
             <Link to="/" className="nav-link">Home</Link>
             <span className="text-gray-400">›</span>
@@ -365,15 +365,15 @@ const ArticleDetail: React.FC = () => {
         </div>
       </nav>
 
-      <div className="container mx-auto px-4 article-container-web max-w-6xl">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="lg:flex lg:gap-12">
-          {/* Main Article Content - Compact Layout */}
+          {/* Main Article Content */}
           <article className="lg:w-2/3">
-            <div className="bg-white rounded-xl shadow-sm article-content-web">
-              {/* Compact Article Header */}
-              <header className="article-header-compact">
+            <div className="bg-white rounded-xl shadow-sm p-8 lg:p-12">
+              {/* Article Header */}
+              <header className="mb-8">
                 {/* Category Badge */}
-                <div className="mb-4">
+                <div className="mb-6">
                   <Link 
                     to={`/${article.category?.slug}`}
                     className="inline-flex items-center bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-orange-600 transition-colors"
@@ -395,27 +395,27 @@ const ArticleDetail: React.FC = () => {
                 )}
               </header>
 
-              {/* COMPACT ARTICLE BYLINE */}
+              {/* PROMINENT ARTICLE BYLINE */}
               <div className="article-byline reading-width mx-auto">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex items-center gap-6">
                     <div className="flex items-center gap-2">
-                      <User size={16} className="text-orange-500" />
+                      <User size={18} className="text-orange-500" />
                       <span className="author-name">{article.author?.name || 'The Age of GenZ'}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Calendar size={14} className="text-gray-400" />
+                      <Calendar size={16} className="text-gray-400" />
                       <span className="publish-date">{publishedDate}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-6">
                     <div className="flex items-center gap-2">
-                      <BookOpen size={14} className="text-gray-400" />
+                      <BookOpen size={16} className="text-gray-400" />
                       <span className="read-time">{estimatedReadTime} min read</span>
                     </div>
                     {article.view_count !== undefined && (
                       <div className="flex items-center gap-2">
-                        <Eye size={14} className="text-gray-400" />
+                        <Eye size={16} className="text-gray-400" />
                         <span className="read-time">{article.view_count} views</span>
                       </div>
                     )}
@@ -423,9 +423,9 @@ const ArticleDetail: React.FC = () => {
                 </div>
               </div>
 
-              {/* Featured Image - Compact Spacing */}
+              {/* Featured Image */}
               {(article.featured_image_url || article.featured_image) && (
-                <div className="featured-image-compact reading-width mx-auto">
+                <div className="mb-10 reading-width mx-auto">
                   <figure className="relative">
                     {!imageLoaded && (
                       <div className="absolute inset-0 bg-gray-200 rounded-xl animate-pulse aspect-[16/10]"></div>
@@ -455,19 +455,19 @@ const ArticleDetail: React.FC = () => {
                 />
               </div>
 
-              {/* Tags - Compact */}
+              {/* Tags */}
               {article.tags && article.tags.length > 0 && (
-                <div className="mt-8 pt-6 border-t border-gray-200 reading-width mx-auto">
-                  <div className="flex items-start flex-wrap gap-2">
+                <div className="mt-12 pt-8 border-t border-gray-200 reading-width mx-auto">
+                  <div className="flex items-start flex-wrap gap-3">
                     <div className="flex items-center gap-2 mb-2">
-                      <Tag size={16} className="text-gray-500" />
-                      <span className="text-sm font-medium text-gray-700">Topics:</span>
+                      <Tag size={18} className="text-gray-500" />
+                      <span className="text-sm font-medium text-gray-700">Related Topics:</span>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {article.tags.map((tag, index) => (
                         <span 
                           key={index}
-                          className="bg-gray-100 hover:bg-orange-50 text-gray-700 hover:text-orange-700 px-3 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer border border-gray-200 hover:border-orange-200"
+                          className="bg-gray-100 hover:bg-orange-50 text-gray-700 hover:text-orange-700 px-3 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer border border-gray-200 hover:border-orange-200"
                         >
                           #{tag}
                         </span>
@@ -477,8 +477,8 @@ const ArticleDetail: React.FC = () => {
                 </div>
               )}
 
-              {/* Social Share - Compact */}
-              <div className="mt-8 pt-6 border-t border-gray-200 reading-width mx-auto">
+              {/* Social Share */}
+              <div className="mt-10 pt-8 border-t border-gray-200 reading-width mx-auto">
                 <SocialShare
                   url={articleUrl}
                   title={article.title}
@@ -490,28 +490,28 @@ const ArticleDetail: React.FC = () => {
           </article>
 
           {/* Enhanced Sidebar */}
-          <aside className="lg:w-1/3 mt-8 lg:mt-0">
-            <div className="sticky top-20 space-y-6">
+          <aside className="lg:w-1/3 mt-12 lg:mt-0">
+            <div className="sticky top-24 space-y-8">
               {/* Donation Component */}
               <DonationPlaceholder />
               
               {/* Related Articles */}
               {relatedArticles.length > 0 && (
                 <div className="bg-white rounded-xl shadow-sm p-6">
-                  <h3 className="text-lg font-bold mb-4 pb-2 border-b-2 border-orange-500 text-gray-900">
+                  <h3 className="text-xl font-bold mb-6 pb-3 border-b-2 border-orange-500 text-gray-900">
                     More in {article.category?.name}
                   </h3>
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {relatedArticles.map((relatedArticle) => (
                       <article key={relatedArticle.id} className="group">
                         <Link to={`/article/${relatedArticle.slug}`} className="block">
-                          <div className="flex gap-3">
+                          <div className="flex gap-4">
                             {(relatedArticle.featured_image_url || relatedArticle.featured_image) && (
                               <div className="flex-shrink-0">
                                 <img
                                   src={relatedArticle.featured_image_url || relatedArticle.featured_image || '/api/placeholder/80/80'}
                                   alt={relatedArticle.title}
-                                  className="w-16 h-16 object-cover rounded-lg group-hover:opacity-90 transition-opacity"
+                                  className="w-20 h-20 object-cover rounded-lg group-hover:opacity-90 transition-opacity"
                                   loading="lazy"
                                   onError={(e) => {
                                     e.currentTarget.src = '/api/placeholder/80/80';
@@ -520,10 +520,10 @@ const ArticleDetail: React.FC = () => {
                               </div>
                             )}
                             <div className="flex-1 min-w-0">
-                              <h4 className="article-card-title text-sm mb-1 line-clamp-3 group-hover:text-orange-600 transition-colors">
+                              <h4 className="article-card-title text-sm mb-2 line-clamp-3 group-hover:text-orange-600 transition-colors">
                                 {relatedArticle.title}
                               </h4>
-                              <div className="article-card-meta text-xs">
+                              <div className="article-card-meta">
                                 {formatDate(relatedArticle.published_at || relatedArticle.created_at)}
                               </div>
                             </div>
@@ -537,15 +537,15 @@ const ArticleDetail: React.FC = () => {
 
               {/* Newsletter Signup */}
               <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-sm p-6 text-white">
-                <h3 className="text-lg font-bold mb-2">Stay Updated</h3>
+                <h3 className="text-xl font-bold mb-3">Stay Updated</h3>
                 <p className="text-orange-100 mb-4 text-sm">Get the latest Gen Z news delivered straight to your inbox.</p>
                 <div className="space-y-3">
                   <input 
                     type="email" 
-                    placeholder="Enter your email"
-                    className="w-full px-4 py-2.5 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-300 transition-all text-sm"
+                    placeholder="Enter your email address"
+                    className="w-full px-4 py-3 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-300 transition-all"
                   />
-                  <button className="w-full bg-white text-orange-600 py-2.5 rounded-lg font-medium hover:bg-orange-50 transition-colors shadow-sm text-sm">
+                  <button className="w-full bg-white text-orange-600 py-3 rounded-lg font-medium hover:bg-orange-50 transition-colors shadow-sm">
                     Subscribe Now
                   </button>
                 </div>
