@@ -5,7 +5,7 @@ import DonationPlaceholder from '../components/DonationPlaceholder';
 import Newsletter from '../components/Newsletter';
 import ArticleCard from '../components/ArticleCard';
 import { getFeaturedArticles, getArticlesBySearch, getArticles, getCategories } from '../utils/api';
-import { RefreshCw, Search, X } from 'lucide-react';
+import { RefreshCw, Search, X, TrendingUp, Clock, BookOpen } from 'lucide-react';
 import type { Article, Category } from '../types';
 
 const Home: React.FC = () => {
@@ -36,70 +36,69 @@ const Home: React.FC = () => {
   const getImagePosition = (article: Article): 'top' | 'center' | 'bottom' => {
     const category = article.category?.name?.toLowerCase() || '';
     
-    // Sports often have action at the center
     if (category.includes('sport')) return 'center';
-    
-    // Politics/Opinion often have headshots - focus on top
     if (category.includes('politic') || category.includes('opinion')) return 'top';
-    
-    // Memes/Culture can vary - use center as default
     if (category.includes('meme') || category.includes('culture')) return 'center';
-    
-    // World news often has landscapes - use center
     if (category.includes('world')) return 'center';
     
-    // Default to center for others
     return 'center';
   };
 
-  // Skeleton Loader Component for Article Cards
+  // Enhanced Skeleton Loader Component with Professional Styling
   const ArticleCardSkeleton = () => (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+    <div className="article-card bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-shadow duration-300">
       <div className="animate-pulse">
-        {/* Image skeleton */}
-        <div className="aspect-[16/10] bg-gray-200"></div>
+        {/* Image skeleton with shimmer effect */}
+        <div className="aspect-[16/10] bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] animate-shimmer"></div>
         {/* Content skeleton */}
-        <div className="p-3">
+        <div className="p-4 space-y-3">
           {/* Category and meta row */}
-          <div className="flex justify-between items-center mb-1.5">
-            <div className="w-16 h-4 bg-gray-200 rounded"></div>
-            <div className="flex gap-2">
-              <div className="w-12 h-3 bg-gray-200 rounded"></div>
-              <div className="w-8 h-3 bg-gray-200 rounded"></div>
+          <div className="flex justify-between items-center">
+            <div className="w-20 h-5 bg-orange-200 rounded-full"></div>
+            <div className="flex gap-3">
+              <div className="w-16 h-4 bg-gray-200 rounded"></div>
+              <div className="w-12 h-4 bg-gray-200 rounded"></div>
             </div>
           </div>
-          {/* Title */}
-          <div className="w-full h-4 bg-gray-200 rounded mb-1"></div>
-          <div className="w-3/4 h-4 bg-gray-200 rounded mb-1"></div>
-          {/* Description */}
-          <div className="w-full h-3 bg-gray-200 rounded"></div>
-          <div className="w-1/2 h-3 bg-gray-200 rounded"></div>
+          {/* Title skeleton */}
+          <div className="space-y-2">
+            <div className="w-full h-5 bg-gray-300 rounded"></div>
+            <div className="w-4/5 h-5 bg-gray-300 rounded"></div>
+          </div>
+          {/* Description skeleton */}
+          <div className="space-y-2">
+            <div className="w-full h-4 bg-gray-200 rounded"></div>
+            <div className="w-3/5 h-4 bg-gray-200 rounded"></div>
+          </div>
         </div>
       </div>
     </div>
   );
 
-  // Categories Skeleton
+  // Enhanced Categories Skeleton with Professional Styling
   const CategoriesSkeleton = () => (
-    <div className="bg-white p-6 rounded-lg shadow-md">
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
       <div className="animate-pulse">
-        <div className="w-32 h-6 bg-gray-200 rounded mb-4"></div>
-        <div className="flex flex-wrap gap-2">
+        <div className="w-40 h-6 bg-gray-300 rounded mb-6"></div>
+        <div className="flex flex-wrap gap-3">
           {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="w-16 h-6 bg-gray-200 rounded"></div>
+            <div key={i} className="w-20 h-8 bg-gray-200 rounded-full"></div>
           ))}
         </div>
       </div>
     </div>
   );
 
-  // Search Results Skeleton
+  // Enhanced Search Results Skeleton
   const SearchResultsSkeleton = () => (
-    <section className="mb-8">
+    <section className="mb-12">
       <div className="animate-pulse">
-        <div className="w-48 h-8 bg-gray-200 rounded mb-4"></div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[1, 2, 3, 4].map(i => (
+        <div className="flex items-center justify-between mb-6">
+          <div className="w-48 h-8 bg-gray-300 rounded"></div>
+          <div className="w-6 h-6 bg-gray-200 rounded"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map(i => (
             <ArticleCardSkeleton key={`search-skeleton-${i}`} />
           ))}
         </div>
@@ -107,25 +106,29 @@ const Home: React.FC = () => {
     </section>
   );
 
-  // Error Component with Retry Button
+  // Enhanced Error Component with Better Design
   const ErrorWithRetry = ({ error, onRetry, section }: { error: string; onRetry: () => void; section: string }) => (
-    <div className="text-center py-12">
-      <p className="text-red-600 mb-4">{error}</p>
+    <div className="bg-white rounded-xl shadow-sm border border-red-100 p-8 text-center">
+      <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <RefreshCw size={32} className="text-red-500" />
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 mb-2">Unable to Load Content</h3>
+      <p className="text-red-600 mb-6 max-w-md mx-auto">{error}</p>
       <button
         onClick={onRetry}
-        className="inline-flex items-center px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+        className="inline-flex items-center px-6 py-3 bg-orange-500 text-white font-medium rounded-lg hover:bg-orange-600 transition-colors shadow-sm"
       >
-        <RefreshCw size={16} className="mr-2" />
+        <RefreshCw size={18} className="mr-2" />
         Try Again
       </button>
-      <p className="text-gray-500 mt-2">
-        {section === 'featured' && 'Please make sure your backend is running and has some featured articles.'}
-        {section === 'latest' && 'Please make sure your backend is running and has some articles.'}
+      <p className="text-gray-500 mt-4 text-sm">
+        {section === 'featured' && 'Featured articles will appear here once they\'re added to the system.'}
+        {section === 'latest' && 'Latest articles will appear here once they\'re published.'}
       </p>
     </div>
   );
 
-  // Enhanced Search Results with Clear and No Results
+  // Enhanced Search Results Section with Professional Styling
   const SearchResultsSection = () => {
     if (!showSearch) return null;
 
@@ -133,9 +136,9 @@ const Home: React.FC = () => {
       <>
         {loadingSearch && <SearchResultsSkeleton />}
         {errorSearch && (
-          <section className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold pb-2 border-b-2 border-orange-500">
+          <section className="mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-3xl font-bold text-gray-900">
                 Search Results
               </h2>
               <button
@@ -145,28 +148,31 @@ const Home: React.FC = () => {
                   setSearchQuery('');
                   setErrorSearch(null);
                 }}
-                className="text-gray-500 hover:text-gray-700 p-1"
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <X size={20} />
+                <X size={24} />
               </button>
             </div>
-            <div className="text-center py-8">
-              <Search size={48} className="mx-auto text-gray-300 mb-4" />
-              <p className="text-red-600 mb-4">{errorSearch}</p>
+            <div className="bg-white rounded-xl shadow-sm border border-red-100 p-12 text-center">
+              <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Search size={40} className="text-red-500" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Search Error</h3>
+              <p className="text-red-600 mb-6 max-w-md mx-auto">{errorSearch}</p>
               <button
                 onClick={() => handleSearch(searchQuery)}
-                className="inline-flex items-center px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                className="inline-flex items-center px-6 py-3 bg-orange-500 text-white font-medium rounded-lg hover:bg-orange-600 transition-colors shadow-sm"
               >
-                <RefreshCw size={16} className="mr-2" />
+                <RefreshCw size={18} className="mr-2" />
                 Try Search Again
               </button>
             </div>
           </section>
         )}
         {!loadingSearch && !errorSearch && searchResults.length === 0 && showSearch && (
-          <section className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold pb-2 border-b-2 border-orange-500">
+          <section className="mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-3xl font-bold text-gray-900">
                 Search Results
               </h2>
               <button
@@ -175,44 +181,53 @@ const Home: React.FC = () => {
                   setSearchResults([]);
                   setSearchQuery('');
                 }}
-                className="text-gray-500 hover:text-gray-700 p-1"
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <X size={20} />
+                <X size={24} />
               </button>
             </div>
-            <div className="text-center py-12">
-              <Search size={64} className="mx-auto text-gray-300 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">No articles found</h3>
-              <p className="text-gray-500 mb-4">
-                No results for "<span className="font-medium">{searchQuery}</span>"
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Search size={48} className="text-gray-400" />
+              </div>
+              <h3 className="text-2xl font-semibold text-gray-900 mb-3">No Results Found</h3>
+              <p className="text-gray-600 mb-2 text-lg">
+                No articles found for "<span className="font-semibold text-gray-900">{searchQuery}</span>"
               </p>
-              <div className="text-sm text-gray-400">
-                <p>Try searching for:</p>
-                <p>• Different keywords</p>
-                <p>• Broader terms</p>
-                <p>• Check spelling</p>
+              <div className="text-gray-500 space-y-1 mt-6">
+                <p className="font-medium">Try searching for:</p>
+                <div className="flex flex-wrap justify-center gap-2 mt-3">
+                  <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">Different keywords</span>
+                  <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">Broader terms</span>
+                  <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">Check spelling</span>
+                </div>
               </div>
             </div>
           </section>
         )}
         {searchResults.length > 0 && (
-          <section className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold pb-2 border-b-2 border-orange-500">
-                Search Results ({searchResults.length})
-              </h2>
+          <section className="mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <h2 className="text-3xl font-bold text-gray-900">
+                  Search Results
+                </h2>
+                <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-medium">
+                  {searchResults.length} found
+                </span>
+              </div>
               <button
                 onClick={() => {
                   setShowSearch(false);
                   setSearchResults([]);
                   setSearchQuery('');
                 }}
-                className="text-gray-500 hover:text-gray-700 p-1"
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <X size={20} />
+                <X size={24} />
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {searchResults.map((article) => (
                 <ArticleCard 
                   key={`search-${article.id}`} 
@@ -227,9 +242,8 @@ const Home: React.FC = () => {
     );
   };
 
-  // ⚡ STAGGERED LOADING - Categories first, then featured, then latest
+  // Data fetching effects (same as before but with better error handling)
   useEffect(() => {
-    // 1. Load categories first (fastest)
     const fetchCategories = async () => {
       setLoadingCategories(true);
       try {
@@ -237,12 +251,10 @@ const Home: React.FC = () => {
         const response = await getCategories();
         console.log('Categories Response:', response.data);
         
-        // Take first 6 categories as popular
         const categories = response.data.slice(0, 6) || [];
         setPopularCategories(categories);
       } catch (err: any) {
         console.error('Categories Error:', err);
-        // Use your ACTUAL categories as fallback with proper formatting
         setPopularCategories([
           { id: 1, name: 'Culture', slug: 'culture' },
           { id: 2, name: 'Sports', slug: 'sports' },
@@ -256,7 +268,6 @@ const Home: React.FC = () => {
       }
     };
 
-    // 2. Load featured articles (medium priority)
     const fetchFeaturedArticles = async () => {
       setLoadingFeatured(true);
       setErrorFeatured(null);
@@ -279,7 +290,6 @@ const Home: React.FC = () => {
       }
     };
 
-    // 3. Load latest articles (lowest priority)
     const fetchLatestArticles = async () => {
       setLoadingLatest(true);
       setErrorLatest(null);
@@ -302,19 +312,13 @@ const Home: React.FC = () => {
       }
     };
 
-    // ⚡ STAGGERED EXECUTION
-    fetchCategories(); // Start immediately
-    
-    setTimeout(() => {
-      fetchFeaturedArticles(); // Start after 100ms
-    }, 100);
-    
-    setTimeout(() => {
-      fetchLatestArticles(); // Start after 300ms
-    }, 300);
+    // Staggered loading for better UX
+    fetchCategories();
+    setTimeout(fetchFeaturedArticles, 100);
+    setTimeout(fetchLatestArticles, 300);
   }, []);
 
-  // Retry functions for error recovery
+  // Retry functions (same as before)
   const retryFeatured = async () => {
     setLoadingFeatured(true);
     setErrorFeatured(null);
@@ -351,7 +355,7 @@ const Home: React.FC = () => {
     }
   };
 
-  // Enhanced search with Enter key support
+  // Enhanced search function
   const handleSearch = async (query: string) => {
     if (!query.trim()) {
       setShowSearch(false);
@@ -371,12 +375,7 @@ const Home: React.FC = () => {
       console.log('Search Results Response:', response.data);
       
       const articles = response.data.results || [];
-      if (articles.length === 0) {
-        setSearchResults([]);
-        // Don't set error for no results - handle in UI
-      } else {
-        setSearchResults(articles);
-      }
+      setSearchResults(articles);
     } catch (err: any) {
       console.error('Search Error:', err);
       setErrorSearch(`Failed to load search results: ${err.response?.data?.detail || err.message}`);
@@ -387,123 +386,145 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      {/* Header Section */}
-      <div className="text-center mb-8">
-        <SearchBar onSearch={handleSearch} />
-      </div>
-
-      {/* Enhanced Search Results Section */}
-      <SearchResultsSection />
-
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Main Content */}
-        <div className="lg:w-8/12">
-          {/* Featured Stories Section */}
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold mb-4 pb-2 border-b-2 border-orange-500">
-              Featured Stories
-            </h2>
-            {loadingFeatured ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[1, 2, 3, 4].map(i => (
-                  <ArticleCardSkeleton key={`featured-skeleton-${i}`} />
-                ))}
-              </div>
-            ) : errorFeatured ? (
-              <ErrorWithRetry 
-                error={errorFeatured} 
-                onRetry={retryFeatured} 
-                section="featured"
-              />
-            ) : featuredArticles.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {featuredArticles.map((article) => (
-                  <ArticleCard 
-                    key={`featured-${article.id}`} 
-                    article={article} 
-                    imagePosition={getImagePosition(article)}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-600">No featured articles available.</p>
-                <p className="text-gray-500 mt-2">
-                  Add some featured articles in the Django admin panel.
-                </p>
-              </div>
-            )}
-          </section>
-
-          {/* Latest News Section */}
-          <section>
-            <h2 className="text-2xl font-bold mb-4 pb-2 border-b-2 border-orange-500">
-              Latest News
-            </h2>
-            {loadingLatest ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[1, 2, 3, 4, 5, 6].map(i => (
-                  <ArticleCardSkeleton key={`latest-skeleton-${i}`} />
-                ))}
-              </div>
-            ) : errorLatest ? (
-              <ErrorWithRetry 
-                error={errorLatest} 
-                onRetry={retryLatest} 
-                section="latest"
-              />
-            ) : latestArticles.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {latestArticles.map((article) => (
-                  <ArticleCard 
-                    key={`latest-${article.id}`} 
-                    article={article} 
-                    imagePosition={getImagePosition(article)}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-600">No latest articles available.</p>
-                <p className="text-gray-500 mt-2">
-                  Add some articles in the Django admin panel.
-                </p>
-              </div>
-            )}
-          </section>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        {/* Enhanced Header Section */}
+        <div className="text-center mb-12">
+          <h1 className="article-title text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            Welcome to The Age of GenZ
+          </h1>
+          <p className="article-subtitle text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            Your ultimate source for Gen Z news, culture, and perspectives that matter.
+          </p>
+          <div className="max-w-2xl mx-auto">
+            <SearchBar onSearch={handleSearch} />
+          </div>
         </div>
 
-        {/* Enhanced Sidebar */}
-        <aside className="lg:w-4/12 mt-8 lg:mt-0 lg:sticky lg:top-24 self-start">
-          <div className="space-y-8">
-            {/* Popular Categories with Skeleton */}
-            {loadingCategories ? (
-              <CategoriesSkeleton />
-            ) : (
-              <div className="bg-white p-6 rounded-lg shadow-md">
-                <h3 className="text-xl font-bold mb-4 pb-2 border-b-2 border-orange-500">
-                  Popular Categories
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {popularCategories.map((category) => (
-                    <Link
-                      key={category.id}
-                      to={`/${category.slug}`}
-                      className="text-gray-700 px-3 py-1 text-sm hover:text-orange-500 transition-colors duration-200 font-medium"
-                    >
-                      {formatCategoryName(category.name)}
-                    </Link>
+        {/* Enhanced Search Results Section */}
+        <SearchResultsSection />
+
+        <div className="flex flex-col lg:flex-row gap-12">
+          {/* Main Content */}
+          <div className="lg:w-8/12">
+            {/* Enhanced Featured Stories Section */}
+            <section className="mb-12">
+              <div className="flex items-center gap-3 mb-6">
+                <TrendingUp size={28} className="text-orange-500" />
+                <h2 className="text-3xl font-bold text-gray-900">
+                  Featured Stories
+                </h2>
+              </div>
+              {loadingFeatured ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[1, 2, 3, 4, 5, 6].map(i => (
+                    <ArticleCardSkeleton key={`featured-skeleton-${i}`} />
                   ))}
                 </div>
-              </div>
-            )}
+              ) : errorFeatured ? (
+                <ErrorWithRetry 
+                  error={errorFeatured} 
+                  onRetry={retryFeatured} 
+                  section="featured"
+                />
+              ) : featuredArticles.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {featuredArticles.map((article) => (
+                    <ArticleCard 
+                      key={`featured-${article.id}`} 
+                      article={article} 
+                      imagePosition={getImagePosition(article)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+                  <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <TrendingUp size={40} className="text-orange-500" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">No Featured Articles Yet</h3>
+                  <p className="text-gray-600 max-w-md mx-auto">
+                    Featured articles will appear here once they're added to the system. Check back soon for curated content!
+                  </p>
+                </div>
+              )}
+            </section>
 
-            {/* Donation and Newsletter */}
-            <DonationPlaceholder />
-            <Newsletter />
+            {/* Enhanced Latest News Section */}
+            <section>
+              <div className="flex items-center gap-3 mb-6">
+                <Clock size={28} className="text-blue-500" />
+                <h2 className="text-3xl font-bold text-gray-900">
+                  Latest News
+                </h2>
+              </div>
+              {loadingLatest ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => (
+                    <ArticleCardSkeleton key={`latest-skeleton-${i}`} />
+                  ))}
+                </div>
+              ) : errorLatest ? (
+                <ErrorWithRetry 
+                  error={errorLatest} 
+                  onRetry={retryLatest} 
+                  section="latest"
+                />
+              ) : latestArticles.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {latestArticles.map((article) => (
+                    <ArticleCard 
+                      key={`latest-${article.id}`} 
+                      article={article} 
+                      imagePosition={getImagePosition(article)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+                  <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <BookOpen size={40} className="text-blue-500" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">No Articles Available</h3>
+                  <p className="text-gray-600 max-w-md mx-auto">
+                    Latest articles will appear here once they're published. Start creating content to fill this space!
+                  </p>
+                </div>
+              )}
+            </section>
           </div>
-        </aside>
+
+          {/* Enhanced Sidebar */}
+          <aside className="lg:w-4/12 mt-8 lg:mt-0">
+            <div className="lg:sticky lg:top-24 space-y-8">
+              {/* Enhanced Popular Categories */}
+              {loadingCategories ? (
+                <CategoriesSkeleton />
+              ) : (
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                  <h3 className="text-xl font-bold text-gray-900 mb-6 pb-3 border-b-2 border-orange-500">
+                    Popular Categories
+                  </h3>
+                  <div className="flex flex-wrap gap-3">
+                    {popularCategories.map((category) => (
+                      <Link
+                        key={category.id}
+                        to={`/${category.slug}`}
+                        className="inline-flex items-center bg-gray-100 hover:bg-orange-50 text-gray-700 hover:text-orange-700 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border border-gray-200 hover:border-orange-200"
+                      >
+                        {formatCategoryName(category.name)}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Enhanced Donation and Newsletter */}
+              <DonationPlaceholder />
+              <Newsletter />
+            </div>
+          </aside>
+        </div>
       </div>
     </div>
   );
