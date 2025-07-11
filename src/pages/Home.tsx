@@ -388,14 +388,8 @@ const Home: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
-        {/* Enhanced Header Section */}
-        <div className="text-center mb-12">
-          <h1 className="article-title text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Welcome to The Age of GenZ
-          </h1>
-          <p className="article-subtitle text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Your ultimate source for Gen Z news, culture, and perspectives that matter.
-          </p>
+        {/* Compact Header Section */}
+        <div className="text-center mb-8">
           <div className="max-w-2xl mx-auto">
             <SearchBar onSearch={handleSearch} />
           </div>
@@ -519,7 +513,7 @@ const Home: React.FC = () => {
                 </div>
               )}
 
-              {/* Enhanced Donation and Newsletter */}
+              {/* Compact Donation and Newsletter */}
               <DonationPlaceholder />
               <Newsletter />
             </div>
