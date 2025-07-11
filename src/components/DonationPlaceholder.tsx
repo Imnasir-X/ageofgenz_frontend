@@ -122,7 +122,7 @@ const DonationComponent: React.FC = () => {
   const selectedOption = donationOptions.find(opt => opt.amount === selectedAmount);
 
   return (
-    <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg p-6 text-white relative overflow-hidden">
+    <div className="bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl shadow-lg p-6 text-white relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-white bg-opacity-10 rounded-full -translate-y-16 translate-x-16"></div>
       <div className="absolute bottom-0 left-0 w-24 h-24 bg-white bg-opacity-5 rounded-full translate-y-12 -translate-x-12"></div>
@@ -134,7 +134,7 @@ const DonationComponent: React.FC = () => {
             <Heart className="w-7 h-7 text-white" />
           </div>
           <h2 className="text-xl font-bold mb-2">Support Our Work</h2>
-          <p className="text-blue-100 text-sm leading-relaxed">
+          <p className="text-orange-100 text-sm leading-relaxed">
             Help us deliver fearless journalism for the next generation.
           </p>
         </div>
@@ -145,8 +145,8 @@ const DonationComponent: React.FC = () => {
             onClick={() => setDonationType('once')}
             className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
               donationType === 'once'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-blue-100 hover:text-white'
+                ? 'bg-white text-orange-600 shadow-sm'
+                : 'text-orange-100 hover:text-white'
             }`}
           >
             One-time
@@ -155,8 +155,8 @@ const DonationComponent: React.FC = () => {
             onClick={() => setDonationType('monthly')}
             className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all relative ${
               donationType === 'monthly'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-blue-100 hover:text-white'
+                ? 'bg-white text-orange-600 shadow-sm'
+                : 'text-orange-100 hover:text-white'
             }`}
           >
             Monthly
