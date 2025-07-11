@@ -8,29 +8,220 @@
 @tailwind aspect-ratio;
 @tailwind line-clamp;
 @tailwind animate;
-/* Professional Article Content Styling */
-@layer utilities {
+
+/* Import professional fonts for Medium-style typography */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Charter:ital,wght@0,400;0,700;1,400&display=swap');
+
+/* CSS Variables for consistent theming and text contrast */
+:root {
+  --text-primary: #1a1a1a;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --accent-orange: #f97316;
+  --accent-orange-hover: #ea580c;
+  --border-light: #e5e7eb;
+  
+  /* Typography scale */
+  --font-system: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-serif: Charter, Georgia, "Times New Roman", serif;
+  --font-sans: Inter, var(--font-system);
+}
+
+/* Global typography improvements */
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  body {
+    @apply bg-gray-50 text-gray-900;
+    font-family: var(--font-sans);
+    line-height: 1.6;
+  }
+  
+  /* Ensure all text is visible with proper contrast */
+  * {
+    color: inherit;
+  }
+  
+  /* Fix text visibility on dark backgrounds */
+  .bg-gray-900 *, 
+  .bg-black *,
+  .bg-gray-800 * {
+    @apply text-white !important;
+  }
+  
+  /* Ensure proper contrast for links */
+  a {
+    @apply text-gray-900;
+    transition: color 0.2s ease;
+  }
+  
+  a:hover {
+    @apply text-orange-500;
+  }
+  
+  /* Force visibility for critical text elements */
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-gray-900 !important;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  
+  p {
+    @apply text-gray-800 !important;
+    line-height: 1.6;
+  }
+}
+
+/* Professional Article Content Styling - Medium.com Inspired */
+@layer components {
+  /* Article typography system */
+  .article-typography {
+    font-family: var(--font-serif);
+    @apply text-gray-900;
+  }
+  
+  .article-title {
+    font-family: var(--font-sans);
+    @apply text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight;
+    letter-spacing: -0.02em;
+  }
+  
+  .article-subtitle {
+    @apply text-xl md:text-2xl text-gray-600 font-normal leading-relaxed;
+    margin: 1.5rem 0 2rem 0;
+  }
+  
+  .article-meta {
+    font-family: var(--font-sans);
+    @apply text-sm text-gray-500;
+  }
+  
+  /* Enhanced article content styling */
   .article-content {
-    @apply text-lg leading-relaxed;
+    font-family: var(--font-serif);
+    @apply text-gray-900;
+    font-size: 1.125rem;
+    line-height: 1.75;
+    max-width: none;
   }
   
-  /* Drop cap for first letter */
+  .article-content p {
+    @apply text-gray-900 !important;
+    font-size: 1.125rem;
+    line-height: 1.75;
+    margin-bottom: 1.75rem;
+    font-family: var(--font-serif);
+  }
+  
+  /* Lead paragraph - first paragraph special styling */
+  .article-content > p:first-of-type {
+    @apply text-xl text-gray-900 !important;
+    font-weight: 400;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+  }
+  
+  /* Headlines within content */
+  .article-content h2 {
+    font-family: var(--font-sans);
+    @apply text-2xl md:text-3xl font-bold text-gray-900 !important;
+    margin: 3rem 0 1.5rem 0;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 2rem;
+  }
+  
+  .article-content h3 {
+    font-family: var(--font-sans);
+    @apply text-xl md:text-2xl font-semibold text-gray-900 !important;
+    margin: 2.5rem 0 1rem 0;
+    line-height: 1.4;
+  }
+  
+  .article-content h4 {
+    font-family: var(--font-sans);
+    @apply text-lg font-semibold text-gray-900 !important;
+    margin: 2rem 0 0.75rem 0;
+  }
+  
+  /* Blockquotes */
+  .article-content blockquote {
+    @apply border-l-4 border-orange-500 bg-orange-50 text-gray-900 !important;
+    padding: 1.5rem 2rem;
+    margin: 2.5rem 0;
+    font-style: italic;
+    font-size: 1.25rem;
+    line-height: 1.6;
+    border-radius: 0 8px 8px 0;
+  }
+  
+  /* Links within content */
+  .article-content a {
+    @apply text-orange-600 !important;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: all 0.2s ease;
+  }
+  
+  .article-content a:hover {
+    @apply text-orange-700 !important;
+    text-decoration-thickness: 2px;
+  }
+  
+  /* Lists */
+  .article-content ul,
+  .article-content ol {
+    @apply text-gray-900 !important;
+    margin: 1.5rem 0;
+    padding-left: 2rem;
+  }
+  
+  .article-content li {
+    @apply text-gray-900 !important;
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+  }
+  
+  /* Strong text */
+  .article-content strong {
+    @apply text-gray-900 !important;
+    font-weight: 600;
+  }
+  
+  /* Code */
+  .article-content code {
+    @apply bg-gray-100 text-gray-800 !important;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  }
+  
+  /* Drop cap for first letter - PRESERVED FROM ORIGINAL */
   .article-content > p:first-child:first-letter {
-    @apply text-6xl font-bold float-left mr-3 mt-1 leading-none;
+    @apply text-6xl font-bold float-left mr-3 mt-1 leading-none text-gray-900;
   }
   
-  /* Section breaks */
+  /* Section breaks - PRESERVED FROM ORIGINAL */
   .article-break {
     @apply my-12 text-center text-gray-400;
   }
   
-  /* Pull quotes */
+  /* Pull quotes - ENHANCED FROM ORIGINAL */
   .article-pullquote {
-    @apply my-10 py-6 text-2xl font-medium text-gray-900 border-t-2 border-b-2 border-gray-200 text-center;
+    @apply my-10 py-6 text-2xl font-medium text-gray-900 border-t-2 border-b-2 border-orange-200 text-center bg-orange-50;
+    border-radius: 8px;
   }
 }
 
-/* Custom prose overrides for article content */
+/* Custom prose overrides for article content - PRESERVED AND ENHANCED */
 .prose-article {
   max-width: none;
 }
@@ -39,7 +230,8 @@
   margin-bottom: 1.5rem;
   font-size: 1.125rem;
   line-height: 1.75;
-  color: #1f2937;
+  color: #1f2937 !important;
+  font-family: var(--font-serif);
 }
 
 .prose-article h2 {
@@ -47,9 +239,10 @@
   margin-bottom: 1.5rem;
   font-size: 2rem;
   font-weight: 700;
-  color: #111827;
+  color: #111827 !important;
   border-top: 1px solid #e5e7eb;
   padding-top: 2rem;
+  font-family: var(--font-sans);
 }
 
 .prose-article h3 {
@@ -57,7 +250,8 @@
   margin-bottom: 1rem;
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1f2937;
+  color: #1f2937 !important;
+  font-family: var(--font-sans);
 }
 
 .prose-article blockquote {
@@ -65,21 +259,406 @@
   padding-left: 1.5rem;
   margin: 2rem 0;
   font-style: italic;
-  color: #4b5563;
+  color: #4b5563 !important;
   font-size: 1.25rem;
+  background-color: #fef3f2;
+  padding: 1.5rem;
+  border-radius: 0 8px 8px 0;
 }
 
 .prose-article strong {
   font-weight: 700;
-  color: #111827;
+  color: #111827 !important;
 }
 
 .prose-article a {
-  color: #f97316;
+  color: #f97316 !important;
   text-decoration: underline;
   transition: color 0.2s;
 }
 
 .prose-article a:hover {
-  color: #ea580c;
+  color: #ea580c !important;
+}
+
+/* Global text visibility fixes */
+@layer utilities {
+  /* Force visibility for all essential text elements */
+  .force-visible-text h1,
+  .force-visible-text h2,
+  .force-visible-text h3,
+  .force-visible-text h4,
+  .force-visible-text h5,
+  .force-visible-text h6,
+  .force-visible-text p,
+  .force-visible-text span,
+  .force-visible-text a,
+  .force-visible-text div {
+    color: #1f2937 !important;
+  }
+
+  /* Category pages - Dark background with light text */
+  .category-hero,
+  .dark-hero,
+  .bg-gray-900,
+  .bg-black {
+    background-color: #111827 !important;
+  }
+  
+  .category-hero *,
+  .dark-hero *,
+  .bg-gray-900 *,
+  .bg-black * {
+    color: #ffffff !important;
+  }
+  
+  .category-hero h1,
+  .category-hero h2,
+  .category-hero h3 {
+    color: #ffffff !important;
+    font-weight: 700;
+  }
+  
+  .category-hero p,
+  .category-hero .article-excerpt {
+    color: #d1d5db !important;
+  }
+  
+  .category-hero a {
+    color: #ffffff !important;
+    transition: color 0.2s ease;
+  }
+  
+  .category-hero a:hover {
+    color: #fbbf24 !important;
+  }
+
+  /* Footer fixes */
+  footer,
+  .footer,
+  .footer-section {
+    background-color: #1f2937 !important;
+  }
+  
+  footer *,
+  .footer *,
+  .footer-section * {
+    color: #d1d5db !important;
+  }
+  
+  footer h1,
+  footer h2,
+  footer h3,
+  footer h4,
+  .footer h1,
+  .footer h2,
+  .footer h3,
+  .footer h4,
+  .footer-heading {
+    color: #ffffff !important;
+    font-weight: 600;
+  }
+  
+  footer a,
+  .footer a,
+  .footer-link {
+    color: #d1d5db !important;
+    transition: color 0.2s ease;
+  }
+  
+  footer a:hover,
+  .footer a:hover,
+  .footer-link:hover {
+    color: #fbbf24 !important;
+  }
+
+  /* Article cards - Ensure visibility on all backgrounds */
+  .article-card {
+    background-color: #ffffff !important;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    transition: all 0.2s ease;
+  }
+  
+  .article-card:hover {
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+  
+  .article-card h3,
+  .article-card .article-title {
+    color: #1f2937 !important;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 0.75rem;
+  }
+  
+  .article-card p,
+  .article-card .article-excerpt {
+    color: #6b7280 !important;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+  
+  .article-card .article-meta,
+  .article-card .text-sm {
+    color: #9ca3af !important;
+    font-size: 0.875rem;
+  }
+  
+  .article-card a {
+    color: inherit;
+    text-decoration: none;
+  }
+  
+  .article-card a:hover h3 {
+    color: #f97316 !important;
+  }
+
+  /* Navigation fixes */
+  nav,
+  .navbar,
+  .navigation {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  nav *,
+  .navbar *,
+  .navigation * {
+    color: #374151 !important;
+  }
+  
+  nav a,
+  .navbar a,
+  .navigation a,
+  .nav-link {
+    color: #374151 !important;
+    font-weight: 500;
+    transition: color 0.2s ease;
+  }
+  
+  nav a:hover,
+  .navbar a:hover,
+  .navigation a:hover,
+  .nav-link:hover {
+    color: #f97316 !important;
+  }
+
+  /* Breadcrumb fixes */
+  .breadcrumb,
+  nav.breadcrumb {
+    background-color: #ffffff !important;
+  }
+  
+  .breadcrumb *,
+  nav.breadcrumb * {
+    color: #6b7280 !important;
+  }
+  
+  .breadcrumb a,
+  nav.breadcrumb a {
+    color: #6b7280 !important;
+    transition: color 0.2s ease;
+  }
+  
+  .breadcrumb a:hover,
+  nav.breadcrumb a:hover {
+    color: #f97316 !important;
+  }
+
+  /* Button consistency */
+  .btn,
+  button {
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+  
+  .btn-primary,
+  .bg-orange-500 {
+    background-color: #f97316 !important;
+    color: #ffffff !important;
+    border: none;
+  }
+  
+  .btn-primary:hover,
+  .bg-orange-500:hover,
+  .hover\:bg-orange-600:hover {
+    background-color: #ea580c !important;
+    color: #ffffff !important;
+  }
+  
+  .btn-secondary,
+  .bg-gray-100 {
+    background-color: #f3f4f6 !important;
+    color: #374151 !important;
+    border: 1px solid #d1d5db;
+  }
+  
+  .btn-secondary:hover,
+  .bg-gray-100:hover {
+    background-color: #e5e7eb !important;
+    color: #1f2937 !important;
+  }
+
+  /* Reading experience enhancements */
+  .reading-width {
+    max-width: 42rem; /* Optimal reading width */
+  }
+  
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Trending/Featured sections */
+  .trending-section,
+  .featured-section {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%) !important;
+  }
+  
+  .trending-section *,
+  .featured-section * {
+    color: #ffffff !important;
+  }
+  
+  .trending-section h2,
+  .featured-section h2,
+  .trending-section h3,
+  .featured-section h3 {
+    color: #ffffff !important;
+    font-weight: 700;
+  }
+  
+  .trending-section p,
+  .featured-section p {
+    color: #d1d5db !important;
+  }
+  
+  .trending-section a,
+  .featured-section a {
+    color: #ffffff !important;
+    transition: color 0.2s ease;
+  }
+  
+  .trending-section a:hover,
+  .featured-section a:hover {
+    color: #fbbf24 !important;
+  }
+
+  /* Sidebar elements */
+  .sidebar,
+  aside {
+    background-color: transparent;
+  }
+  
+  .sidebar .widget,
+  aside .widget,
+  .sidebar > div,
+  aside > div {
+    background-color: #ffffff !important;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .sidebar *,
+  aside * {
+    color: #374151 !important;
+  }
+  
+  .sidebar h3,
+  aside h3,
+  .sidebar h4,
+  aside h4 {
+    color: #1f2937 !important;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+
+  /* Utility classes for manual overrides */
+  .text-force-dark {
+    color: #1f2937 !important;
+  }
+  
+  .text-force-light {
+    color: #ffffff !important;
+  }
+  
+  .text-force-muted {
+    color: #6b7280 !important;
+  }
+  
+  .bg-force-white {
+    background-color: #ffffff !important;
+  }
+  
+  .bg-force-dark {
+    background-color: #1f2937 !important;
+  }
+  
+  /* Responsive typography */
+  @media (max-width: 768px) {
+    .article-content {
+      font-size: 1.1rem;
+      line-height: 1.7;
+    }
+    
+    .article-content p {
+      font-size: 1.1rem !important;
+      margin-bottom: 1.5rem;
+    }
+    
+    .article-title {
+      @apply text-2xl md:text-3xl;
+    }
+  }
+}
+
+/* Dark theme compatibility (for sections that need dark backgrounds) */
+@layer utilities {
+  .dark-section {
+    @apply bg-gray-900;
+  }
+  
+  .dark-section * {
+    @apply text-white;
+  }
+  
+  .dark-section .text-gray-600 {
+    @apply text-gray-300 !important;
+  }
+  
+  .dark-section .text-gray-500 {
+    @apply text-gray-400 !important;
+  }
+  
+  .dark-section a {
+    @apply text-orange-400 !important;
+  }
+  
+  .dark-section a:hover {
+    @apply text-orange-300 !important;
+  }
+}
+
+/* Print styles for articles */
+@media print {
+  * {
+    color: #000000 !important;
+    background: #ffffff !important;
+  }
+  
+  .article-content {
+    font-family: Georgia, serif;
+    font-size: 12pt;
+    line-height: 1.5;
+    color: black !important;
+  }
+  
+  .article-title {
+    font-size: 18pt;
+    color: black !important;
+  }
 }
