@@ -2,282 +2,84 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* ✅ CRITICAL: Ensure all text is visible with proper contrast */
-@layer base {
-  * {
-    color: inherit;
-  }
-  
-  body {
-    color: #1f2937 !important;
-    background-color: #f9fafb !important;
-  }
-  
-  h1, h2, h3, h4, h5, h6 {
-    color: #111827 !important;
-    font-weight: 700 !important;
-  }
-  
-  p {
-    color: #374151 !important;
-  }
-  
-  a {
-    color: #f97316 !important;
-  }
-}
-
-/* ✅ FIXED: Article content with proper spacing and visibility */
-@layer components {
+@tailwind screens;
+@tailwind typography;
+@tailwind forms;
+@tailwind aspect-ratio;
+@tailwind line-clamp;
+@tailwind animate;
+/* Professional Article Content Styling */
+@layer utilities {
   .article-content {
-    @apply text-lg leading-relaxed text-gray-800;
+    @apply text-lg leading-relaxed;
   }
   
-  .article-content p {
-    @apply mb-6 text-lg leading-relaxed text-gray-800 !important;
-    margin-bottom: 1.5rem !important;
-    line-height: 1.75 !important;
-    color: #374151 !important;
+  /* Drop cap for first letter */
+  .article-content > p:first-child:first-letter {
+    @apply text-6xl font-bold float-left mr-3 mt-1 leading-none;
   }
   
-  .article-content h1 {
-    @apply text-3xl font-bold mt-8 mb-6 text-gray-900 !important;
-    color: #111827 !important;
-  }
-  
-  .article-content h2 {
-    @apply text-2xl font-bold mt-12 mb-6 text-gray-900 border-t pt-8 !important;
-    color: #111827 !important;
-    border-top: 1px solid #e5e7eb !important;
-    padding-top: 2rem !important;
-    margin-top: 3rem !important;
-    margin-bottom: 1.5rem !important;
-  }
-  
-  .article-content h3 {
-    @apply text-xl font-semibold mt-8 mb-4 text-gray-900 !important;
-    color: #1f2937 !important;
-    margin-top: 2rem !important;
-    margin-bottom: 1rem !important;
-  }
-  
-  .article-content ul {
-    @apply list-disc list-inside mb-6 ml-6 space-y-3 text-lg text-gray-800 !important;
-    margin-bottom: 1.5rem !important;
-    padding-left: 1.5rem !important;
-  }
-  
-  .article-content ol {
-    @apply list-decimal list-inside mb-6 ml-6 space-y-3 text-lg text-gray-800 !important;
-    margin-bottom: 1.5rem !important;
-    padding-left: 1.5rem !important;
-  }
-  
-  .article-content blockquote {
-    @apply border-l-4 border-orange-500 pl-6 my-8 text-lg italic text-gray-700 !important;
-    border-left: 4px solid #f97316 !important;
-    padding-left: 1.5rem !important;
-    margin: 2rem 0 !important;
-    font-style: italic !important;
-    color: #4b5563 !important;
-    font-size: 1.125rem !important;
-  }
-  
-  .article-content strong {
-    @apply font-bold text-gray-900 !important;
-    font-weight: 700 !important;
-    color: #111827 !important;
-  }
-  
-  .article-content a {
-    @apply text-orange-500 underline hover:text-orange-600 !important;
-    color: #f97316 !important;
-    text-decoration: underline !important;
-  }
-  
-  .article-content a:hover {
-    color: #ea580c !important;
-  }
-  
-  /* ✅ Drop cap for first paragraph */
-  .article-content > p:first-child {
-    font-size: 1.25rem !important;
-    font-weight: 500 !important;
-    margin-bottom: 2rem !important;
-  }
-  
-  .article-content > p:first-child::first-letter {
-    font-size: 3.5rem !important;
-    font-weight: 700 !important;
-    float: left !important;
-    margin-right: 0.75rem !important;
-    margin-top: 0.25rem !important;
-    line-height: 1 !important;
-    color: #f97316 !important;
-  }
-  
-  /* ✅ Section breaks */
+  /* Section breaks */
   .article-break {
     @apply my-12 text-center text-gray-400;
-    margin: 3rem 0 !important;
-    text-align: center !important;
-    color: #9ca3af !important;
+  }
+  
+  /* Pull quotes */
+  .article-pullquote {
+    @apply my-10 py-6 text-2xl font-medium text-gray-900 border-t-2 border-b-2 border-gray-200 text-center;
   }
 }
 
-/* ✅ FIXED: Override prose styles to ensure visibility */
+/* Custom prose overrides for article content */
 .prose-article {
-  max-width: none !important;
-  color: #374151 !important;
-}
-
-.prose-article * {
-  color: inherit !important;
+  max-width: none;
 }
 
 .prose-article p {
-  margin-bottom: 1.5rem !important;
-  font-size: 1.125rem !important;
-  line-height: 1.75 !important;
-  color: #374151 !important;
-}
-
-.prose-article h1 {
-  margin-top: 2rem !important;
-  margin-bottom: 1.5rem !important;
-  font-size: 2.25rem !important;
-  font-weight: 700 !important;
-  color: #111827 !important;
+  margin-bottom: 1.5rem;
+  font-size: 1.125rem;
+  line-height: 1.75;
+  color: #1f2937;
 }
 
 .prose-article h2 {
-  margin-top: 3rem !important;
-  margin-bottom: 1.5rem !important;
-  font-size: 1.875rem !important;
-  font-weight: 700 !important;
-  color: #111827 !important;
-  border-top: 1px solid #e5e7eb !important;
-  padding-top: 2rem !important;
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 2rem;
 }
 
 .prose-article h3 {
-  margin-top: 2rem !important;
-  margin-bottom: 1rem !important;
-  font-size: 1.5rem !important;
-  font-weight: 600 !important;
-  color: #1f2937 !important;
-}
-
-.prose-article h4 {
-  margin-top: 1.5rem !important;
-  margin-bottom: 0.75rem !important;
-  font-size: 1.25rem !important;
-  font-weight: 600 !important;
-  color: #1f2937 !important;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
 }
 
 .prose-article blockquote {
-  border-left: 4px solid #f97316 !important;
-  padding-left: 1.5rem !important;
-  margin: 2rem 0 !important;
-  font-style: italic !important;
-  color: #4b5563 !important;
-  font-size: 1.125rem !important;
+  border-left: 4px solid #f97316;
+  padding-left: 1.5rem;
+  margin: 2rem 0;
+  font-style: italic;
+  color: #4b5563;
+  font-size: 1.25rem;
 }
 
 .prose-article strong {
-  font-weight: 700 !important;
-  color: #111827 !important;
+  font-weight: 700;
+  color: #111827;
 }
 
 .prose-article a {
-  color: #f97316 !important;
-  text-decoration: underline !important;
-  transition: color 0.2s !important;
+  color: #f97316;
+  text-decoration: underline;
+  transition: color 0.2s;
 }
 
 .prose-article a:hover {
-  color: #ea580c !important;
-}
-
-.prose-article ul {
-  margin-bottom: 1.5rem !important;
-  padding-left: 1.5rem !important;
-}
-
-.prose-article ol {
-  margin-bottom: 1.5rem !important;
-  padding-left: 1.5rem !important;
-}
-
-.prose-article li {
-  margin-bottom: 0.5rem !important;
-  color: #374151 !important;
-}
-
-/* ✅ FIXED: Category page and general text visibility */
-.text-gray-600 {
-  color: #4b5563 !important;
-}
-
-.text-gray-700 {
-  color: #374151 !important;
-}
-
-.text-gray-800 {
-  color: #1f2937 !important;
-}
-
-.text-gray-900 {
-  color: #111827 !important;
-}
-
-/* ✅ Card titles and content visibility */
-.card-title {
-  color: #111827 !important;
-  font-weight: 700 !important;
-}
-
-.card-content {
-  color: #374151 !important;
-}
-
-.card-meta {
-  color: #6b7280 !important;
-}
-
-/* ✅ Ensure all headings are visible */
-h1, h2, h3, h4, h5, h6 {
-  color: #111827 !important;
-  font-weight: 700 !important;
-}
-
-/* ✅ Category page specific fixes */
-.category-article-title {
-  color: #111827 !important;
-  font-weight: 600 !important;
-}
-
-.category-article-excerpt {
-  color: #374151 !important;
-}
-
-.category-article-meta {
-  color: #6b7280 !important;
-}
-
-/* ✅ Loading skeleton improvements */
-.skeleton {
-  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%) !important;
-  animation: skeleton-loading 1.5s ease-in-out infinite !important;
-}
-
-@keyframes skeleton-loading {
-  0% {
-    background-position: -200px 0;
-  }
-  100% {
-    background-position: calc(200px + 100%) 0;
-  }
+  color: #ea580c;
 }
