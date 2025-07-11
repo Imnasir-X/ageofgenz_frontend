@@ -32,29 +32,42 @@ const ArticleDetail: React.FC = () => {
     }
   }, []);
 
-  // Memoized content formatter - only run when content changes
+  // Enhanced content formatter with professional media styling
   const formattedContent = useMemo(() => {
     if (!article?.content) return { __html: '<p>No content available.</p>' };
     
     const content = article.content;
     
-    // If content already has HTML tags, enhance spacing
+    // Professional media formatting
     if (content.includes('<p>') || content.includes('<br')) {
       return { 
         __html: content
-          .replace(/<p>/g, '<p class="mb-4 text-gray-700 leading-relaxed">')
-          .replace(/<h2>/g, '<h2 class="text-2xl font-bold mt-6 mb-3 text-gray-900">')
-          .replace(/<h3>/g, '<h3 class="text-xl font-semibold mt-4 mb-2 text-gray-900">')
-          .replace(/<ul>/g, '<ul class="list-disc list-inside mb-4 text-gray-700">')
-          .replace(/<ol>/g, '<ol class="list-decimal list-inside mb-4 text-gray-700">')
+          .replace(/<p>/g, '<p class="mb-6 text-lg leading-relaxed text-gray-800">')
+          .replace(/<h2>/g, '<h2 class="text-3xl font-bold mt-12 mb-6 text-gray-900 border-t pt-8">')
+          .replace(/<h3>/g, '<h3 class="text-2xl font-semibold mt-8 mb-4 text-gray-900">')
+          .replace(/<ul>/g, '<ul class="list-disc list-inside mb-6 ml-6 space-y-3 text-lg text-gray-800">')
+          .replace(/<ol>/g, '<ol class="list-decimal list-inside mb-6 ml-6 space-y-3 text-lg text-gray-800">')
+          .replace(/<blockquote>/g, '<blockquote class="border-l-4 border-orange-500 pl-6 my-8 text-lg italic text-gray-700">')
       };
     }
     
-    // Convert plain text to paragraphs
+    // Convert plain text to professionally formatted paragraphs
     const paragraphs = content.split('\n\n').filter(p => p.trim());
-    const formatted = paragraphs
-      .map(p => `<p class="mb-4 text-gray-700 leading-relaxed">${p.trim()}</p>`)
-      .join('');
+    
+    const formatted = paragraphs.map((paragraph, index) => {
+      // First paragraph gets special treatment (lead paragraph)
+      if (index === 0) {
+        return `<p class="mb-8 text-xl leading-relaxed text-gray-800 font-medium first-letter:text-5xl first-letter:font-bold first-letter:float-left first-letter:mr-3">${paragraph.trim()}</p>`;
+      }
+      
+      // Add visual break after every 3-4 paragraphs
+      if (index > 0 && index % 4 === 0) {
+        return `<div class="my-12 text-center">• • •</div><p class="mb-6 text-lg leading-relaxed text-gray-800">${paragraph.trim()}</p>`;
+      }
+      
+      return `<p class="mb-6 text-lg leading-relaxed text-gray-800">${paragraph.trim()}</p>`;
+    }).join('');
+    
     return { __html: formatted };
   }, [article?.content]);
 
@@ -201,12 +214,12 @@ const ArticleDetail: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* META TAGS FOR RICH PREVIEWS */}
+      {/* Enhanced META TAGS FOR RICH PREVIEWS */}
       <Helmet>
         <title>{article.title} - The Age of GenZ</title>
         <meta name="description" content={article.excerpt || article.title} />
-        <meta property="og:site_name" content="theageofgenz.com" />
-        <meta name="twitter:domain" content="theageofgenz.com" />
+        <meta property="og:site_name" content="The Age of GenZ" />
+        <meta name="twitter:site" content="@TheAgeOfGenZ" />
 
         {/* Open Graph Meta Tags for Rich Previews */}
         <meta property="og:title" content={article.title} />
@@ -214,7 +227,6 @@ const ArticleDetail: React.FC = () => {
         <meta property="og:image" content={article.featured_image_url || article.featured_image || `https://theageofgenz.com/default-og-image.jpg`} />
         <meta property="og:url" content={articleUrl} />
         <meta property="og:type" content="article" />
-        <meta property="og:site_name" content="theageofgenz.com" />
 
         {/* Twitter Card Meta Tags */}
         <meta name="twitter:card" content="summary_large_image" />
@@ -317,9 +329,9 @@ const ArticleDetail: React.FC = () => {
               </div>
             )}
 
-            {/* ⚡ OPTIMIZED Article Content - Pre-formatted */}
+            {/* ⚡ ENHANCED Article Content - Professional formatting */}
             <div 
-              className="prose prose-lg max-w-none mb-8"
+              className="prose prose-lg prose-article max-w-none mb-8"
               dangerouslySetInnerHTML={formattedContent}
             />
 

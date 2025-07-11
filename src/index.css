@@ -8,4 +8,78 @@
 @tailwind aspect-ratio;
 @tailwind line-clamp;
 @tailwind animate;
-/* NO @apply rules here */
+/* Professional Article Content Styling */
+@layer utilities {
+  .article-content {
+    @apply text-lg leading-relaxed;
+  }
+  
+  /* Drop cap for first letter */
+  .article-content > p:first-child:first-letter {
+    @apply text-6xl font-bold float-left mr-3 mt-1 leading-none;
+  }
+  
+  /* Section breaks */
+  .article-break {
+    @apply my-12 text-center text-gray-400;
+  }
+  
+  /* Pull quotes */
+  .article-pullquote {
+    @apply my-10 py-6 text-2xl font-medium text-gray-900 border-t-2 border-b-2 border-gray-200 text-center;
+  }
+}
+
+/* Custom prose overrides for article content */
+.prose-article {
+  max-width: none;
+}
+
+.prose-article p {
+  margin-bottom: 1.5rem;
+  font-size: 1.125rem;
+  line-height: 1.75;
+  color: #1f2937;
+}
+
+.prose-article h2 {
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 2rem;
+}
+
+.prose-article h3 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.prose-article blockquote {
+  border-left: 4px solid #f97316;
+  padding-left: 1.5rem;
+  margin: 2rem 0;
+  font-style: italic;
+  color: #4b5563;
+  font-size: 1.25rem;
+}
+
+.prose-article strong {
+  font-weight: 700;
+  color: #111827;
+}
+
+.prose-article a {
+  color: #f97316;
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.prose-article a:hover {
+  color: #ea580c;
+}
