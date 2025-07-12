@@ -1304,3 +1304,453 @@
     }
   }
 }
+/* ✅ ADD THESE SECTIONS TO THE END OF YOUR index.css FILE */
+
+/* =================================================================== */
+/* 🚀 PROFESSIONAL PAGES ENHANCEMENTS - ADD AFTER YOUR EXISTING CODE */
+/* =================================================================== */
+
+@layer utilities {
+  /* ✅ ABOUT US PAGE STYLING */
+  .about-hero {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  }
+  
+  .about-section {
+    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8;
+  }
+  
+  .about-section h2 {
+    @apply text-3xl font-bold text-gray-900 border-b-2 border-orange-500 pb-3 mb-6;
+  }
+  
+  .about-quick-facts {
+    @apply bg-gray-50 rounded-lg p-6;
+  }
+  
+  .about-leadership {
+    @apply text-center bg-orange-50 rounded-lg p-6;
+  }
+  
+  /* ✅ CONTACT PAGE STYLING */
+  .contact-form {
+    @apply bg-white rounded-lg shadow-sm p-8;
+  }
+  
+  .contact-form input,
+  .contact-form select,
+  .contact-form textarea {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent;
+    transition: all 0.3s ease;
+  }
+  
+  .contact-form input:focus,
+  .contact-form select:focus,
+  .contact-form textarea:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+  }
+  
+  .contact-sidebar {
+    @apply bg-white rounded-lg shadow-sm p-6;
+  }
+  
+  .contact-quick-action {
+    @apply flex items-center p-3 bg-gray-50 hover:bg-orange-50 rounded-lg transition-colors group;
+  }
+  
+  /* ✅ PRIVACY/TERMS PAGE STYLING */
+  .legal-page {
+    @apply bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden;
+  }
+  
+  .legal-section {
+    @apply p-8 border-b border-gray-200;
+  }
+  
+  .legal-section:last-child {
+    @apply border-b-0;
+  }
+  
+  .legal-section h2 {
+    @apply text-2xl font-bold mb-4 text-gray-900 border-b-2 border-orange-500 pb-2 inline-block;
+  }
+  
+  .legal-highlight {
+    @apply p-4 bg-orange-50 border border-orange-200 rounded-lg;
+  }
+  
+  .legal-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-6;
+  }
+  
+  /* ✅ CAREERS/JOIN PAGE STYLING */
+  .careers-hero {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  }
+  
+  .careers-feature {
+    @apply bg-white p-6 rounded-lg shadow-sm border border-gray-200;
+    transition: all 0.3s ease;
+  }
+  
+  .careers-feature:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+  
+  .careers-position {
+    @apply border-l-4 pl-4 mb-6;
+  }
+  
+  .careers-form {
+    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-8;
+  }
+  
+  .careers-form input,
+  .careers-form select,
+  .careers-form textarea {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent;
+  }
+  
+  /* ✅ FOOTER ENHANCEMENTS */
+  .footer-enhanced {
+    @apply bg-black text-white pt-12 pb-6;
+  }
+  
+  .footer-brand {
+    @apply flex items-center mb-4;
+  }
+  
+  .footer-slogan {
+    @apply text-orange-500 font-medium text-lg mb-4;
+  }
+  
+  .footer-description {
+    @apply text-gray-400 text-sm mb-6 leading-relaxed;
+  }
+  
+  .footer-social {
+    @apply flex space-x-4;
+  }
+  
+  .footer-social a {
+    @apply text-gray-400 hover:text-orange-600 transition-colors;
+  }
+  
+  .footer-links {
+    @apply grid grid-cols-2 gap-2 text-sm;
+  }
+  
+  .footer-links a {
+    @apply text-gray-400 hover:text-orange-600 transition-colors;
+  }
+  
+  .footer-newsletter {
+    @apply space-y-2;
+  }
+  
+  .footer-newsletter input {
+    @apply w-full p-2 text-sm bg-gray-800 border border-gray-700 rounded text-white focus:outline-none focus:ring-2 focus:ring-orange-500;
+  }
+  
+  .footer-newsletter button {
+    @apply bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded transition-colors text-sm font-medium;
+  }
+  
+  .footer-contact {
+    @apply grid grid-cols-1 md:grid-cols-3 gap-4 text-center md:text-left text-sm;
+  }
+  
+  .footer-contact-item {
+    @apply flex flex-col md:flex-row items-center md:items-start;
+  }
+  
+  .footer-bottom {
+    @apply border-t border-gray-800 pt-4 flex flex-col md:flex-row justify-between items-center;
+  }
+  
+  /* ✅ PROFESSIONAL BUTTON STYLES */
+  .btn-professional {
+    @apply font-semibold py-3 px-6 rounded-lg transition-all duration-300 ease-in-out;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn-professional::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+  
+  .btn-professional:hover::before {
+    left: 100%;
+  }
+  
+  .btn-primary-enhanced {
+    @apply btn-professional bg-orange-500 text-white hover:bg-orange-600;
+    box-shadow: 0 4px 14px 0 rgba(249, 115, 22, 0.25);
+  }
+  
+  .btn-primary-enhanced:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px 0 rgba(249, 115, 22, 0.35);
+  }
+  
+  .btn-secondary-enhanced {
+    @apply btn-professional bg-white text-gray-700 border border-gray-300 hover:bg-gray-50;
+  }
+  
+  .btn-secondary-enhanced:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.1);
+  }
+  
+  /* ✅ ENHANCED FORM STYLING */
+  .form-enhanced {
+    @apply space-y-6;
+  }
+  
+  .form-group {
+    @apply space-y-2;
+  }
+  
+  .form-label {
+    @apply block text-sm font-semibold text-gray-700;
+  }
+  
+  .form-input {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent;
+    transition: all 0.3s ease;
+  }
+  
+  .form-input:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+  }
+  
+  .form-error {
+    @apply bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg;
+  }
+  
+  .form-success {
+    @apply bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg;
+  }
+  
+  /* ✅ LOADING STATES */
+  .loading-spinner {
+    @apply w-8 h-8 border-4 border-gray-300 border-t-orange-500 rounded-full animate-spin;
+  }
+  
+  .loading-text {
+    @apply ml-3 text-gray-600;
+  }
+  
+  /* ✅ PROFESSIONAL CARDS */
+  .professional-card {
+    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6;
+    transition: all 0.3s ease;
+  }
+  
+  .professional-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+  
+  .professional-card h3 {
+    @apply text-xl font-bold mb-4 text-gray-900;
+  }
+  
+  .professional-card .icon {
+    @apply w-12 h-12 rounded-lg flex items-center justify-center mb-4;
+  }
+  
+  /* ✅ STATUS INDICATORS */
+  .status-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  
+  .status-success {
+    @apply bg-green-100 text-green-800;
+  }
+  
+  .status-error {
+    @apply bg-red-100 text-red-800;
+  }
+  
+  .status-warning {
+    @apply bg-yellow-100 text-yellow-800;
+  }
+  
+  .status-info {
+    @apply bg-blue-100 text-blue-800;
+  }
+  
+  /* ✅ RESPONSIVE UTILITIES */
+  .mobile-only {
+    @apply block md:hidden;
+  }
+  
+  .desktop-only {
+    @apply hidden md:block;
+  }
+  
+  .tablet-and-up {
+    @apply hidden md:block;
+  }
+  
+  /* ✅ ACCESSIBILITY IMPROVEMENTS */
+  .sr-only {
+    @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
+    clip: rect(0, 0, 0, 0);
+  }
+  
+  .focus-visible {
+    @apply outline-none ring-2 ring-orange-500 ring-offset-2;
+  }
+  
+  /* ✅ PRINT OPTIMIZATIONS */
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+    
+    .print-only {
+      display: block !important;
+    }
+    
+    .professional-card,
+    .contact-form,
+    .careers-form {
+      box-shadow: none !important;
+      border: 1px solid #000 !important;
+    }
+  }
+}
+
+/* =================================================================== */
+/* 🎨 ENHANCED ANIMATIONS FOR PROFESSIONAL PAGES */
+/* =================================================================== */
+
+@layer utilities {
+  /* ✅ FADE IN ANIMATIONS */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+  }
+  
+  .animate-fade-in-up-delay-1 {
+    animation: fadeInUp 0.6s ease-out 0.1s both;
+  }
+  
+  .animate-fade-in-up-delay-2 {
+    animation: fadeInUp 0.6s ease-out 0.2s both;
+  }
+  
+  .animate-fade-in-up-delay-3 {
+    animation: fadeInUp 0.6s ease-out 0.3s both;
+  }
+  
+  /* ✅ SLIDE IN ANIMATIONS */
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  .animate-slide-in-right {
+    animation: slideInRight 0.5s ease-out;
+  }
+  
+  /* ✅ SCALE ANIMATIONS */
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+  
+  /* ✅ PROFESSIONAL HOVER EFFECTS */
+  .hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  }
+  
+  .hover-glow {
+    transition: box-shadow 0.3s ease;
+  }
+  
+  .hover-glow:hover {
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+  }
+}
+
+/* =================================================================== */
+/* 🔧 PERFORMANCE OPTIMIZATIONS */
+/* =================================================================== */
+
+/* ✅ REDUCE MOTION FOR ACCESSIBILITY */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up,
+  .animate-slide-in-right,
+  .animate-scale-in,
+  .hover-lift,
+  .hover-glow {
+    animation: none !important;
+    transition: none !important;
+  }
+  
+  .professional-card:hover,
+  .careers-feature:hover,
+  .btn-professional:hover {
+    transform: none !important;
+  }
+}
+
+/* ✅ HIGH CONTRAST MODE SUPPORT */
+@media (prefers-contrast: high) {
+  .professional-card,
+  .contact-form,
+  .careers-form,
+  .legal-page {
+    border-width: 2px !important;
+    border-color: #000 !important;
+  }
+  
+  .btn-primary-enhanced,
+  .btn-secondary-enhanced {
+    border: 2px solid currentColor !important;
+  }
+}
