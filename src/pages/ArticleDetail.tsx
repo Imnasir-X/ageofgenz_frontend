@@ -370,71 +370,102 @@ const ArticleDetail: React.FC = () => {
         <div className="lg:flex lg:gap-12">
           {/* Main Article Content */}
           <article className="lg:w-2/3">
-            <div className="bg-white rounded-xl shadow-sm p-8 lg:p-12">
+            <div className="bg-white rounded-xl shadow-sm p-4 md:p-8 lg:p-12">
               {/* Article Header */}
               <header className="mb-8">
                 {/* Category Badge */}
-                <div className="mb-6">
+                <div className="mb-4 md:mb-6">
                   <Link 
                     to={`/${article.category?.slug}`}
-                    className="inline-flex items-center bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-orange-600 transition-colors"
+                    className="inline-flex items-center bg-orange-500 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium hover:bg-orange-600 transition-colors"
                   >
                     {article.category?.name || 'Uncategorized'}
                   </Link>
                 </div>
                 
                 {/* Article Title */}
-                <h1 className="text-3xl md:text-4xl font-bold mb-4 leading-tight text-gray-900">
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4 leading-tight text-gray-900">
                   {article.title}
                 </h1>
                 
                 {/* Article Subtitle/Excerpt */}
                 {article.excerpt && (
-                  <p className="text-lg text-gray-600 mb-6 leading-relaxed">
+                  <p className="text-base md:text-lg text-gray-600 mb-4 md:mb-6 leading-relaxed">
                     {article.excerpt}
                   </p>
                 )}
 
-                {/* ✅ FIXED: Clean, Professional Article Meta */}
-                <div className="flex items-center justify-between py-4 border-t border-b border-gray-200 bg-gray-50 rounded-lg px-4">
-                  <div className="flex items-center space-x-6">
-                    <div className="flex items-center space-x-2">
-                      <User size={16} className="text-orange-500" />
-                      <span className="text-sm font-medium text-gray-900">
-                        {article.author?.name || 'The Age of GenZ'}
-                      </span>
+                {/* ✅ FIXED: Clean, Professional Article Meta - Mobile Responsive */}
+                <div className="py-4 border-t border-b border-gray-200 bg-gray-50 rounded-lg px-4">
+                  {/* Desktop Layout */}
+                  <div className="hidden md:flex items-center justify-between">
+                    <div className="flex items-center space-x-6">
+                      <div className="flex items-center space-x-2">
+                        <User size={16} className="text-orange-500" />
+                        <span className="text-sm font-medium text-gray-900">
+                          {article.author?.name || 'The Age of GenZ'}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Calendar size={16} className="text-gray-500" />
+                        <span className="text-sm text-gray-600">{publishedDate}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Calendar size={16} className="text-gray-500" />
-                      <span className="text-sm text-gray-600">{publishedDate}</span>
+                    <div className="flex items-center space-x-6">
+                      <div className="flex items-center space-x-2">
+                        <BookOpen size={16} className="text-gray-500" />
+                        <span className="text-sm text-gray-600">{estimatedReadTime} min read</span>
+                      </div>
+                      {article.view_count !== undefined && (
+                        <div className="flex items-center space-x-2">
+                          <Eye size={16} className="text-gray-500" />
+                          <span className="text-sm text-gray-600">{article.view_count} views</span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <div className="flex items-center space-x-6">
-                    <div className="flex items-center space-x-2">
-                      <BookOpen size={16} className="text-gray-500" />
-                      <span className="text-sm text-gray-600">{estimatedReadTime} min read</span>
-                    </div>
-                    {article.view_count !== undefined && (
+                  
+                  {/* Mobile Layout - Clean & Compact */}
+                  <div className="md:hidden space-y-3">
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        <Eye size={16} className="text-gray-500" />
-                        <span className="text-sm text-gray-600">{article.view_count} views</span>
+                        <User size={16} className="text-orange-500" />
+                        <span className="text-sm font-medium text-gray-900">
+                          {article.author?.name || 'The Age of GenZ'}
+                        </span>
                       </div>
-                    )}
+                      <div className="flex items-center space-x-2">
+                        <BookOpen size={16} className="text-gray-500" />
+                        <span className="text-sm text-gray-600">{estimatedReadTime} min</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-sm text-gray-600">
+                      <div className="flex items-center space-x-2">
+                        <Calendar size={16} className="text-gray-500" />
+                        <span>{publishedDate}</span>
+                      </div>
+                      {article.view_count !== undefined && (
+                        <div className="flex items-center space-x-2">
+                          <Eye size={16} className="text-gray-500" />
+                          <span>{article.view_count} views</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </header>
 
               {/* Featured Image */}
               {(article.featured_image_url || article.featured_image) && (
-                <div className="mb-10">
+                <div className="mb-6 md:mb-10">
                   <figure className="relative">
                     {!imageLoaded && (
-                      <div className="absolute inset-0 bg-gray-200 rounded-xl animate-pulse aspect-[16/10]"></div>
+                      <div className="absolute inset-0 bg-gray-200 rounded-lg md:rounded-xl animate-pulse aspect-[16/10]"></div>
                     )}
                     <img
                       src={imageUrl}
                       alt={article.title}
-                      className={`w-full aspect-[16/10] object-cover rounded-xl shadow-lg transition-opacity duration-500 ${
+                      className={`w-full aspect-[16/10] object-cover rounded-lg md:rounded-xl shadow-lg transition-opacity duration-500 ${
                         imageLoaded ? 'opacity-100' : 'opacity-0'
                       }`}
                       onLoad={() => setImageLoaded(true)}
@@ -448,13 +479,15 @@ const ArticleDetail: React.FC = () => {
                 </div>
               )}
 
-              {/* ✅ FIXED: Article Content with Enhanced Spacing */}
+              {/* ✅ FIXED: Article Content with Enhanced Mobile Spacing */}
               <div className="max-w-none">
                 <div 
                   className="prose prose-lg prose-article max-w-none article-content-container"
                   style={{ 
                     color: '#1f2937',
-                    maxWidth: 'none'
+                    maxWidth: 'none',
+                    fontSize: 'clamp(1rem, 2.5vw, 1.125rem)', // Responsive font size
+                    lineHeight: '1.7'
                   }}
                   dangerouslySetInnerHTML={formattedContent}
                 />
