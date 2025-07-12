@@ -40,57 +40,74 @@ const ArticleDetail: React.FC = () => {
     return Math.max(1, Math.ceil(wordCount / 200)); // Average reading speed: 200 words/minute
   }, [article?.content]);
 
-  // Enhanced content formatter with pull quote detection
+  // ✅ FIXED: Enhanced content formatter with proper spacing
   const formattedContent = useMemo(() => {
     if (!article?.content) return { __html: '<p class="text-gray-600">No content available.</p>' };
     
-    let content = article.content;
+    let content = article.content.trim();
     
-    // If content already has HTML tags, enhance it
+    // Handle HTML content properly with enhanced spacing
     if (content.includes('<p>') || content.includes('<br>') || content.includes('<h')) {
-      // Auto-detect and convert pull quotes
-      content = content.replace(
-        /<p>["']([^"']{50,200})["']<\/p>/g, 
-        '<div class="pullquote">$1</div>'
-      );
-      
-      // Ensure proper spacing and hierarchy
-      content = content.replace(/<p>\s*<\/p>/g, ''); // Remove empty paragraphs
+      // Clean up and enhance existing HTML
+      content = content
+        // Remove empty paragraphs
+        .replace(/<p>\s*<\/p>/g, '')
+        // Ensure proper paragraph spacing with inline styles
+        .replace(/<p>/g, '<p style="margin-bottom: 1.75rem !important; line-height: 1.7; font-size: 1.125rem; color: #374151;">')
+        .replace(/<p([^>]*)>/g, '<p$1 style="margin-bottom: 1.75rem !important; line-height: 1.7; font-size: 1.125rem; color: #374151;">')
+        
+        // Enhanced heading spacing
+        .replace(/<h2>/g, '<h2 style="margin-top: 3rem !important; margin-bottom: 1.5rem !important; font-size: 2rem; font-weight: 700; color: #111827; border-top: 1px solid #e5e7eb; padding-top: 2rem;">')
+        .replace(/<h3>/g, '<h3 style="margin-top: 2rem !important; margin-bottom: 1rem !important; font-size: 1.5rem; font-weight: 600; color: #1f2937;">')
+        
+        // Enhanced blockquotes
+        .replace(/<blockquote>/g, '<blockquote style="border-left: 4px solid #f97316; padding-left: 1.5rem; margin: 2rem 0 !important; font-style: italic; color: #4b5563; font-size: 1.25rem; background: #fef3f2; padding: 1.5rem; border-radius: 0 8px 8px 0;">')
+        
+        // Enhanced lists
+        .replace(/<ul>/g, '<ul style="margin: 1.5rem 0 !important; padding-left: 2rem; color: #374151;">')
+        .replace(/<ol>/g, '<ol style="margin: 1.5rem 0 !important; padding-left: 2rem; color: #374151;">')
+        .replace(/<li>/g, '<li style="margin-bottom: 0.5rem !important; line-height: 1.6; color: #374151;">')
+        
+        // Auto-detect pull quotes
+        .replace(
+          /<p[^>]*>["']([^"']{50,200})["']<\/p>/g, 
+          '<div class="pullquote" style="font-size: 1.75rem; font-weight: 500; text-align: center; margin: 3rem auto; padding: 2rem; border-top: 3px solid #f97316; border-bottom: 3px solid #f97316; background: #fef3f2; border-radius: 12px; max-width: 90%; line-height: 1.4; color: #1f2937;">$1</div>'
+        );
       
       return { __html: content };
     }
     
-    // Convert plain text to HTML with enhanced formatting
-    const paragraphs = content.split('\n\n').filter(p => p.trim());
+    // Handle plain text with proper spacing
+    const paragraphs = content.split(/\n\s*\n/).filter(p => p.trim().length > 0);
     
     const formatted = paragraphs.map((paragraph, index) => {
-      const trimmed = paragraph.trim();
+      const trimmed = paragraph.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
       
-      // Detect pull quotes (text in quotes that's 50-200 chars)
+      if (!trimmed) return '';
+      
+      // Detect pull quotes
       if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || 
           (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
         const text = trimmed.slice(1, -1);
         if (text.length >= 50 && text.length <= 200) {
-          return `<div class="pullquote">${text}</div>`;
+          return `<div class="pullquote" style="font-size: 1.75rem; font-weight: 500; text-align: center; margin: 3rem auto; padding: 2rem; border-top: 3px solid #f97316; border-bottom: 3px solid #f97316; background: #fef3f2; border-radius: 12px; max-width: 90%; line-height: 1.4; color: #1f2937;">${text}</div>`;
         }
       }
       
       // Handle different paragraph types
       if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
-        // Bold paragraphs as subheadings
         const text = trimmed.slice(2, -2);
-        return `<h3>${text}</h3>`;
+        return `<h3 style="margin-top: 2rem !important; margin-bottom: 1rem !important; font-size: 1.5rem; font-weight: 600; color: #1f2937;">${text}</h3>`;
       }
       
       if (trimmed.startsWith('> ')) {
-        // Quote blocks
         const text = trimmed.slice(2);
-        return `<blockquote>${text}</blockquote>`;
+        return `<blockquote style="border-left: 4px solid #f97316; padding-left: 1.5rem; margin: 2rem 0 !important; font-style: italic; color: #4b5563; font-size: 1.25rem; background: #fef3f2; padding: 1.5rem; border-radius: 0 8px 8px 0;">${text}</blockquote>`;
       }
       
-      // Regular paragraphs
-      return `<p>${trimmed}</p>`;
-    }).join('');
+      // Regular paragraphs with proper spacing
+      return `<p style="margin-bottom: 1.75rem !important; line-height: 1.7; font-size: 1.125rem; color: #374151;">${trimmed}</p>`;
+    }).filter(p => p.length > 0).join('');
     
     return { __html: formatted };
   }, [article?.content]);
@@ -102,7 +119,6 @@ const ArticleDetail: React.FC = () => {
       const windowHeight = window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
       
-      // Calculate progress as percentage
       const scrollableHeight = documentHeight - windowHeight;
       const progress = scrollableHeight > 0 ? (scrollTop / scrollableHeight) * 100 : 0;
       
@@ -126,7 +142,6 @@ const ArticleDetail: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        // Check cache first
         const cachedArticle = articleCache.get(slug);
         const cachedRelated = relatedCache.get(slug);
 
@@ -139,7 +154,6 @@ const ArticleDetail: React.FC = () => {
           return;
         }
 
-        // Parallel API calls
         const [articleResponse, allArticlesResponse] = await Promise.all([
           getArticleBySlug(slug),
           cachedRelated ? Promise.resolve({ data: { results: [] } }) : getArticles()
@@ -149,7 +163,6 @@ const ArticleDetail: React.FC = () => {
         setArticle(articleData);
         articleCache.set(slug, articleData);
 
-        // Handle related articles
         if (!cachedRelated) {
           const related = (allArticlesResponse.data.results || [])
             .filter((a: Article) => 
@@ -182,12 +195,10 @@ const ArticleDetail: React.FC = () => {
   if (loading && !article) {
     return (
       <div className="min-h-screen bg-gray-50">
-        {/* Reading progress bar skeleton */}
         <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 z-50">
           <div className="h-full bg-orange-500 transition-all duration-300" style={{ width: '0%' }}></div>
         </div>
 
-        {/* Breadcrumb skeleton */}
         <nav className="bg-white border-b border-gray-200">
           <div className="container mx-auto px-4 py-3">
             <div className="flex items-center space-x-2 text-sm">
@@ -202,7 +213,6 @@ const ArticleDetail: React.FC = () => {
 
         <div className="container mx-auto px-4 py-8 max-w-6xl">
           <div className="lg:flex lg:gap-12">
-            {/* Main content skeleton */}
             <article className="lg:w-2/3">
               <div className="bg-white rounded-xl shadow-sm p-8 lg:p-12 animate-pulse space-y-6">
                 <div className="w-24 h-7 bg-orange-200 rounded-full"></div>
@@ -211,17 +221,13 @@ const ArticleDetail: React.FC = () => {
                   <div className="w-4/5 h-10 bg-gray-200 rounded"></div>
                 </div>
                 <div className="w-3/4 h-6 bg-gray-200 rounded"></div>
-                <div className="article-byline bg-gray-100">
-                  <div className="flex gap-6 py-4">
-                    <div className="w-24 h-4 bg-gray-200 rounded"></div>
-                    <div className="w-28 h-4 bg-gray-200 rounded"></div>
-                    <div className="w-20 h-4 bg-gray-200 rounded"></div>
-                  </div>
+                <div className="flex gap-6 py-4">
+                  <div className="w-24 h-4 bg-gray-200 rounded"></div>
+                  <div className="w-28 h-4 bg-gray-200 rounded"></div>
+                  <div className="w-20 h-4 bg-gray-200 rounded"></div>
                 </div>
-                <div className="reading-width mx-auto">
-                  <div className="w-full aspect-[16/10] bg-gray-200 rounded-xl"></div>
-                </div>
-                <div className="reading-width mx-auto space-y-4 pt-6">
+                <div className="w-full aspect-[16/10] bg-gray-200 rounded-xl"></div>
+                <div className="space-y-4 pt-6">
                   {[...Array(8)].map((_, i) => (
                     <div key={i} className={`bg-gray-200 rounded h-4 ${
                       i === 1 ? 'w-11/12' : i === 3 ? 'w-4/5' : i === 5 ? 'w-3/4' : i === 7 ? 'w-5/6' : 'w-full'
@@ -231,7 +237,6 @@ const ArticleDetail: React.FC = () => {
               </div>
             </article>
 
-            {/* Sidebar skeleton */}
             <aside className="lg:w-1/3 mt-8 lg:mt-0">
               <div className="sticky top-24 space-y-6">
                 <div className="bg-white rounded-xl shadow-sm p-6 animate-pulse">
@@ -264,7 +269,7 @@ const ArticleDetail: React.FC = () => {
           <p className="mb-8 text-gray-600 text-lg">{error || 'This article is not available'}</p>
           <Link 
             to="/" 
-            className="inline-flex items-center btn-primary px-8 py-3 rounded-lg font-medium"
+            className="inline-flex items-center bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg font-medium transition-colors"
           >
             Back to Home
           </Link>
@@ -285,7 +290,6 @@ const ArticleDetail: React.FC = () => {
         <meta name="description" content={article.excerpt || article.title} />
         <meta name="keywords" content={`${article.category?.name || 'news'}, gen z, ${article.tags?.join(', ') || 'trending'}`} />
         
-        {/* Open Graph */}
         <meta property="og:title" content={article.title} />
         <meta property="og:description" content={article.excerpt || article.title} />
         <meta property="og:image" content={imageUrl} />
@@ -293,14 +297,12 @@ const ArticleDetail: React.FC = () => {
         <meta property="og:type" content="article" />
         <meta property="og:site_name" content="The Age of GenZ" />
         
-        {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={article.title} />
         <meta name="twitter:description" content={article.excerpt || article.title} />
         <meta name="twitter:image" content={imageUrl} />
         <meta name="twitter:domain" content="theageofgenz.com" />
         
-        {/* Article specific */}
         <meta property="article:published_time" content={article.published_at || article.created_at} />
         <meta property="article:modified_time" content={article.updated_at || article.created_at} />
         <meta property="article:author" content={article.author?.name || 'The Age Of GenZ'} />
@@ -309,7 +311,6 @@ const ArticleDetail: React.FC = () => {
           <meta key={index} property="article:tag" content={tag} />
         ))}
         
-        {/* Schema.org JSON-LD */}
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
@@ -352,9 +353,9 @@ const ArticleDetail: React.FC = () => {
       <nav className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <Link to="/" className="nav-link">Home</Link>
+            <Link to="/" className="hover:text-orange-500 transition-colors">Home</Link>
             <span className="text-gray-400">›</span>
-            <Link to={`/${article.category?.slug}`} className="nav-link">
+            <Link to={`/${article.category?.slug}`} className="hover:text-orange-500 transition-colors">
               {article.category?.name || 'Uncategorized'}
             </Link>
             <span className="text-gray-400">›</span>
@@ -383,49 +384,49 @@ const ArticleDetail: React.FC = () => {
                 </div>
                 
                 {/* Article Title */}
-                <h1 className="article-title">
+                <h1 className="text-3xl md:text-4xl font-bold mb-4 leading-tight text-gray-900">
                   {article.title}
                 </h1>
                 
                 {/* Article Subtitle/Excerpt */}
                 {article.excerpt && (
-                  <div className="article-subtitle">
+                  <p className="text-lg text-gray-600 mb-6 leading-relaxed">
                     {article.excerpt}
-                  </div>
+                  </p>
                 )}
-              </header>
 
-              {/* PROMINENT ARTICLE BYLINE */}
-              <div className="article-byline reading-width mx-auto">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-2">
-                      <User size={18} className="text-orange-500" />
-                      <span className="author-name">{article.author?.name || 'The Age of GenZ'}</span>
+                {/* ✅ FIXED: Clean, Professional Article Meta */}
+                <div className="flex items-center justify-between py-4 border-t border-b border-gray-200 bg-gray-50 rounded-lg px-4">
+                  <div className="flex items-center space-x-6">
+                    <div className="flex items-center space-x-2">
+                      <User size={16} className="text-orange-500" />
+                      <span className="text-sm font-medium text-gray-900">
+                        {article.author?.name || 'The Age of GenZ'}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar size={16} className="text-gray-400" />
-                      <span className="publish-date">{publishedDate}</span>
+                    <div className="flex items-center space-x-2">
+                      <Calendar size={16} className="text-gray-500" />
+                      <span className="text-sm text-gray-600">{publishedDate}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-2">
-                      <BookOpen size={16} className="text-gray-400" />
-                      <span className="read-time">{estimatedReadTime} min read</span>
+                  <div className="flex items-center space-x-6">
+                    <div className="flex items-center space-x-2">
+                      <BookOpen size={16} className="text-gray-500" />
+                      <span className="text-sm text-gray-600">{estimatedReadTime} min read</span>
                     </div>
                     {article.view_count !== undefined && (
-                      <div className="flex items-center gap-2">
-                        <Eye size={16} className="text-gray-400" />
-                        <span className="read-time">{article.view_count} views</span>
+                      <div className="flex items-center space-x-2">
+                        <Eye size={16} className="text-gray-500" />
+                        <span className="text-sm text-gray-600">{article.view_count} views</span>
                       </div>
                     )}
                   </div>
                 </div>
-              </div>
+              </header>
 
               {/* Featured Image */}
               {(article.featured_image_url || article.featured_image) && (
-                <div className="mb-10 reading-width mx-auto">
+                <div className="mb-10">
                   <figure className="relative">
                     {!imageLoaded && (
                       <div className="absolute inset-0 bg-gray-200 rounded-xl animate-pulse aspect-[16/10]"></div>
@@ -447,17 +448,21 @@ const ArticleDetail: React.FC = () => {
                 </div>
               )}
 
-              {/* Article Content with Perfect Typography */}
-              <div className="reading-width mx-auto">
+              {/* ✅ FIXED: Article Content with Enhanced Spacing */}
+              <div className="max-w-none">
                 <div 
-                  className="article-content article-typography"
+                  className="prose prose-lg prose-article max-w-none article-content-container"
+                  style={{ 
+                    color: '#1f2937',
+                    maxWidth: 'none'
+                  }}
                   dangerouslySetInnerHTML={formattedContent}
                 />
               </div>
 
               {/* Tags */}
               {article.tags && article.tags.length > 0 && (
-                <div className="mt-12 pt-8 border-t border-gray-200 reading-width mx-auto">
+                <div className="mt-12 pt-8 border-t border-gray-200">
                   <div className="flex items-start flex-wrap gap-3">
                     <div className="flex items-center gap-2 mb-2">
                       <Tag size={18} className="text-gray-500" />
@@ -478,7 +483,7 @@ const ArticleDetail: React.FC = () => {
               )}
 
               {/* Social Share */}
-              <div className="mt-10 pt-8 border-t border-gray-200 reading-width mx-auto">
+              <div className="mt-10 pt-8 border-t border-gray-200">
                 <SocialShare
                   url={articleUrl}
                   title={article.title}
@@ -492,10 +497,8 @@ const ArticleDetail: React.FC = () => {
           {/* Enhanced Sidebar */}
           <aside className="lg:w-1/3 mt-12 lg:mt-0">
             <div className="sticky top-24 space-y-8">
-              {/* Donation Component */}
               <DonationPlaceholder />
               
-              {/* Related Articles */}
               {relatedArticles.length > 0 && (
                 <div className="bg-white rounded-xl shadow-sm p-6">
                   <h3 className="text-xl font-bold mb-6 pb-3 border-b-2 border-orange-500 text-gray-900">
@@ -520,10 +523,10 @@ const ArticleDetail: React.FC = () => {
                               </div>
                             )}
                             <div className="flex-1 min-w-0">
-                              <h4 className="article-card-title text-sm mb-2 line-clamp-3 group-hover:text-orange-600 transition-colors">
+                              <h4 className="font-semibold text-sm mb-2 line-clamp-3 group-hover:text-orange-600 transition-colors text-gray-900">
                                 {relatedArticle.title}
                               </h4>
-                              <div className="article-card-meta">
+                              <div className="text-xs text-gray-500">
                                 {formatDate(relatedArticle.published_at || relatedArticle.created_at)}
                               </div>
                             </div>
@@ -535,7 +538,6 @@ const ArticleDetail: React.FC = () => {
                 </div>
               )}
 
-              {/* Newsletter Signup */}
               <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-sm p-6 text-white">
                 <h3 className="text-xl font-bold mb-3">Stay Updated</h3>
                 <p className="text-orange-100 mb-4 text-sm">Get the latest Gen Z news delivered straight to your inbox.</p>
