@@ -747,7 +747,7 @@ export const submitContactForm = async (data: { name: string; email: string; mes
 export const subscribeToPlan = async (plan: string, billingCycle: string, amount: number) => {
   console.log('💳 Creating subscription:', plan, billingCycle, amount);
   return retryRequest<SubscriptionResponse>(() =>
-    api.post('/api/donations/create/', { amount, plan, billing_cycle: billingCycle })
+    api.post('/api/donation/create/', { amount, plan, billing_cycle: billingCycle })
   );
 };
 
