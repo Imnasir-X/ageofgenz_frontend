@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { subscribeToPlan } from '../utils/api';
 import { loadStripe } from '@stripe/stripe-js';
@@ -69,16 +69,9 @@ const DonationPlaceholder: React.FC = () => {
   };
 
   const handleDonate = async () => {
-    if (!isAuthenticated) {
-      // Save donation intent and redirect to login
-      sessionStorage.setItem('donationIntent', JSON.stringify({
-        amount: isCustom ? parseFloat(customAmount) : selectedAmount,
-        type: donationType
-      }));
-      navigate('/login');
-      return;
-    }
-
+    // ✅ REMOVED: Authentication requirement for donations
+    // Now supports anonymous donations for better UX
+    
     const finalAmount = isCustom ? parseFloat(customAmount) : selectedAmount;
     
     if (!finalAmount || finalAmount < 1) {
@@ -90,12 +83,20 @@ const DonationPlaceholder: React.FC = () => {
     setError('');
 
     try {
+      console.log('🚀 Starting donation process:', {
+        amount: finalAmount,
+        type: donationType,
+        user: user?.email || 'anonymous'
+      });
+
       // Create subscription/donation session
       const response = await subscribeToPlan(
         donationType === 'monthly' ? 'monthly_support' : 'one_time_donation',
         donationType,
         finalAmount
       );
+
+      console.log('✅ Donation API response:', response.data);
 
       const stripe = await stripePromise;
       if (!stripe) {
@@ -111,7 +112,7 @@ const DonationPlaceholder: React.FC = () => {
         throw stripeError;
       }
     } catch (err: any) {
-      console.error('Donation error:', err);
+      console.error('❌ Donation error:', err);
       setError(err.message || 'Failed to process donation. Please try again.');
     } finally {
       setLoading(false);
@@ -138,6 +139,15 @@ const DonationPlaceholder: React.FC = () => {
             Help us deliver fearless journalism for the next generation.
           </p>
         </div>
+
+        {/* ✅ NEW: Optional login benefits (without requiring it) */}
+        {!isAuthenticated && (
+          <div className="mb-4 p-3 bg-white bg-opacity-10 backdrop-blur-sm rounded-xl border border-white border-opacity-20">
+            <p className="text-xs text-blue-100 text-center">
+              💡 <Link to="/login" className="text-white hover:underline font-medium">Login</Link> to track your donations and get exclusive supporter perks!
+            </p>
+          </div>
+        )}
 
         {/* Donation Type Toggle */}
         <div className="flex rounded-xl bg-white bg-opacity-20 p-1 mb-6">
@@ -262,7 +272,7 @@ const DonationPlaceholder: React.FC = () => {
           </div>
         )}
 
-        {/* Donate Button */}
+        {/* ✅ FIXED: Donate Button - No login required */}
         <button
           onClick={handleDonate}
           disabled={loading || (!selectedAmount && !customAmount)}
@@ -277,7 +287,7 @@ const DonationPlaceholder: React.FC = () => {
             <>
               <Heart size={20} />
               <span>
-                {!isAuthenticated ? 'Login & ' : ''}Donate{' '}
+                Donate{' '}
                 {finalAmount > 0 && `$${finalAmount}`}
                 {donationType === 'monthly' && '/month'}
               </span>
