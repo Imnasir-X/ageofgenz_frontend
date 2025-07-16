@@ -175,12 +175,36 @@ const SocialShare: React.FC<SocialShareProps> = ({
         </button>
       </div>
 
-      {/* Copy Success Message */}
-      {copySuccess && (
-        <p className="text-green-600 text-xs mt-2 animate-pulse">
-          Link copied to clipboard!
-        </p>
-      )}
+      {/* Copy URL Section - Babylon Bee Style */}
+      <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+        <div className="flex items-center gap-3">
+          <div className="flex-1">
+            <div className="text-xs text-gray-500 mb-1 font-medium">Article URL:</div>
+            <input
+              type="text"
+              value={url}
+              readOnly
+              className="w-full px-2 py-1 text-xs bg-white border border-gray-300 rounded text-gray-700 font-mono focus:outline-none focus:ring-1 focus:ring-orange-300"
+              onClick={(e) => e.currentTarget.select()}
+            />
+          </div>
+          <button
+            onClick={handleCopyLink}
+            className={`px-3 py-2 rounded-md text-xs font-medium transition-all ${
+              copySuccess 
+                ? 'bg-green-100 text-green-700 border border-green-300' 
+                : 'bg-orange-100 text-orange-700 border border-orange-300 hover:bg-orange-200'
+            }`}
+          >
+            {copySuccess ? 'Copied!' : 'Copy'}
+          </button>
+        </div>
+        {copySuccess && (
+          <p className="text-green-600 text-xs mt-2 font-medium">
+            ✓ Link copied to clipboard!
+          </p>
+        )}
+      </div>
 
       {/* Expandable Secondary Options - Stacked */}
       {showMoreOptions && (
