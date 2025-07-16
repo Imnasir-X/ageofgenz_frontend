@@ -570,21 +570,6 @@ const ArticleDetail: React.FC = () => {
                   </div>
                 </div>
               )}
-
-              <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-sm p-6 text-white">
-                <h3 className="text-xl font-bold mb-3">Stay Updated</h3>
-                <p className="text-orange-100 mb-4 text-sm">Get the latest Gen Z news delivered straight to your inbox.</p>
-                <div className="space-y-3">
-                  <input 
-                    type="email" 
-                    placeholder="Enter your email address"
-                    className="w-full px-4 py-3 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-300 transition-all"
-                  />
-                  <button className="w-full bg-white text-orange-600 py-3 rounded-lg font-medium hover:bg-orange-50 transition-colors shadow-sm">
-                    Subscribe Now
-                  </button>
-                </div>
-              </div>
             </div>
           </aside>
         </div>
