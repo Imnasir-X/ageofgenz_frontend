@@ -70,8 +70,8 @@ const App: React.FC = () => {
                 <Route path="/article/:slug" element={<ArticleDetail />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/donate" element={<DonationPlaceholder />} />
-                <Route path="/thank-you" element={<ThankYou />} />
-                <Route path="/cancel" element={<Cancel />} />
+                <Route path="/donation/success" element={<ThankYou />} />
+                <Route path="/donation/cancelled" element={<Cancel />} />
                 <Route path="/signup" element={<Signup />} />
               </Routes>
             </main>
