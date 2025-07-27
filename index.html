@@ -56,6 +56,9 @@
     <meta name="brand-name" content="The Age Of GenZ" />
     <meta name="organization-name" content="The Age Of GenZ" />
     <meta property="brand:name" content="The Age Of GenZ" />
+    <meta itemprop="name" content="The Age Of GenZ" />
+    <meta itemprop="url" content="https://theageofgenz.com" />
+    <meta itemprop="logo" content="https://theageofgenz.com/logo.png" />
     
     <!-- 🔥 BRAND RECOGNITION: Enhanced Voice Search Optimization with brand variations -->
     <meta name="voice-search-phrases" content="theageofgenz news, what is theageofgenz, The Age Of GenZ website, The Age of GenZ news, news you can vibe with, generational news platform" />
@@ -144,14 +147,16 @@
       "@context": "https://schema.org",
       "@graph": [
         {
-          "@type": "website",
-          "@id": "https://theageofgenz.com/#website",
+          "@type": "Organization",
+          "@id": "https://theageofgenz.com/#organization",
           "name": "The Age Of GenZ",
-          "alternateName": ["theageofgenz"],
-          "logo": "https://theageofgenz.com/logo.png",
           "url": "https://theageofgenz.com",
-          "slogan": "NEWS YOU CAN VIBE WITH",
-          "description": "The Age Of GenZ is The Age Of GenZ brand delivering breaking news from a generational perspective.",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://theageofgenz.com/logo.png",
+            "width": 512,
+            "height": 512
+          },
           "sameAs": [
             "https://twitter.com/TheAgeOfGenZ",
             "https://instagram.com/theageofgenz",
@@ -159,6 +164,40 @@
             "https://tiktok.com/@theageofgenz",
             "https://youtube.com/@theageofgenz"
           ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://theageofgenz.com/#website",
+          "name": "The Age Of GenZ",
+          "alternateName": ["theageofgenz"],
+          "url": "https://theageofgenz.com",
+          "description": "Breaking news, politics, culture & tech from a generational perspective. NEWS YOU CAN VIBE WITH.",
+          "publisher": {
+            "@id": "https://theageofgenz.com/#organization"
+          },
+          "inLanguage": "en-US",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://theageofgenz.com/search?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          },
+          "mainEntity": {
+            "@type": "ItemList",
+            "name": "News Categories",
+            "itemListElement": [
+              {"@type": "ListItem", "position": 1, "name": "Breaking News", "url": "https://theageofgenz.com/trending"},
+              {"@type": "ListItem", "position": 2, "name": "Politics", "url": "https://theageofgenz.com/politics"},
+              {"@type": "ListItem", "position": 3, "name": "Culture", "url": "https://theageofgenz.com/culture"},
+              {"@type": "ListItem", "position": 4, "name": "AI & Technology", "url": "https://theageofgenz.com/ai"},
+              {"@type": "ListItem", "position": 5, "name": "World News", "url": "https://theageofgenz.com/world"},
+              {"@type": "ListItem", "position": 6, "name": "Sports", "url": "https://theageofgenz.com/sports"},
+              {"@type": "ListItem", "position": 7, "name": "Opinion", "url": "https://theageofgenz.com/opinion"},
+              {"@type": "ListItem", "position": 8, "name": "Insights", "url": "https://theageofgenz.com/insights"}
+            ]
+          }
         },
         {
           "@type": "NewsMediaOrganization",
