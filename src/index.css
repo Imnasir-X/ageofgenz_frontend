@@ -1,10 +1,9 @@
 /* src/index.css - FIXED VERSION - NO VISUAL CHANGES */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Charter:ital,wght@0,400;0,700;1,400&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import professional fonts for Medium-style typography */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Charter:ital,wght@0,400;0,700;1,400&display=swap');
 
 /* CSS Variables for consistent theming and text contrast */
 :root {
@@ -28,6 +27,24 @@
   --heading-spacing-bottom: 1.5rem;
   --lead-paragraph-spacing: 2.25rem;
 }
+
+/* ✅ Contrast-only fix – drop-in, zero risk */
+:root {
+  --text-muted: #4b5563;        /* was #9ca3af → now gray-600 on gray-50 */
+  --accent-orange: #c2410c;     /* was #f97316 → now orange-700 on orange-100 */
+  --accent-red: #b91c1c;        /* was #ef4444 → now red-700 on red-100 */
+}
+
+/* quick overrides for any hard-coded classes */
+.text-gray-500,
+.text-gray-400,
+.text-red-500,
+.text-orange-500 {
+  color: var(--text-muted) !important;
+}
+
+.text-red-500 { color: var(--accent-red) !important; }
+.text-orange-500 { color: var(--accent-orange) !important; }
 
 /* Global typography improvements */
 @layer base {
