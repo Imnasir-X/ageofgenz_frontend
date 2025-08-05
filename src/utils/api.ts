@@ -201,10 +201,46 @@ const transformArticle = (backendArticle: any): Article => {
 };
 
 // Article API calls
-export const getArticles = async (page: number = 1) => {
-  console.log('📖 Fetching articles, page:', page);
+export const getLatestArticles = async () => {
+  console.log('📖 Fetching latest 25 via /articles/latest/');
+  try {
+    const response = await retryRequest<any>(() => api.get('/api/articles/latest/'));
+    
+    console.log('📖 Raw latest articles response:', response.data);
+    
+    // Handle the response - could be array or object with results
+    let results = [];
+    if (Array.isArray(response.data)) {
+      results = response.data;
+    } else if (response.data.results) {
+      results = response.data.results;
+    }
+    
+    const transformedResults = results.map(transformArticle);
+    
+    console.log('📖 Latest articles transformed:', transformedResults.length);
+    
+    return {
+      ...response,
+      data: {
+        results: transformedResults,
+        next: null,
+        previous: null,
+        count: transformedResults.length
+      }
+    } as AxiosResponse<PaginatedArticlesResponse>;
+  } catch (error) {
+    console.warn('📖 Latest endpoint failed, falling back to paginated...');
+    // Fallback to the existing getArticles with higher page size
+    return await getArticles(1, 25); // Get 25 articles from first page
+  }
+};
+
+// MODIFY your existing getArticles function to support custom page size
+export const getArticles = async (page: number = 1, pageSize: number = 25) => {
+  console.log('📖 Fetching articles, page:', page, 'size:', pageSize);
   const response = await retryRequest<any>(() =>
-    api.get(`/api/articles/?page=${page}&page_size=25`)
+    api.get(`/api/articles/?page=${page}&page_size=${pageSize}`)
   );
   
   console.log('📖 Raw API response:', response.data);

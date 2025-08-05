@@ -4,7 +4,7 @@ import SearchBar from '../components/SearchBar';
 import DonationPlaceholder from '../components/DonationPlaceholder';
 import Newsletter from '../components/Newsletter';
 import ArticleCard from '../components/ArticleCard';
-import { getFeaturedArticles, getArticlesBySearch, getArticles, getCategories } from '../utils/api';
+import { getFeaturedArticles, getArticlesBySearch, getArticles, getLatestArticles, getCategories } from '../utils/api';
 import { RefreshCw, Search, X, TrendingUp, Clock, BookOpen } from 'lucide-react';
 import type { Article, Category } from '../types';
 
@@ -295,7 +295,7 @@ const Home: React.FC = () => {
       setErrorLatest(null);
       try {
         console.log('🏠 Fetching latest articles...');
-        const response = await getArticles();
+        const response = await getLatestArticles();
         console.log('Latest Articles Response:', response.data);
         
         const articles = response.data.results || [];
@@ -341,7 +341,7 @@ const Home: React.FC = () => {
     setLoadingLatest(true);
     setErrorLatest(null);
     try {
-      const response = await getArticles();
+      const response = await getLatestArticles();
       const articles = response.data.results || [];
       if (articles.length === 0) {
         setErrorLatest('No latest articles found.');
