@@ -204,7 +204,7 @@ const transformArticle = (backendArticle: any): Article => {
 export const getArticles = async (page: number = 1) => {
   console.log('📖 Fetching articles, page:', page);
   const response = await retryRequest<any>(() =>
-    api.get(`/api/articles/?page=${page}`)
+    api.get(`/api/articles/?page=${page}&page_size=25`)
   );
   
   console.log('📖 Raw API response:', response.data);
