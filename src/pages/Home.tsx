@@ -354,13 +354,16 @@ const Home: React.FC = () => {
     const subscribed = typeof window !== 'undefined' && localStorage.getItem('newsletterSubscribed') === '1';
     if (dismissed || subscribed) return;
 
+    const threshold = Math.max(200, Math.floor(window.innerHeight * 0.75));
     const onScroll = () => {
-      if (window.scrollY > 600) {
+      if (window.scrollY >= threshold) {
         setShowNewsletterCard(true);
         window.removeEventListener('scroll', onScroll);
       }
     };
 
+    // Initial check in case user reloads mid-scroll
+    onScroll();
     window.addEventListener('scroll', onScroll, { passive: true } as AddEventListenerOptions);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
