@@ -38,7 +38,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
   });
 
   return (
-    <article className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden group">
+    <article className="bg-white rounded-md shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden group">
       <Link to={`/article/${article.slug}`} className="block">
         {/* Compact Image Container */}
         <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
@@ -57,7 +57,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
         </div>
 
         {/* Compact Content */}
-        <div className="p-3">
+        <div className="p-2">
           {/* Meta row (date only) */}
           <div className="flex items-center mb-1.5 text-xs text-gray-500">
             <Clock size={10} className="mr-1" />
@@ -65,13 +65,13 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
           </div>
 
           {/* Compact Title */}
-          <h3 className="text-base font-semibold text-gray-900 mb-1 line-clamp-2 group-hover:text-orange-500 transition-colors leading-tight">
+          <h3 className="text-sm font-semibold text-gray-900 mb-0.5 line-clamp-2 group-hover:text-orange-500 transition-colors leading-snug">
             {article.title || 'Untitled Article'}
           </h3>
 
           {/* Optional Description - Very Compact */}
           {cleanDescription && (
-            <p className="text-gray-600 text-xs line-clamp-2 leading-relaxed">
+            <p className="text-gray-600 text-[11px] line-clamp-2 leading-snug">
               {cleanDescription}
             </p>
           )}
