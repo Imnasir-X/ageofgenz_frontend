@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import SearchBar from '../components/SearchBar';
 import DonationPlaceholder from '../components/DonationPlaceholder';
@@ -26,6 +26,8 @@ const Home: React.FC = () => {
   const [showSearch, setShowSearch] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showNewsletterCard, setShowNewsletterCard] = useState<boolean>(false);
+  const closeBtnRef = useRef<HTMLButtonElement | null>(null);
+  const prevFocusRef = useRef<HTMLElement | null>(null);
 
   // Function to format category names professionally
   const formatCategoryName = (name: string): string => {
@@ -346,10 +348,11 @@ const Home: React.FC = () => {
     }
   }, []);
 
-  // Show newsletter card after user scrolls down (if not dismissed)
+  // Show newsletter card after user scrolls down (if not dismissed or already subscribed)
   useEffect(() => {
     const dismissed = typeof window !== 'undefined' && localStorage.getItem('newsletterDismissed') === '1';
-    if (dismissed) return;
+    const subscribed = typeof window !== 'undefined' && localStorage.getItem('newsletterSubscribed') === '1';
+    if (dismissed || subscribed) return;
 
     const onScroll = () => {
       if (window.scrollY > 600) {
@@ -361,6 +364,41 @@ const Home: React.FC = () => {
     window.addEventListener('scroll', onScroll, { passive: true } as AddEventListenerOptions);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // When the newsletter modal opens, lock scroll and manage focus; restore on close
+  useEffect(() => {
+    if (!showNewsletterCard) return;
+
+    // lock scroll
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    // store previous focus
+    prevFocusRef.current = (document.activeElement as HTMLElement) || null;
+
+    // focus the close button once rendered
+    const t = window.setTimeout(() => {
+      closeBtnRef.current?.focus();
+    }, 0);
+
+    // esc handler
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowNewsletterCard(false);
+        localStorage.setItem('newsletterDismissed', '1');
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+
+    // cleanup
+    return () => {
+      window.clearTimeout(t);
+      window.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = previousOverflow;
+      // restore focus
+      prevFocusRef.current?.focus?.();
+    };
+  }, [showNewsletterCard]);
 
   const retryLatest = useCallback(async () => {
     setLoadingLatest(true);
@@ -546,8 +584,21 @@ const Home: React.FC = () => {
       </div>
 
       {showNewsletterCard && !showSearch && (
-        <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-[60] w-[280px] sm:w-[320px] md:w-[360px] lg:w-[400px]">
-          <div className="relative rounded-xl shadow-2xl overflow-hidden border border-gray-200 bg-white aspect-[16/9]">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 relative">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            aria-hidden="true"
+            onClick={() => {
+              setShowNewsletterCard(false);
+              localStorage.setItem('newsletterDismissed', '1');
+            }}
+          />
+          <div
+            className="relative rounded-xl shadow-2xl overflow-hidden border border-gray-200 bg-white aspect-[3/2] w-full max-w-[640px]"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Newsletter signup"
+          >
             <button
               type="button"
               aria-label="Dismiss newsletter"
@@ -556,12 +607,19 @@ const Home: React.FC = () => {
                 setShowNewsletterCard(false);
                 localStorage.setItem('newsletterDismissed', '1');
               }}
+              ref={closeBtnRef}
             >
               <X size={18} aria-hidden="true" />
             </button>
-            <div className="absolute inset-0 p-4 sm:p-5 flex">
+            <div className="absolute inset-0 p-4 sm:p-6 flex">
               <div className="w-full h-full overflow-auto">
-                <Newsletter variant="compact" />
+                <Newsletter 
+                  variant="compact"
+                  onSubscribed={() => {
+                    localStorage.setItem('newsletterSubscribed', '1');
+                    setShowNewsletterCard(false);
+                  }}
+                />
               </div>
             </div>
           </div>
