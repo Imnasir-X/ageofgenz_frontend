@@ -9,23 +9,7 @@ interface ArticleCardProps {
 }
 
 const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'center' }) => {
-  // Category color mapping
-  const categoryColors: { [key: string]: string } = {
-    'AI & Tech': 'bg-blue-600',
-    'Opinion': 'bg-purple-600',
-    'Politics': 'bg-red-600',
-    'Trending': 'bg-orange-600',
-    'Culture': 'bg-yellow-600',
-    'Insights': 'bg-teal-600',
-    'Memes': 'bg-pink-600',
-    'World': 'bg-green-600',
-    'Sports': 'bg-emerald-600',
-  };
-
-  // Function to format category name
-  const formatCategoryName = (name: string): string => {
-    return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-  };
+  // Category badge removed per request
 
   // Function to strip HTML tags
   const stripHtml = (html: string): string => {
@@ -44,10 +28,6 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
   };
 
   // Process article data
-  const categoryName = article.category?.name || article.category_name || 'General';
-  const formattedCategoryName = formatCategoryName(categoryName);
-  const categoryColor = categoryColors[formattedCategoryName] || 'bg-gray-600';
-  
   const cleanDescription = article.description || article.excerpt
     ? stripHtml(article.description || article.excerpt).substring(0, 80) + '...'
     : '';
@@ -78,17 +58,10 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
 
         {/* Compact Content */}
         <div className="p-3">
-          {/* Category and Meta - More Compact */}
-          <div className="flex items-center justify-between mb-1.5 text-xs">
-            <span className={`${categoryColor} text-white font-medium px-2 py-0.5 rounded`}>
-              {formattedCategoryName.toUpperCase()}
-            </span>
-            <div className="flex items-center text-gray-500">
-              <span className="flex items-center">
-                <Clock size={10} className="mr-0.5" />
-                {formattedDate}
-              </span>
-            </div>
+          {/* Meta row (date only) */}
+          <div className="flex items-center mb-1.5 text-xs text-gray-500">
+            <Clock size={10} className="mr-1" />
+            {formattedDate}
           </div>
 
           {/* Compact Title */}
