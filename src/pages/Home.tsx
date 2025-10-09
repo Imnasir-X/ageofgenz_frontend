@@ -100,7 +100,7 @@ const Home: React.FC = () => {
           <div className="w-48 h-8 bg-gray-300 rounded"></div>
           <div className="w-6 h-6 bg-gray-200 rounded"></div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {[1, 2, 3, 4, 5, 6].map(i => (
             <ArticleCardSkeleton key={`search-skeleton-${i}`} />
           ))}
@@ -236,7 +236,7 @@ const Home: React.FC = () => {
                 <X size={24} aria-hidden="true" />
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {searchResults.map((article) => (
                 <ArticleCard 
                   key={`search-${article.id}`} 
@@ -482,7 +482,7 @@ const Home: React.FC = () => {
                 </h2>
               </div>
               {loadingFeatured ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {[1, 2, 3, 4, 5, 6].map(i => (
                     <ArticleCardSkeleton key={`featured-skeleton-${i}`} />
                   ))}
@@ -494,7 +494,7 @@ const Home: React.FC = () => {
                   section="featured"
                 />
               ) : featuredArticles.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {featuredArticles.map((article) => (
                     <ArticleCard 
                       key={`featured-${article.id}`} 
@@ -525,7 +525,7 @@ const Home: React.FC = () => {
                 </h2>
               </div>
               {loadingLatest ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => (
                     <ArticleCardSkeleton key={`latest-skeleton-${i}`} />
                   ))}
@@ -537,7 +537,7 @@ const Home: React.FC = () => {
                   section="latest"
                 />
               ) : latestArticles.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {latestArticles.map((article) => (
                     <ArticleCard 
                       key={`latest-${article.id}`} 
