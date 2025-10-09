@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, Eye } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import type { Article } from '../types';
 
 interface ArticleCardProps {
@@ -83,14 +83,10 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
             <span className={`${categoryColor} text-white font-medium px-2 py-0.5 rounded`}>
               {formattedCategoryName.toUpperCase()}
             </span>
-            <div className="flex items-center text-gray-500 space-x-2">
+            <div className="flex items-center text-gray-500">
               <span className="flex items-center">
                 <Clock size={10} className="mr-0.5" />
                 {formattedDate}
-              </span>
-              <span className="flex items-center">
-                <Eye size={10} className="mr-0.5" />
-                {article.views || article.view_count || 0}
               </span>
             </div>
           </div>
