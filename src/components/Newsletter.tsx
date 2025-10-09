@@ -5,11 +5,13 @@ import { Mail, CheckCircle, AlertCircle, Send, Sparkles, Users } from 'lucide-re
 interface NewsletterProps {
   variant?: 'default' | 'compact' | 'featured';
   showBenefits?: boolean;
+  onSubscribed?: () => void;
 }
 
 const Newsletter: React.FC<NewsletterProps> = ({ 
   variant = 'default',
-  showBenefits = true 
+  showBenefits = true,
+  onSubscribed,
 }) => {
   const [email, setEmail] = useState<string>('');
   const [firstName, setFirstName] = useState<string>('');
@@ -34,6 +36,8 @@ const Newsletter: React.FC<NewsletterProps> = ({
       const response = await subscribeToNewsletter(email);
       setStatus('success');
       setMessage(response.data.message || 'Successfully subscribed! Check your email for confirmation.');
+      // Notify parent on successful subscription
+      if (onSubscribed) onSubscribed();
       setEmail('');
       setFirstName('');
       
