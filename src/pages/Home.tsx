@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-// import { Link } from 'react-router-dom';
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import SearchBar from '../components/SearchBar';
 // Removed DonationPlaceholder per request
 import Newsletter from '../components/Newsletter';
 import ArticleCard from '../components/ArticleCard';
 import { getFeaturedArticles, getArticlesBySearch, getLatestArticles, getCategories } from '../utils/api';
-import { RefreshCw, Search, X, TrendingUp, Clock, BookOpen } from 'lucide-react';
+import { RefreshCw, Search, X, TrendingUp, Clock, BookOpen, Megaphone } from 'lucide-react';
 import type { Article, Category } from '../types';
 
 const Home: React.FC = () => {
@@ -26,6 +26,7 @@ const Home: React.FC = () => {
   const [showSearch, setShowSearch] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showNewsletterCard, setShowNewsletterCard] = useState<boolean>(false);
+  const [breakingIndex, setBreakingIndex] = useState<number>(0);
   const closeBtnRef = useRef<HTMLButtonElement | null>(null);
   const prevFocusRef = useRef<HTMLElement | null>(null);
 
@@ -34,6 +35,21 @@ const Home: React.FC = () => {
     const formatted = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
     return formatted;
   };
+
+  // Breaking items: prefer latest, fallback to featured
+  const breakingItems = useMemo(() => {
+    const pool = latestArticles.length > 0 ? latestArticles : featuredArticles;
+    return pool.slice(0, 10);
+  }, [latestArticles, featuredArticles]);
+
+  // Auto-rotate breaking items every 6s
+  useEffect(() => {
+    if (breakingItems.length <= 1) return;
+    const id = window.setInterval(() => {
+      setBreakingIndex((i) => (i + 1) % breakingItems.length);
+    }, 6000);
+    return () => window.clearInterval(id);
+  }, [breakingItems.length]);
 
   // Smart image position based on category or content type
   const getImagePosition = useCallback((article: Article): 'top' | 'center' | 'bottom' => {
@@ -461,11 +477,53 @@ const Home: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         {/* Compact Header Section */}
-        <div className="text-center mb-24">
+        <div className="text-center mb-28">
           <div className="max-w-2xl mx-auto">
             <SearchBar onSearch={handleSearch} />
           </div>
         </div>
+
+        {/* Breaking News - compact rotating card */}
+        {breakingItems.length > 0 && (
+          <div className="max-w-6xl mx-auto mb-10">
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-3 sm:p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Megaphone size={18} className="text-red-500" aria-hidden="true" />
+                <span className="text-sm font-semibold text-gray-900">Breaking</span>
+              </div>
+              {(() => {
+                const a = breakingItems[breakingIndex];
+                const href = a?.slug ? `/article/${a.slug}` : '#';
+                const dateText = new Date(a?.date || a?.published_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const img = a?.featured_image_url || a?.image || a?.featured_image || '/api/placeholder/400/250';
+                return (
+                  <Link to={href} className="block group">
+                    <div className="flex items-center gap-3">
+                      <div className="w-36 sm:w-44 md:w-52 aspect-[16/10] bg-gray-100 overflow-hidden rounded-md flex-shrink-0">
+                        <img
+                          src={img}
+                          alt={a?.title || 'Breaking image'}
+                          className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                          loading="lazy"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/api/placeholder/400/250'; }}
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center text-[11px] text-gray-500 mb-1">
+                          <Clock size={10} className="mr-1" />
+                          {dateText}
+                        </div>
+                        <h3 className="text-sm sm:text-base font-semibold text-gray-900 line-clamp-2 group-hover:text-orange-500 transition-colors">
+                          {a?.title || 'Untitled Article'}
+                        </h3>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })()}
+            </div>
+          </div>
+        )}
 
         {/* Enhanced Search Results Section */}
         <SearchResultsSection />
