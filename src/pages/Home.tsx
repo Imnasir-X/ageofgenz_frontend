@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import SearchBar from '../components/SearchBar';
-import DonationPlaceholder from '../components/DonationPlaceholder';
+// Removed DonationPlaceholder per request
 import Newsletter from '../components/Newsletter';
 import ArticleCard from '../components/ArticleCard';
 import { getFeaturedArticles, getArticlesBySearch, getLatestArticles, getCategories } from '../utils/api';
@@ -461,7 +461,7 @@ const Home: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         {/* Compact Header Section */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-16">
           <div className="max-w-2xl mx-auto">
             <SearchBar onSearch={handleSearch} />
           </div>
@@ -585,8 +585,7 @@ const Home: React.FC = () => {
                 </div>
               )}
 
-              {/* Compact Donation */}
-              <DonationPlaceholder />
+              {/* Donation card removed */}
             </div>
           </aside>
         </div>
