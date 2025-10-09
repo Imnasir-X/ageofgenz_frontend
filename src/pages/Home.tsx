@@ -470,7 +470,7 @@ const Home: React.FC = () => {
         {/* Enhanced Search Results Section */}
         <SearchResultsSection />
 
-        <div className="flex flex-col lg:flex-row gap-12">
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-12">
           {/* Main Content */}
           <div className="lg:w-8/12">
             {/* Enhanced Featured Stories Section */}
