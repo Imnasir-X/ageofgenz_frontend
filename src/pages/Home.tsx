@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Link } from 'react-router-dom';
+// import { Link } from 'react-router-dom';
 import SearchBar from '../components/SearchBar';
 // Removed DonationPlaceholder per request
 import Newsletter from '../components/Newsletter';
@@ -470,9 +470,9 @@ const Home: React.FC = () => {
         {/* Enhanced Search Results Section */}
         <SearchResultsSection />
 
-        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-12">
+        <div className="max-w-6xl mx-auto">
           {/* Main Content */}
-          <div className="lg:w-8/12">
+          <div className="w-full">
             {/* Enhanced Featured Stories Section */}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
@@ -560,34 +560,7 @@ const Home: React.FC = () => {
             </section>
           </div>
 
-          {/* Enhanced Sidebar */}
-          <aside className="lg:w-4/12 mt-8 lg:mt-0">
-            <div className="lg:sticky lg:top-24 space-y-8">
-              {/* Enhanced Popular Categories */}
-              {loadingCategories ? (
-                <CategoriesSkeleton />
-              ) : (
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                  <h3 className="text-xl font-bold text-gray-900 mb-6 pb-3 border-b-2 border-orange-500">
-                    Popular Categories
-                  </h3>
-                  <div className="flex flex-wrap gap-3">
-                    {popularCategories.map((category) => (
-                      <Link
-                        key={category.id}
-                        to={`/${category.slug}`}
-                        className="inline-flex items-center bg-gray-100 hover:bg-orange-50 text-gray-700 hover:text-orange-700 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border border-gray-200 hover:border-orange-200"
-                      >
-                        {formatCategoryName(category.name)}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Donation card removed */}
-            </div>
-          </aside>
+          {/* Sidebar removed per request */}
         </div>
       </div>
 
