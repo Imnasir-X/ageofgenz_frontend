@@ -546,12 +546,12 @@ const Home: React.FC = () => {
       </div>
 
       {showNewsletterCard && !showSearch && (
-        <div className="fixed bottom-4 right-4 z-50 w-[calc(100%-1.5rem)] sm:w-auto sm:max-w-md">
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden relative">
+        <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-[60] w-[280px] sm:w-[320px] md:w-[360px] lg:w-[400px]">
+          <div className="relative rounded-xl shadow-2xl overflow-hidden border border-gray-200 bg-white aspect-[16/9]">
             <button
               type="button"
               aria-label="Dismiss newsletter"
-              className="absolute top-2 right-2 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+              className="absolute top-2 right-2 z-10 p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full"
               onClick={() => {
                 setShowNewsletterCard(false);
                 localStorage.setItem('newsletterDismissed', '1');
@@ -559,8 +559,10 @@ const Home: React.FC = () => {
             >
               <X size={18} aria-hidden="true" />
             </button>
-            <div className="p-4 sm:p-6">
-              <Newsletter variant="default" />
+            <div className="absolute inset-0 p-4 sm:p-5 flex">
+              <div className="w-full h-full overflow-auto">
+                <Newsletter variant="compact" />
+              </div>
             </div>
           </div>
         </div>
