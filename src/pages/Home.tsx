@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import SearchBar from '../components/SearchBar';
 import DonationPlaceholder from '../components/DonationPlaceholder';
 import Newsletter from '../components/Newsletter';
 import ArticleCard from '../components/ArticleCard';
-import { getFeaturedArticles, getArticlesBySearch, getArticles, getLatestArticles, getCategories } from '../utils/api';
+import { getFeaturedArticles, getArticlesBySearch, getLatestArticles, getCategories } from '../utils/api';
 import { RefreshCw, Search, X, TrendingUp, Clock, BookOpen } from 'lucide-react';
 import type { Article, Category } from '../types';
 
@@ -25,6 +25,7 @@ const Home: React.FC = () => {
   
   const [showSearch, setShowSearch] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [showNewsletterCard, setShowNewsletterCard] = useState<boolean>(false);
 
   // Function to format category names professionally
   const formatCategoryName = (name: string): string => {
@@ -33,7 +34,7 @@ const Home: React.FC = () => {
   };
 
   // Smart image position based on category or content type
-  const getImagePosition = (article: Article): 'top' | 'center' | 'bottom' => {
+  const getImagePosition = useCallback((article: Article): 'top' | 'center' | 'bottom' => {
     const category = article.category?.name?.toLowerCase() || '';
     
     if (category.includes('sport')) return 'center';
@@ -42,7 +43,7 @@ const Home: React.FC = () => {
     if (category.includes('world')) return 'center';
     
     return 'center';
-  };
+  }, []);
 
   // Enhanced Skeleton Loader Component with Professional Styling
   const ArticleCardSkeleton = () => (
@@ -142,6 +143,8 @@ const Home: React.FC = () => {
                 Search Results
               </h2>
               <button
+                aria-label="Close search results"
+                type="button"
                 onClick={() => {
                   setShowSearch(false);
                   setSearchResults([]);
@@ -150,12 +153,12 @@ const Home: React.FC = () => {
                 }}
                 className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <X size={24} />
+                <X size={24} aria-hidden="true" />
               </button>
             </div>
             <div className="bg-white rounded-xl shadow-sm border border-red-100 p-12 text-center">
               <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Search size={40} className="text-red-500" />
+                <Search size={40} className="text-red-500" aria-hidden="true" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">Search Error</h3>
               <p className="text-red-600 mb-6 max-w-md mx-auto">{errorSearch}</p>
@@ -176,6 +179,8 @@ const Home: React.FC = () => {
                 Search Results
               </h2>
               <button
+                aria-label="Close search results"
+                type="button"
                 onClick={() => {
                   setShowSearch(false);
                   setSearchResults([]);
@@ -183,12 +188,12 @@ const Home: React.FC = () => {
                 }}
                 className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <X size={24} />
+                <X size={24} aria-hidden="true" />
               </button>
             </div>
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
               <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Search size={48} className="text-gray-400" />
+                <Search size={48} className="text-gray-400" aria-hidden="true" />
               </div>
               <h3 className="text-2xl font-semibold text-gray-900 mb-3">No Results Found</h3>
               <p className="text-gray-600 mb-2 text-lg">
@@ -217,6 +222,8 @@ const Home: React.FC = () => {
                 </span>
               </div>
               <button
+                aria-label="Close search results"
+                type="button"
                 onClick={() => {
                   setShowSearch(false);
                   setSearchResults([]);
@@ -224,7 +231,7 @@ const Home: React.FC = () => {
                 }}
                 className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <X size={24} />
+                <X size={24} aria-hidden="true" />
               </button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -312,14 +319,16 @@ const Home: React.FC = () => {
       }
     };
 
-    // Staggered loading for better UX
-    fetchCategories();
-    setTimeout(fetchFeaturedArticles, 100);
-    setTimeout(fetchLatestArticles, 300);
+    // Load all in parallel for better perceived performance
+    void Promise.allSettled([
+      fetchCategories(),
+      fetchFeaturedArticles(),
+      fetchLatestArticles(),
+    ]);
   }, []);
 
   // Retry functions (same as before)
-  const retryFeatured = async () => {
+  const retryFeatured = useCallback(async () => {
     setLoadingFeatured(true);
     setErrorFeatured(null);
     try {
@@ -335,9 +344,25 @@ const Home: React.FC = () => {
     } finally {
       setLoadingFeatured(false);
     }
-  };
+  }, []);
 
-  const retryLatest = async () => {
+  // Show newsletter card after user scrolls down (if not dismissed)
+  useEffect(() => {
+    const dismissed = typeof window !== 'undefined' && localStorage.getItem('newsletterDismissed') === '1';
+    if (dismissed) return;
+
+    const onScroll = () => {
+      if (window.scrollY > 600) {
+        setShowNewsletterCard(true);
+        window.removeEventListener('scroll', onScroll);
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true } as AddEventListenerOptions);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const retryLatest = useCallback(async () => {
     setLoadingLatest(true);
     setErrorLatest(null);
     try {
@@ -353,10 +378,10 @@ const Home: React.FC = () => {
     } finally {
       setLoadingLatest(false);
     }
-  };
+  }, []);
 
   // Enhanced search function
-  const handleSearch = async (query: string) => {
+  const handleSearch = useCallback(async (query: string) => {
     if (!query.trim()) {
       setShowSearch(false);
       setSearchResults([]);
@@ -383,7 +408,7 @@ const Home: React.FC = () => {
     } finally {
       setLoadingSearch(false);
     }
-  };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -404,7 +429,7 @@ const Home: React.FC = () => {
             {/* Enhanced Featured Stories Section */}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
-                <TrendingUp size={28} className="text-orange-500" />
+                <TrendingUp size={28} className="text-orange-500" aria-hidden="true" />
                 <h2 className="text-3xl font-bold text-gray-900">
                   Featured Stories
                 </h2>
@@ -434,7 +459,7 @@ const Home: React.FC = () => {
               ) : (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
                   <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <TrendingUp size={40} className="text-orange-500" />
+                    <TrendingUp size={40} className="text-orange-500" aria-hidden="true" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-3">No Featured Articles Yet</h3>
                   <p className="text-gray-600 max-w-md mx-auto">
@@ -447,7 +472,7 @@ const Home: React.FC = () => {
             {/* Enhanced Latest News Section */}
             <section>
               <div className="flex items-center gap-3 mb-6">
-                <Clock size={28} className="text-blue-500" />
+                <Clock size={28} className="text-blue-500" aria-hidden="true" />
                 <h2 className="text-3xl font-bold text-gray-900">
                   Latest News
                 </h2>
@@ -477,7 +502,7 @@ const Home: React.FC = () => {
               ) : (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
                   <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <BookOpen size={40} className="text-blue-500" />
+                    <BookOpen size={40} className="text-blue-500" aria-hidden="true" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-3">No Articles Available</h3>
                   <p className="text-gray-600 max-w-md mx-auto">
@@ -513,13 +538,33 @@ const Home: React.FC = () => {
                 </div>
               )}
 
-              {/* Compact Donation and Newsletter */}
+              {/* Compact Donation */}
               <DonationPlaceholder />
-              <Newsletter />
             </div>
           </aside>
         </div>
       </div>
+
+      {showNewsletterCard && !showSearch && (
+        <div className="fixed bottom-4 right-4 z-50 w-[calc(100%-1.5rem)] sm:w-auto sm:max-w-md">
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden relative">
+            <button
+              type="button"
+              aria-label="Dismiss newsletter"
+              className="absolute top-2 right-2 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+              onClick={() => {
+                setShowNewsletterCard(false);
+                localStorage.setItem('newsletterDismissed', '1');
+              }}
+            >
+              <X size={18} aria-hidden="true" />
+            </button>
+            <div className="p-4 sm:p-6">
+              <Newsletter variant="default" />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
