@@ -1,7 +1,7 @@
-import axios, { AxiosResponse, AxiosError } from 'axios';
+﻿import axios, { AxiosResponse, AxiosError } from 'axios';
 import type { Article, Category } from '../types';
 
-// ✅ FIXED: Use production backend URL as fallback
+// âœ… FIXED: Use production backend URL as fallback
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://ageofgenz-backend.onrender.com';
 
 interface PaginatedArticlesResponse {
@@ -60,8 +60,8 @@ const api = axios.create({
   },
 });
 
-// ✅ ENHANCED: Add debug logging for API URL
-console.log('🚀 API Configuration:', {
+// âœ… ENHANCED: Add debug logging for API URL
+console.log('ðŸš€ API Configuration:', {
   VITE_API_URL: import.meta.env.VITE_API_URL,
   API_BASE_URL: API_BASE_URL,
   isDevelopment: import.meta.env.DEV,
@@ -70,7 +70,7 @@ console.log('🚀 API Configuration:', {
 
 api.interceptors.request.use(
   (config) => {
-    console.log('🔄 API Request:', config.method?.toUpperCase(), config.url, config.params);
+    console.log('ðŸ”„ API Request:', config.method?.toUpperCase(), config.url, config.params);
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -80,14 +80,14 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ✅ IMPROVED: Updated response interceptor with better error handling
+// âœ… IMPROVED: Updated response interceptor with better error handling
 api.interceptors.response.use(
   (response) => {
-    console.log('✅ API Response:', response.status, response.config.url, 'Data:', response.data);
+    console.log('âœ… API Response:', response.status, response.config.url, 'Data:', response.data);
     return response;
   },
   async (error) => {
-    console.error('❌ API Error:', error.response?.status, error.response?.config.url, error.response?.data || error.message);
+    console.error('âŒ API Error:', error.response?.status, error.response?.config.url, error.response?.data || error.message);
     const originalRequest = error.config;
     
     // Handle 401 Unauthorized errors
@@ -138,7 +138,7 @@ const retryRequest = async <T>(
     return await fn();
   } catch (error) {
     if (retries === 0 || !(error instanceof AxiosError)) throw error;
-    console.warn(`⚠️  Request failed, retrying... (${MAX_RETRIES - retries + 1}/${MAX_RETRIES})`);
+    console.warn(`âš ï¸  Request failed, retrying... (${MAX_RETRIES - retries + 1}/${MAX_RETRIES})`);
     await wait(delay);
     return retryRequest(fn, retries - 1, delay * 2);
   }
@@ -146,7 +146,7 @@ const retryRequest = async <T>(
 
 // Transform backend data to frontend format with better debugging
 const transformArticle = (backendArticle: any): Article => {
-  console.log('🔄 Raw backend article:', backendArticle);
+  console.log('ðŸ”„ Raw backend article:', backendArticle);
   
   const transformed: Article = {
     id: backendArticle.id,
@@ -155,7 +155,7 @@ const transformArticle = (backendArticle: any): Article => {
     excerpt: backendArticle.excerpt || '',
     content: backendArticle.content || '',
     
-    // ✅ CRITICAL FIX: Use featured_image_url from backend API
+    // âœ… CRITICAL FIX: Use featured_image_url from backend API
     featured_image: backendArticle.featured_image_url || backendArticle.featured_image || null,
     featured_image_url: backendArticle.featured_image_url || null,
     
@@ -180,7 +180,7 @@ const transformArticle = (backendArticle: any): Article => {
     updated_at: backendArticle.updated_at,
     estimated_read_time: Math.ceil((backendArticle.content || '').split(' ').length / 200) || 1,
     
-    // ✅ FIXED: Backward compatibility fields use new image URL
+    // âœ… FIXED: Backward compatibility fields use new image URL
     image: backendArticle.featured_image_url || backendArticle.featured_image,
     description: backendArticle.excerpt || '',
     date: backendArticle.published_at || backendArticle.created_at,
@@ -188,7 +188,7 @@ const transformArticle = (backendArticle: any): Article => {
     featured: Boolean(backendArticle.is_featured)
   };
   
-  console.log('🔄 Transformed article:', {
+  console.log('ðŸ”„ Transformed article:', {
     id: transformed.id,
     title: transformed.title,
     featured_image: transformed.featured_image,
@@ -202,11 +202,11 @@ const transformArticle = (backendArticle: any): Article => {
 
 // Article API calls
 export const getLatestArticles = async () => {
-  console.log('📖 Fetching latest 25 via /articles/latest/');
+  console.log('ðŸ“– Fetching latest 25 via /articles/latest/');
   try {
     const response = await retryRequest<any>(() => api.get('/api/articles/latest/'));
     
-    console.log('📖 Raw latest articles response:', response.data);
+    console.log('ðŸ“– Raw latest articles response:', response.data);
     
     // Handle the response - could be array or object with results
     let results = [];
@@ -218,7 +218,7 @@ export const getLatestArticles = async () => {
     
     const transformedResults = results.map(transformArticle);
     
-    console.log('📖 Latest articles transformed:', transformedResults.length);
+    console.log('ðŸ“– Latest articles transformed:', transformedResults.length);
     
     return {
       ...response,
@@ -230,7 +230,7 @@ export const getLatestArticles = async () => {
       }
     } as AxiosResponse<PaginatedArticlesResponse>;
   } catch (error) {
-    console.warn('📖 Latest endpoint failed, falling back to paginated...');
+    console.warn('ðŸ“– Latest endpoint failed, falling back to paginated...');
     // Fallback to the existing getArticles with higher page size
     return await getArticles(1, 25); // Get 25 articles from first page
   }
@@ -238,12 +238,12 @@ export const getLatestArticles = async () => {
 
 // MODIFY your existing getArticles function to support custom page size
 export const getArticles = async (page: number = 1, pageSize: number = 25) => {
-  console.log('📖 Fetching articles, page:', page, 'size:', pageSize);
+  console.log('ðŸ“– Fetching articles, page:', page, 'size:', pageSize);
   const response = await retryRequest<any>(() =>
     api.get(`/api/articles/?page=${page}&page_size=${pageSize}`)
   );
   
-  console.log('📖 Raw API response:', response.data);
+  console.log('ðŸ“– Raw API response:', response.data);
   
   let results = [];
   if (response.data.results) {
@@ -253,7 +253,7 @@ export const getArticles = async (page: number = 1, pageSize: number = 25) => {
   }
   
   const transformedResults = results.map(transformArticle);
-  console.log('📖 All articles with categories:', transformedResults.map((a: Article) => ({ 
+  console.log('ðŸ“– All articles with categories:', transformedResults.map((a: Article) => ({ 
     id: a.id, 
     title: a.title, 
     category: a.category 
@@ -271,7 +271,7 @@ export const getArticles = async (page: number = 1, pageSize: number = 25) => {
 };
 
 export const getFeaturedArticles = async () => {
-  console.log('⭐ Getting featured articles...');
+  console.log('â­ Getting featured articles...');
   
   try {
     const response = await retryRequest<any>(() =>
@@ -285,18 +285,18 @@ export const getFeaturedArticles = async () => {
       results = response.data;
     }
     
-    console.log('⭐ Raw articles for featured check:', results);
+    console.log('â­ Raw articles for featured check:', results);
     
     const transformedResults = results.map(transformArticle);
     
     // Check each article's featured status
     const featuredArticles = transformedResults.filter((article: Article) => {
       const isFeatured = article.is_featured === true || article.featured === true;
-      console.log(`⭐ Article "${article.title}": is_featured=${article.is_featured}, featured=${article.featured}, result=${isFeatured}`);
+      console.log(`â­ Article "${article.title}": is_featured=${article.is_featured}, featured=${article.featured}, result=${isFeatured}`);
       return isFeatured;
     });
     
-    console.log('⭐ Featured articles found:', featuredArticles.length);
+    console.log('â­ Featured articles found:', featuredArticles.length);
     
     // If no featured articles, return first 4 as featured
     const finalArticles = featuredArticles.length > 0 ? featuredArticles : transformedResults.slice(0, 4);
@@ -311,13 +311,13 @@ export const getFeaturedArticles = async () => {
       }
     } as AxiosResponse<PaginatedArticlesResponse>;
   } catch (error) {
-    console.error('⭐ Failed to get featured articles:', error);
+    console.error('â­ Failed to get featured articles:', error);
     throw error;
   }
 };
 
 export const getTrendingArticles = async () => {
-  console.log('🔥 Getting trending articles (using latest)...');
+  console.log('ðŸ”¥ Getting trending articles (using latest)...');
   
   try {
     const response = await getArticles();
@@ -334,13 +334,13 @@ export const getTrendingArticles = async () => {
       }
     } as AxiosResponse<PaginatedArticlesResponse>;
   } catch (error) {
-    console.error('🔥 Failed to get trending articles:', error);
+    console.error('ðŸ”¥ Failed to get trending articles:', error);
     throw error;
   }
 };
 
 export const getArticlesBySearch = async (query: string) => {
-  console.log('🔍 Searching articles for:', query);
+  console.log('ðŸ” Searching articles for:', query);
   const response = await retryRequest<any>(() =>
     api.get(`/api/articles/?search=${encodeURIComponent(query)}`)
   );
@@ -367,7 +367,7 @@ export const getArticlesBySearch = async (query: string) => {
 
 // FIXED: Article by ID with proper fallback
 export const getArticleById = async (id: number) => {
-  console.log('📄 Fetching article by ID:', id);
+  console.log('ðŸ“„ Fetching article by ID:', id);
   
   try {
     // Try direct endpoint first
@@ -381,7 +381,7 @@ export const getArticleById = async (id: number) => {
       data: transformedArticle
     } as AxiosResponse<Article>;
   } catch (error) {
-    console.warn('📄 Direct article endpoint failed, searching in all articles...');
+    console.warn('ðŸ“„ Direct article endpoint failed, searching in all articles...');
     
     // Fallback: Get all articles and find the one with matching ID
     try {
@@ -394,21 +394,21 @@ export const getArticleById = async (id: number) => {
         throw new Error(`Article with ID ${id} not found in articles list`);
       }
       
-      console.log('📄 Article found in list:', foundArticle.title);
+      console.log('ðŸ“„ Article found in list:', foundArticle.title);
       
       return {
         ...allArticlesResponse,
         data: foundArticle
       } as AxiosResponse<Article>;
     } catch (fallbackError) {
-      console.error('📄 Failed to find article in list too:', fallbackError);
+      console.error('ðŸ“„ Failed to find article in list too:', fallbackError);
       throw new Error(`Article with ID ${id} not found`);
     }
   }
 };
 
 export const getArticleBySlug = async (slug: string) => {
-  console.log('📄 Fetching article by slug:', slug);
+  console.log('ðŸ“„ Fetching article by slug:', slug);
   
   try {
     // Use direct endpoint - this works with your ViewSet
@@ -416,30 +416,30 @@ export const getArticleBySlug = async (slug: string) => {
       api.get(`/api/articles/${slug}/`)
     );
     
-    console.log('📄 Raw backend response:', response.data);
+    console.log('ðŸ“„ Raw backend response:', response.data);
     const transformedArticle = transformArticle(response.data);
-    console.log('📄 Transformed article:', transformedArticle);
+    console.log('ðŸ“„ Transformed article:', transformedArticle);
     
     return {
       ...response,
       data: transformedArticle
     } as AxiosResponse<Article>;
   } catch (error: any) {
-    console.error('📄 Failed to get article by slug:', error);
-    console.error('📄 Error details:', error.response?.data);
+    console.error('ðŸ“„ Failed to get article by slug:', error);
+    console.error('ðŸ“„ Error details:', error.response?.data);
     throw new Error(`Article with slug "${slug}" not found: ${error.response?.data?.detail || error.message}`);
   }
 };
 
 export const getCategories = async () => {
-  console.log('📂 Fetching categories from backend');
+  console.log('ðŸ“‚ Fetching categories from backend');
   
   try {
     const response = await retryRequest<Category[]>(() =>
       api.get('/api/categories/')
     );
     
-    console.log('📂 Categories fetched:', response.data);
+    console.log('ðŸ“‚ Categories fetched:', response.data);
     return {
       ...response,
       data: response.data
@@ -452,7 +452,7 @@ export const getCategories = async () => {
 
 // FIXED: Simplified category filtering using Django backend first
 export const getArticlesByCategory = async (categorySlug: string, page: number = 1) => {
-  console.log('📂 Fetching articles for category:', categorySlug);
+  console.log('ðŸ“‚ Fetching articles for category:', categorySlug);
   
   try {
     // First, try the Django filter directly using the backend filterset_fields
@@ -460,7 +460,7 @@ export const getArticlesByCategory = async (categorySlug: string, page: number =
       api.get(`/api/articles/?category__slug=${categorySlug}&page=${page}`)
     );
     
-    console.log('📂 Direct category filter response:', response.data);
+    console.log('ðŸ“‚ Direct category filter response:', response.data);
     
     let results = [];
     if (response.data.results) {
@@ -471,7 +471,7 @@ export const getArticlesByCategory = async (categorySlug: string, page: number =
     
     const transformedResults = results.map(transformArticle);
     
-    console.log(`📂 Category "${categorySlug}" articles found:`, transformedResults.length);
+    console.log(`ðŸ“‚ Category "${categorySlug}" articles found:`, transformedResults.length);
     
     // If we got results from the backend filter, return them
     if (transformedResults.length > 0) {
@@ -487,18 +487,18 @@ export const getArticlesByCategory = async (categorySlug: string, page: number =
     }
     
     // Fallback: Get all articles and filter on frontend
-    console.log('📂 No results from backend filter, trying frontend filtering...');
+    console.log('ðŸ“‚ No results from backend filter, trying frontend filtering...');
     throw new Error('No backend results, trying fallback');
     
   } catch (error) {
-    console.log('📂 Backend filtering failed, using frontend fallback...');
+    console.log('ðŸ“‚ Backend filtering failed, using frontend fallback...');
     
     // Fallback: Get all articles and filter on frontend
     try {
       const allResponse = await getArticles();
       const allArticles = allResponse.data.results;
       
-      console.log('📂 All articles for frontend filtering:', allArticles.length);
+      console.log('ðŸ“‚ All articles for frontend filtering:', allArticles.length);
       
       // Simple category matching
       const filteredArticles = allArticles.filter(article => {
@@ -527,7 +527,7 @@ export const getArticlesByCategory = async (categorySlug: string, page: number =
           articleCategoryName === match
         );
         
-        console.log(`📂 Article "${article.title}" category check:`, {
+        console.log(`ðŸ“‚ Article "${article.title}" category check:`, {
           articleSlug: articleCategorySlug,
           articleName: articleCategoryName,
           searchSlug,
@@ -537,7 +537,7 @@ export const getArticlesByCategory = async (categorySlug: string, page: number =
         return isMatch;
       });
       
-      console.log(`📂 Frontend filter found ${filteredArticles.length} articles for category "${categorySlug}"`);
+      console.log(`ðŸ“‚ Frontend filter found ${filteredArticles.length} articles for category "${categorySlug}"`);
       
       return {
         ...allResponse,
@@ -550,7 +550,7 @@ export const getArticlesByCategory = async (categorySlug: string, page: number =
       } as AxiosResponse<PaginatedArticlesResponse>;
       
     } catch (fallbackError) {
-      console.error('📂 Frontend filtering also failed:', fallbackError);
+      console.error('ðŸ“‚ Frontend filtering also failed:', fallbackError);
       throw error;
     }
   }
@@ -558,18 +558,18 @@ export const getArticlesByCategory = async (categorySlug: string, page: number =
 
 // NEW: Specific function for opinion articles
 export const getOpinionArticles = async (page: number = 1) => {
-  console.log('💭 Fetching opinion articles...');
+  console.log('ðŸ’­ Fetching opinion articles...');
   
   try {
     // Try to get articles with opinion category first
     try {
       const response = await getArticlesByCategory('opinion', page);
       if (response.data.results.length > 0) {
-        console.log('💭 Found articles in opinion category:', response.data.results.length);
+        console.log('ðŸ’­ Found articles in opinion category:', response.data.results.length);
         return response;
       }
     } catch (error) {
-      console.log('💭 No dedicated opinion category, filtering all articles...');
+      console.log('ðŸ’­ No dedicated opinion category, filtering all articles...');
     }
     
     // Fallback: Get all articles and filter for opinion-related content
@@ -594,7 +594,7 @@ export const getOpinionArticles = async (page: number = 1) => {
       
       const hasOpinionKeywords = opinionKeywords.some(keyword => content.includes(keyword));
       
-      console.log(`💭 Article "${article.title}" opinion check:`, {
+      console.log(`ðŸ’­ Article "${article.title}" opinion check:`, {
         hasOpinionKeywords,
         category: article.category?.name
       });
@@ -602,7 +602,7 @@ export const getOpinionArticles = async (page: number = 1) => {
       return hasOpinionKeywords;
     });
     
-    console.log(`💭 Found ${opinionArticles.length} opinion-related articles`);
+    console.log(`ðŸ’­ Found ${opinionArticles.length} opinion-related articles`);
     
     // If no opinion-related articles found, return first 6 articles as "opinions"
     const finalArticles = opinionArticles.length > 0 ? opinionArticles : allArticles.slice(0, 6);
@@ -618,26 +618,26 @@ export const getOpinionArticles = async (page: number = 1) => {
     } as AxiosResponse<PaginatedArticlesResponse>;
     
   } catch (error) {
-    console.error('💭 Failed to get opinion articles:', error);
+    console.error('ðŸ’­ Failed to get opinion articles:', error);
     throw error;
   }
 };
 
 // Newsletter
-export const subscribeToNewsletter = async (email: string) => {
-  console.log('📧 Subscribing to newsletter:', email);
-  return retryRequest<SubscribeResponse>(() => 
-    api.post('/api/newsletter/subscribe/', { email })
-  );
+export const subscribeToNewsletter = async (data: string | { email: string; frequency?: string; language?: string }) => {
+  const payload = typeof data === 'string' ? { email: data } : data;
+  console.log('Newsletter subscribe payload:', payload);
+  return retryRequest<SubscribeResponse>(() => api.post('/api/newsletter/subscribe/', payload));
 };
+
 
 export const unsubscribeFromNewsletter = async (id: number): Promise<AxiosResponse> => {
   return api.post(`/api/newsletter/unsubscribe/${id}/`);
 };
 
-// ✅ IMPROVED: Login with better error handling
+// âœ… IMPROVED: Login with better error handling
 export const loginUser = async (email: string, password: string) => {
-  console.log('🔐 Attempting login for:', email);
+  console.log('ðŸ” Attempting login for:', email);
   try {
     const response = await retryRequest<LoginResponse>(() => 
       api.post('/api/auth/login/', { email, password })
@@ -662,7 +662,7 @@ export const loginUser = async (email: string, password: string) => {
   }
 };
 
-// ✅ FIXED: Registration function to match what AuthContext expects
+// âœ… FIXED: Registration function to match what AuthContext expects
 export const registerUser = async (userData: {
   username: string;
   email: string;
@@ -671,7 +671,7 @@ export const registerUser = async (userData: {
   first_name: string;
   last_name: string;
 }) => {
-  console.log('👤 Registering user with data:', userData);
+  console.log('ðŸ‘¤ Registering user with data:', userData);
   try {
     const response = await retryRequest<RegisterResponse>(() =>
       api.post('/api/auth/register/', userData)
@@ -705,7 +705,7 @@ export const registerUser = async (userData: {
   }
 };
 
-// ✅ KEEP the old signature for backward compatibility (if needed elsewhere)
+// âœ… KEEP the old signature for backward compatibility (if needed elsewhere)
 export const registerUserOld = async (username: string, email: string, password: string, first_name?: string, last_name?: string) => {
   return registerUser({
     username,
@@ -718,51 +718,51 @@ export const registerUserOld = async (username: string, email: string, password:
 };
 
 export const requestPasswordReset = async (email: string) => {
-  console.log('🔒 Requesting password reset for:', email);
+  console.log('ðŸ”’ Requesting password reset for:', email);
   return retryRequest<ResetPasswordResponse>(() => 
     api.post('/api/auth/password-reset/', { email })
   );
 };
 
-// ✅ ADDED: Additional auth functions
+// âœ… ADDED: Additional auth functions
 export const verifyEmail = async (token: string) => {
-  console.log('📧 Verifying email with token');
+  console.log('ðŸ“§ Verifying email with token');
   return retryRequest<{ message: string }>(() =>
     api.post('/api/auth/verify-email/', { token })
   );
 };
 
 export const socialAuth = async (provider: string, access_token: string) => {
-  console.log('🔗 Social auth with:', provider);
+  console.log('ðŸ”— Social auth with:', provider);
   return retryRequest<LoginResponse>(() =>
     api.post('/api/auth/social-auth/', { provider, access_token })
   );
 };
 
 export const resetPassword = async (uid: string, token: string, password: string) => {
-  console.log('🔒 Resetting password');
+  console.log('ðŸ”’ Resetting password');
   return retryRequest<ResetPasswordResponse>(() =>
     api.post('/api/auth/password-reset/confirm/', { uid, token, password })
   );
 };
 
-// ✅ ADDED: User profile functions
+// âœ… ADDED: User profile functions
 export const getUserProfile = async () => {
-  console.log('👤 Fetching user profile');
+  console.log('ðŸ‘¤ Fetching user profile');
   return retryRequest<any>(() =>
     api.get('/api/auth/profiles/dashboard/')
   );
 };
 
 export const updateUserProfile = async (data: any) => {
-  console.log('👤 Updating user profile');
+  console.log('ðŸ‘¤ Updating user profile');
   return retryRequest<any>(() =>
     api.patch('/api/auth/profiles/dashboard/', data)
   );
 };
 
 export const changePassword = async (oldPassword: string, newPassword: string) => {
-  console.log('🔒 Changing password');
+  console.log('ðŸ”’ Changing password');
   return retryRequest<{ message: string }>(() =>
     api.post('/api/auth/profiles/change_password/', {
       old_password: oldPassword,
@@ -773,7 +773,7 @@ export const changePassword = async (oldPassword: string, newPassword: string) =
 
 // Contact
 export const submitContactForm = async (data: { name: string; email: string; message: string }) => {
-  console.log('📨 Submitting contact form');
+  console.log('ðŸ“¨ Submitting contact form');
   return retryRequest<any>(() =>
     api.post('/api/contact/', data)
   );
@@ -781,7 +781,7 @@ export const submitContactForm = async (data: { name: string; email: string; mes
 
 // Donations
 export const subscribeToPlan = async (plan: string, billingCycle: string, amount: number) => {
-  console.log('💳 Creating subscription:', plan, billingCycle, amount);
+  console.log('ðŸ’³ Creating subscription:', plan, billingCycle, amount);
   return retryRequest<SubscriptionResponse>(() =>
     api.post('/api/donation/create/', { amount, plan, billing_cycle: billingCycle })
   );
