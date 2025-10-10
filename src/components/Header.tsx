@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { ChevronDown, Search as SearchIcon, X } from 'lucide-react';
-import { getArticlesBySearch } from '../utils/api';
+import { getArticlesBySearch, getLatestArticles } from '../utils/api';
 // ✅ REMOVED: import Logo from '../assets/images/logo.png';
 
 const Header: React.FC = () => {
@@ -16,20 +16,48 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   const [showSearch, setShowSearch] = useState(false);
   const [query, setQuery] = useState('');
-  const [suggestions, setSuggestions] = useState<Array<{ id: number; title: string; slug: string }>>([]);
+  const [suggestions, setSuggestions] = useState<Array<{ id: number; title: string; slug: string; image?: string; date?: string; category?: string }>>([]);
   const [loadingSuggest, setLoadingSuggest] = useState(false);
   const [showSuggest, setShowSuggest] = useState(false);
   const searchBoxRef = useRef<HTMLLIElement | null>(null);
   const recentKey = 'recentSearches';
-  const recentSearches: string[] = useMemo(() => {
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [loadingRecent, setLoadingRecent] = useState(false);
+  useEffect(() => {
+    if (!showSearch) return;
+    setLoadingRecent(true);
     try {
       const raw = localStorage.getItem(recentKey);
-      return raw ? JSON.parse(raw) : [];
+      setRecentSearches(raw ? JSON.parse(raw) : []);
     } catch {
-      return [];
+      setRecentSearches([]);
+    } finally {
+      setLoadingRecent(false);
     }
   }, [showSearch]);
   const trendingSearches = ['AI', 'Elections', 'World', 'Sports', 'Opinion'];
+
+  // Breaking news banner
+  const [breakingNews, setBreakingNews] = useState<{ title: string; slug: string } | null>(null);
+  useEffect(() => {
+    let mounted = true;
+    const fetchBreaking = async () => {
+      try {
+        const res = await getLatestArticles();
+        const items = res.data?.results || [];
+        if (!mounted) return;
+        if (items.length > 0) {
+          const first = items[0];
+          setBreakingNews({ title: first.title || 'Breaking news', slug: first.slug });
+        }
+      } catch {
+        if (mounted) setBreakingNews(null);
+      }
+    };
+    fetchBreaking();
+    const interval = window.setInterval(fetchBreaking, 30000);
+    return () => { mounted = false; window.clearInterval(interval); };
+  }, []);
 
   // Hide on scroll down, show on scroll up, compact mode when scrolling
   useEffect(() => {
@@ -55,28 +83,42 @@ const Header: React.FC = () => {
   const closeMenus = () => setOpenMenu(null);
 
   // Debounced suggestions
+  const suggestTimeoutRef = useRef<number | undefined>(undefined);
+  const suggestSeqRef = useRef(0);
   useEffect(() => {
     if (!showSearch) return;
-    if (query.trim().length < 2) {
+    const q = query.trim();
+    if (q.length < 2) {
+      if (suggestTimeoutRef.current) window.clearTimeout(suggestTimeoutRef.current);
       setSuggestions([]);
       setLoadingSuggest(false);
       return;
     }
-    let cancelled = false;
     setLoadingSuggest(true);
-    const t = window.setTimeout(async () => {
+    const seq = ++suggestSeqRef.current;
+    if (suggestTimeoutRef.current) window.clearTimeout(suggestTimeoutRef.current);
+    suggestTimeoutRef.current = window.setTimeout(async () => {
       try {
-        const res = await getArticlesBySearch(query.trim());
-        if (cancelled) return;
-        const results = (res.data?.results || []).slice(0, 6).map((a: any) => ({ id: a.id, title: a.title, slug: a.slug }));
+        const res = await getArticlesBySearch(q);
+        if (seq !== suggestSeqRef.current) return;
+        const results = (res.data?.results || []).slice(0, 6).map((a: any) => ({
+          id: a.id,
+          title: a.title,
+          slug: a.slug,
+          image: a.thumbnail || a.image || a.featured_image || a.cover_image || undefined,
+          date: a.published_at || a.date || a.created_at || undefined,
+          category: (a.category && (a.category.name || a.category.title)) || a.section || (a.topic && a.topic.name) || undefined,
+        }));
         setSuggestions(results);
       } catch {
-        if (!cancelled) setSuggestions([]);
+        if (seq === suggestSeqRef.current) setSuggestions([]);
       } finally {
-        if (!cancelled) setLoadingSuggest(false);
+        if (seq === suggestSeqRef.current) setLoadingSuggest(false);
       }
     }, 350);
-    return () => { cancelled = true; window.clearTimeout(t); };
+    return () => {
+      if (suggestTimeoutRef.current) window.clearTimeout(suggestTimeoutRef.current);
+    };
   }, [query, showSearch]);
 
   // Click outside to close search dropdown
@@ -100,14 +142,79 @@ const Header: React.FC = () => {
   const mobileNavLinkClasses = ({ isActive }: { isActive: boolean }): string =>
     `block py-2 px-3 text-sm ${isActive ? 'text-orange-500 font-semibold bg-gray-800 rounded' : 'text-white'} hover:text-orange-500 hover:bg-gray-800 rounded transition-all duration-200`;
 
+  // Delayed close for mega menus
+  const closeMenuDelayed = useRef<number | undefined>(undefined);
+  const handleMouseLeave = () => {
+    closeMenuDelayed.current = window.setTimeout(closeMenus, 200);
+  };
+  const handleMouseEnter = () => {
+    if (closeMenuDelayed.current) window.clearTimeout(closeMenuDelayed.current);
+  };
+
+  // Keyboard access for mega menus
+  const onMegaKeyDown = (menuKey: string, containerId: string) => (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setOpenMenu(null);
+    }
+    if (e.key === 'ArrowDown') {
+      setOpenMenu(menuKey);
+      const el = document.getElementById(containerId);
+      const first = el?.querySelector('a, button') as HTMLElement | null;
+      first?.focus();
+      e.preventDefault();
+    }
+  };
+
+  // Focus trap for mobile menu
+  const mobileNavRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const container = mobileNavRef.current;
+    if (!container) return;
+    const getFocusable = () => Array.from(container.querySelectorAll<HTMLElement>('a, button, select, input, [tabindex]:not([tabindex="-1"])'))
+      .filter(el => !el.hasAttribute('disabled') && !el.hasAttribute('hidden'));
+    let focusableList = getFocusable();
+    (focusableList[0] || container).focus();
+    const observer = new MutationObserver(() => { focusableList = getFocusable(); });
+    observer.observe(container, { childList: true, subtree: true });
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+      const list = focusableList;
+      if (list.length === 0) return;
+      const first = list[0];
+      const last = list[list.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) { (last as HTMLElement)?.focus(); e.preventDefault(); }
+      } else {
+        if (document.activeElement === last) { (first as HTMLElement)?.focus(); e.preventDefault(); }
+      }
+    };
+    container.addEventListener('keydown', onKeyDown);
+    return () => { container.removeEventListener('keydown', onKeyDown); observer.disconnect(); };
+  }, [isMenuOpen]);
+
   return (
-    <header className={`header-nav bg-black text-white sticky top-0 z-50 transition-transform duration-300 ${isHidden ? '-translate-y-full' : 'translate-y-0'} ${hasShadow ? 'shadow-md' : ''}`} onMouseLeave={closeMenus}>
+    <>
+      {breakingNews && (
+        <div className="bg-red-600 text-white px-4 py-2 text-sm font-medium flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1 bg-white text-red-600 px-2 py-0.5 rounded-full text-xs font-bold animate-pulse">
+              BREAKING
+            </span>
+            <span className="line-clamp-1">{breakingNews.title}</span>
+          </div>
+          <Link to={`/article/${breakingNews.slug}`} className="text-white underline hover:text-gray-200 text-xs">
+            Read more →
+          </Link>
+        </div>
+      )}
+      <header className={`header-nav bg-black text-white sticky top-0 z-50 transition-transform duration-300 ${isHidden ? '-translate-y-full' : 'translate-y-0'} ${hasShadow ? 'shadow-md' : ''}`} onMouseLeave={handleMouseLeave} onMouseEnter={handleMouseEnter}>
       <div className={`container mx-auto px-4 ${isCompact ? 'py-1' : 'py-2'}`}>
         <div className="flex justify-between items-center">
           {/* Logo and Title - Force white text */}
           <Link to="/" className="flex items-center space-x-2">
             {/* ✅ FIXED: Use public folder logo with cache-busting */}
-            <img src="/logo.png?v=2025" alt="The Age of GenZ" className={`${isCompact ? 'h-8' : 'h-10'} w-auto transition-all`} />
+            <img src="/logo.png?v=2025" alt="The Age Of GenZ - Home" className={`${isCompact ? 'h-8' : 'h-10'} w-auto transition-all`} />
             <span className={`${isCompact ? 'text-xl md:text-2xl' : 'text-2xl md:text-3xl'} font-bold tracking-tight font-inknut text-white transition-all`}>
               The Age Of GenZ 
             </span>
@@ -128,11 +235,12 @@ const Header: React.FC = () => {
                   aria-haspopup="true"
                   aria-expanded={openMenu==='world'}
                   onClick={() => setOpenMenu(openMenu === 'world' ? null : 'world')}
+                  onKeyDown={onMegaKeyDown('world', 'mega-world')}
                 >
                   World <ChevronDown size={14} />
                 </button>
                 {openMenu === 'world' && (
-                  <div className="absolute left-0 mt-2 w-[560px] bg-white text-gray-900 rounded-lg shadow-xl p-4 grid grid-cols-2 gap-4 border border-gray-200 z-50">
+                  <div id="mega-world" className="absolute left-0 mt-2 w-[560px] bg-white text-gray-900 rounded-lg shadow-xl p-4 grid grid-cols-2 gap-4 border border-gray-200 z-50">
                     {[
                       { label: 'Europe', to: '/category/europe' },
                       { label: 'Asia', to: '/category/asia' },
@@ -156,11 +264,12 @@ const Header: React.FC = () => {
                   aria-haspopup="true"
                   aria-expanded={openMenu==='politics'}
                   onClick={() => setOpenMenu(openMenu === 'politics' ? null : 'politics')}
+                  onKeyDown={onMegaKeyDown('politics', 'mega-politics')}
                 >
                   Politics <ChevronDown size={14} />
                 </button>
                 {openMenu === 'politics' && (
-                  <div className="absolute left-0 mt-2 w-[560px] bg-white text-gray-900 rounded-lg shadow-xl p-4 grid grid-cols-2 gap-4 border border-gray-200 z-50">
+                  <div id="mega-politics" className="absolute left-0 mt-2 w-[560px] bg-white text-gray-900 rounded-lg shadow-xl p-4 grid grid-cols-2 gap-4 border border-gray-200 z-50">
                     {[
                       { label: 'U.S. Politics', to: '/politics' },
                       { label: 'World Politics', to: '/world' },
@@ -212,6 +321,7 @@ const Header: React.FC = () => {
                         type="text"
                         value={query}
                         onChange={(e) => { setQuery(e.target.value); setShowSuggest(true); }}
+                        aria-label="Search articles"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && query.trim()) {
                             const q = query.trim();
@@ -225,6 +335,15 @@ const Header: React.FC = () => {
                         placeholder="Search articles…"
                         className="flex-1 outline-none bg-transparent text-sm placeholder:text-gray-400 text-gray-900"
                       />
+                      {query && (
+                        <button
+                          className="px-2 py-1 rounded text-gray-600 hover:text-gray-900 text-xs"
+                          aria-label="Clear search"
+                          onClick={() => { setQuery(''); setShowSuggest(true); }}
+                        >
+                          Clear
+                        </button>
+                      )}
                       <button
                         className="px-2 py-1 rounded bg-orange-500 text-white text-xs hover:bg-orange-600"
                         onClick={() => {
@@ -252,10 +371,12 @@ const Header: React.FC = () => {
                                 {suggestions.map((s) => (
                                   <li key={s.id}>
                                     <button
-                                      className="w-full text-left px-2 py-2 hover:bg-gray-50 rounded text-sm text-gray-800"
+                                      className="w-full text-left px-2 py-2 hover:bg-gray-50 rounded text-sm text-gray-800 flex items-center gap-2"
                                       onClick={() => { navigate(`/article/${s.slug}`); setShowSuggest(false); setShowSearch(false); }}
                                     >
-                                      {s.title}
+                                      {s.image && (<img src={s.image} alt="" className="w-8 h-8 object-cover rounded" />)}
+                                      <span className="flex-1">{s.title}</span>
+                                      {s.date && (<span className="text-xs text-gray-500">{new Date(s.date).toLocaleDateString()}</span>)}
                                     </button>
                                   </li>
                                 ))}
@@ -268,7 +389,9 @@ const Header: React.FC = () => {
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <div className="text-xs text-gray-500 mb-2">Recent searches</div>
-                              {recentSearches.length === 0 ? (
+                              {loadingRecent ? (
+                                <div className="text-sm text-gray-500">Loading…</div>
+                              ) : recentSearches.length === 0 ? (
                                 <div className="text-sm text-gray-500">No recent searches</div>
                               ) : (
                                 <div className="flex flex-wrap gap-2">
@@ -319,7 +442,7 @@ const Header: React.FC = () => {
 
         {/* Mobile Menu - Force black background and white text */}
         {isMenuOpen && (
-          <nav className="lg:hidden pt-3 pb-3 border-t border-gray-800 bg-black text-white header-mobile-nav">
+          <nav ref={mobileNavRef} className="lg:hidden pt-3 pb-3 border-t border-gray-800 bg-black text-white header-mobile-nav" aria-label="Mobile menu">
             <div className="px-2 space-y-1">
               {/* Main Navigation */}
               <div className="space-y-1">
@@ -427,6 +550,7 @@ const Header: React.FC = () => {
         )}
       </div>
     </header>
+    </>
   );
 };
 
