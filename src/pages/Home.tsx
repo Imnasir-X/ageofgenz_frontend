@@ -4,15 +4,34 @@ import SearchBar from '../components/SearchBar';
 // Removed DonationPlaceholder per request
 import Newsletter from '../components/Newsletter';
 import ArticleCard from '../components/ArticleCard';
-import { getFeaturedArticles, getArticlesBySearch, getLatestArticles, getCategories } from '../utils/api';
+import { 
+  getFeaturedArticles, 
+  getArticlesBySearch, 
+  getLatestArticles, 
+  getCategories,
+  getArticles,
+  getArticlesByCategory,
+  getTrendingArticles
+} from '../utils/api';
 import { RefreshCw, Search, X, TrendingUp, Clock, BookOpen, Megaphone } from 'lucide-react';
 import type { Article, Category } from '../types';
 
 const Home: React.FC = () => {
   const [featuredArticles, setFeaturedArticles] = useState<Article[]>([]);
   const [latestArticles, setLatestArticles] = useState<Article[]>([]);
+  const [trendingArticles, setTrendingArticles] = useState<Article[]>([]);
+  const [loadingTrending, setLoadingTrending] = useState<boolean>(true);
   const [searchResults, setSearchResults] = useState<Article[]>([]);
   const [popularCategories, setPopularCategories] = useState<Category[]>([]);
+  const [activeCategory, setActiveCategory] = useState<string>('all');
+  
+  // Infinite scroll state for Latest
+  const [latestList, setLatestList] = useState<Article[]>([]);
+  const [latestPage, setLatestPage] = useState<number>(1);
+  const [latestHasMore, setLatestHasMore] = useState<boolean>(true);
+  const [loadingMoreLatest, setLoadingMoreLatest] = useState<boolean>(false);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const [liveUpdatesCount, setLiveUpdatesCount] = useState<number>(0);
   
   const [loadingFeatured, setLoadingFeatured] = useState<boolean>(true);
   const [loadingLatest, setLoadingLatest] = useState<boolean>(true);
@@ -22,6 +41,7 @@ const Home: React.FC = () => {
   const [errorFeatured, setErrorFeatured] = useState<string | null>(null);
   const [errorLatest, setErrorLatest] = useState<string | null>(null);
   const [errorSearch, setErrorSearch] = useState<string | null>(null);
+  const [errorTrending, setErrorTrending] = useState<string | null>(null);
   
   const [showSearch, setShowSearch] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -29,6 +49,10 @@ const Home: React.FC = () => {
   const [breakingIndex, setBreakingIndex] = useState<number>(0);
   const closeBtnRef = useRef<HTMLButtonElement | null>(null);
   const prevFocusRef = useRef<HTMLElement | null>(null);
+  
+  // Hero carousel state
+  const [heroIndex, setHeroIndex] = useState<number>(0);
+  const heroTimerRef = useRef<number | null>(null);
 
   // Function to format category names professionally
   const formatCategoryName = (name: string): string => {
@@ -62,6 +86,25 @@ const Home: React.FC = () => {
     
     return 'center';
   }, []);
+
+  // Progressive image component (simple LQ placeholder fade-in)
+  const ProgressiveImage: React.FC<{ src: string | null | undefined; alt: string; className?: string }> = ({ src, alt, className }) => {
+    const [loaded, setLoaded] = useState(false);
+    const imgSrc = src || '/api/placeholder/1200/675';
+    return (
+      <div className={`relative ${className || ''}`}>
+        <div className={`absolute inset-0 bg-gray-200 animate-pulse ${loaded ? 'opacity-0' : 'opacity-100'} transition-opacity`}></div>
+        <img
+          src={imgSrc}
+          alt={alt}
+          loading="lazy"
+          onLoad={() => setLoaded(true)}
+          onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/api/placeholder/1200/675'; setLoaded(true); }}
+          className={`w-full h-full object-cover ${loaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}
+        />
+      </div>
+    );
+  };
 
   // Enhanced Skeleton Loader Component with Professional Styling
   const ArticleCardSkeleton = () => (
@@ -267,6 +310,27 @@ const Home: React.FC = () => {
     );
   };
 
+  // Hero items - prefer featured then latest
+  const heroItems = useMemo(() => {
+    const pool = featuredArticles.length > 0 ? featuredArticles : latestArticles;
+    return pool.slice(0, 5);
+  }, [featuredArticles, latestArticles]);
+
+  const displayedFeatured = useMemo(() => {
+    if (activeCategory === 'all') return featuredArticles;
+    return featuredArticles.filter(a => (a.category?.slug || a.category?.name?.toLowerCase()) === activeCategory);
+  }, [featuredArticles, activeCategory]);
+
+  // Auto-rotate hero
+  useEffect(() => {
+    if (heroItems.length <= 1) return;
+    if (heroTimerRef.current) window.clearInterval(heroTimerRef.current);
+    heroTimerRef.current = window.setInterval(() => {
+      setHeroIndex((i) => (i + 1) % heroItems.length);
+    }, 7000);
+    return () => { if (heroTimerRef.current) window.clearInterval(heroTimerRef.current); };
+  }, [heroItems.length]);
+
   // Data fetching effects (same as before but with better error handling)
   useEffect(() => {
     const fetchCategories = async () => {
@@ -297,15 +361,28 @@ const Home: React.FC = () => {
       setLoadingFeatured(true);
       setErrorFeatured(null);
       try {
+        // SWR-style cache for featured
+        const cachedRaw = localStorage.getItem('featuredCache');
+        if (cachedRaw) {
+          try {
+            const cached = JSON.parse(cachedRaw);
+            const ageMs = Date.now() - (cached.timestamp || 0);
+            if (cached.articles && ageMs < 10 * 60 * 1000) {
+              setFeaturedArticles(cached.articles);
+              setLoadingFeatured(false);
+            }
+          } catch {}
+        }
         console.log('🏠 Fetching featured articles...');
         const response = await getFeaturedArticles();
         console.log('Featured Articles Response:', response.data);
-        
         const articles = response.data.results || [];
         if (articles.length === 0) {
           setErrorFeatured('No featured articles found.');
         } else {
           setFeaturedArticles(articles);
+          // Update cache
+          localStorage.setItem('featuredCache', JSON.stringify({ timestamp: Date.now(), articles }));
         }
       } catch (err: any) {
         console.error('Featured Articles Error:', err);
@@ -328,6 +405,8 @@ const Home: React.FC = () => {
           setErrorLatest('No latest articles found.');
         } else {
           setLatestArticles(articles);
+          // Seed infinite list with first batch if empty
+          if (latestList.length === 0) setLatestList(articles);
         }
       } catch (err: any) {
         console.error('Latest Articles Error:', err);
@@ -337,11 +416,26 @@ const Home: React.FC = () => {
       }
     };
 
+    const fetchTrending = async () => {
+      setLoadingTrending(true);
+      setErrorTrending(null);
+      try {
+        const response = await getTrendingArticles();
+        setTrendingArticles(response.data.results || []);
+      } catch (err: any) {
+        console.error('Trending Error:', err);
+        setErrorTrending(err.message || 'Failed to load trending');
+      } finally {
+        setLoadingTrending(false);
+      }
+    };
+
     // Load all in parallel for better perceived performance
     void Promise.allSettled([
       fetchCategories(),
       fetchFeaturedArticles(),
       fetchLatestArticles(),
+      fetchTrending(),
     ]);
   }, []);
 
@@ -443,6 +537,75 @@ const Home: React.FC = () => {
     }
   }, []);
 
+  // Load a page for infinite scroll (all or by category)
+  const loadLatestPage = useCallback(async (page: number, categorySlug?: string) => {
+    setLoadingMoreLatest(true);
+    try {
+      let response;
+      if (categorySlug && categorySlug !== 'all') {
+        response = await getArticlesByCategory(categorySlug, page);
+      } else {
+        response = await getArticles(page);
+      }
+      const results = response.data.results || [];
+      setLatestList((prev) => (page === 1 ? results : [...prev, ...results]));
+      setLatestHasMore(Boolean(response.data.next));
+      setLatestPage(page);
+    } catch (err) {
+      console.error('Load latest page error:', err);
+      setLatestHasMore(false);
+    } finally {
+      setLoadingMoreLatest(false);
+    }
+  }, []);
+
+  // Observe sentinel for infinite scroll
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver((entries) => {
+      const [entry] = entries;
+      if (entry.isIntersecting && latestHasMore && !loadingMoreLatest) {
+        loadLatestPage(latestPage + 1, activeCategory !== 'all' ? activeCategory : undefined);
+      }
+    }, { rootMargin: '200px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [latestHasMore, loadingMoreLatest, latestPage, activeCategory, loadLatestPage]);
+
+  // Initialize infinite list
+  useEffect(() => {
+    // If nothing loaded yet, load first page
+    if (latestList.length === 0 && !loadingLatest) {
+      loadLatestPage(1);
+    }
+  }, [loadingLatest, latestList.length, loadLatestPage]);
+
+  // React to category changes
+  useEffect(() => {
+    setLatestPage(0);
+    setLatestHasMore(true);
+    loadLatestPage(1, activeCategory !== 'all' ? activeCategory : undefined);
+  }, [activeCategory, loadLatestPage]);
+
+  // Live updates: poll for new articles
+  useEffect(() => {
+    const id = window.setInterval(async () => {
+      try {
+        const res = await getArticles(1);
+        const newest = res.data.results || [];
+        if (newest.length > 0 && latestList.length > 0) {
+          const latestTopId = latestList[0]?.id;
+          const idx = newest.findIndex(a => a.id === latestTopId);
+          if (idx > 0) {
+            setLiveUpdatesCount(idx);
+          }
+        }
+      } catch {}
+    }, 60000);
+    return () => window.clearInterval(id);
+  }, [latestList]);
+
   // Enhanced search function
   const handleSearch = useCallback(async (query: string) => {
     if (!query.trim()) {
@@ -477,10 +640,79 @@ const Home: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         {/* Compact Header Section */}
-        <div className="text-center mb-28">
+        <div className="text-center mb-6">
           <div className="max-w-2xl mx-auto">
             <SearchBar onSearch={handleSearch} />
           </div>
+        </div>
+
+        {/* Hero Carousel */}
+        {heroItems.length > 0 && (
+          <section className="mb-10">
+            <div className="relative w-full rounded-2xl overflow-hidden bg-white border border-gray-200 shadow-sm">
+              {heroItems.map((article, idx) => {
+                const isActive = idx === heroIndex;
+                const img = article.featured_image_url || article.featured_image || article.image || '/api/placeholder/1200/675';
+                return (
+                  <div key={`hero-${article.id}`} className={`absolute inset-0 transition-opacity duration-700 ${isActive ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                    <div className="aspect-[16/7] w-full overflow-hidden">
+                      <ProgressiveImage src={img} alt={article.title} className="w-full h-full" />
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 md:p-8">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-orange-500 text-white">
+                          {formatCategoryName(article.category?.name || 'General')}
+                        </span>
+                        <span className="text-white/80 text-xs">•</span>
+                        <span className="text-white/90 text-xs">By {article.author?.name || 'Staff'}</span>
+                        <span className="text-white/80 text-xs">•</span>
+                        <span className="text-white/90 text-xs flex items-center">
+                          <Clock size={14} className="mr-1" />
+                          {article.estimated_read_time || 3} min read
+                        </span>
+                      </div>
+                      <Link to={article.slug ? `/article/${article.slug}` : '#'}>
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white leading-tight drop-shadow">
+                          {article.title}
+                        </h2>
+                      </Link>
+                      <p className="hidden sm:block mt-2 text-white/90 max-w-3xl line-clamp-2">{article.excerpt}</p>
+                    </div>
+                  </div>
+                );
+              })}
+              {/* Controls */}
+              <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4 flex items-center justify-between pointer-events-none">
+                <button
+                  type="button"
+                  aria-label="Previous"
+                  className="pointer-events-auto p-2 rounded-full bg-black/50 text-white hover:bg-black/70"
+                  onClick={() => setHeroIndex((i) => (i - 1 + heroItems.length) % heroItems.length)}
+                >
+                  ‹
+                </button>
+                <div className="pointer-events-auto flex items-center gap-2">
+                  {heroItems.map((_, i) => (
+                    <button key={`dot-${i}`} aria-label={`Go to slide ${i + 1}`} onClick={() => setHeroIndex(i)} className={`w-2 h-2 rounded-full ${i === heroIndex ? 'bg-white' : 'bg-white/50'}`} />
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  aria-label="Next"
+                  className="pointer-events-auto p-2 rounded-full bg-black/50 text-white hover:bg-black/70"
+                  onClick={() => setHeroIndex((i) => (i + 1) % heroItems.length)}
+                >
+                  ›
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Ad Slot */}
+        <div className="max-w-6xl mx-auto mb-8">
+          <div className="w-full h-20 bg-gray-100 border border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-500 text-sm">Ad Placement</div>
         </div>
 
         {/* Breaking News - compact rotating card */}
@@ -528,9 +760,43 @@ const Home: React.FC = () => {
         {/* Enhanced Search Results Section */}
         <SearchResultsSection />
 
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Main Content */}
-          <div className="w-full">
+          <div className="w-full lg:col-span-9">
+            {/* Category Tabs */}
+            <section className="mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-gray-700">Browse by Category</h3>
+                <div className="text-xs text-gray-500">Tap to filter</div>
+              </div>
+              {loadingCategories ? (
+                <div className="flex flex-wrap gap-2">
+                  {[1,2,3,4,5,6].map(i => (
+                    <span key={`cat-skel-${i}`} className="h-8 w-20 bg-gray-200 rounded-full animate-pulse" />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveCategory('all')}
+                    className={`px-3 py-1.5 rounded-full text-sm border ${activeCategory==='all' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-50'}`}
+                  >
+                    All
+                  </button>
+                  {popularCategories.map((cat) => (
+                    <button
+                      key={cat.slug}
+                      type="button"
+                      onClick={() => setActiveCategory(cat.slug)}
+                      className={`px-3 py-1.5 rounded-full text-sm border ${activeCategory===cat.slug ? 'bg-orange-600 text-white border-orange-600' : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-50'}`}
+                    >
+                      {formatCategoryName(cat.name)}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </section>
             {/* Enhanced Featured Stories Section */}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
@@ -551,9 +817,9 @@ const Home: React.FC = () => {
                   onRetry={retryFeatured} 
                   section="featured"
                 />
-              ) : featuredArticles.length > 0 ? (
+              ) : displayedFeatured.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {featuredArticles.map((article) => (
+                  {displayedFeatured.map((article) => (
                     <ArticleCard 
                       key={`featured-${article.id}`} 
                       article={article} 
@@ -574,6 +840,11 @@ const Home: React.FC = () => {
               )}
             </section>
 
+            {/* Ad Slot */}
+            <div className="mb-10">
+              <div className="w-full h-20 bg-gray-100 border border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-500 text-sm">Ad Placement</div>
+            </div>
+
             {/* Enhanced Latest News Section */}
             <section>
               <div className="flex items-center gap-3 mb-6">
@@ -582,21 +853,37 @@ const Home: React.FC = () => {
                   Latest News
                 </h2>
               </div>
-              {loadingLatest ? (
+              {liveUpdatesCount > 0 && (
+                <div className="mb-4">
+                  <button
+                    type="button"
+                    className="w-full px-4 py-2 rounded-xl bg-green-50 text-green-800 border border-green-200 hover:bg-green-100"
+                    onClick={async () => {
+                      try {
+                        await loadLatestPage(1, activeCategory !== 'all' ? activeCategory : undefined);
+                        setLiveUpdatesCount(0);
+                      } catch {}
+                    }}
+                  >
+                    {liveUpdatesCount} new article{liveUpdatesCount>1?'s':''} — tap to load
+                  </button>
+                </div>
+              )}
+              {loadingLatest && latestList.length === 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => (
                     <ArticleCardSkeleton key={`latest-skeleton-${i}`} />
                   ))}
                 </div>
-              ) : errorLatest ? (
+              ) : errorLatest && latestList.length === 0 ? (
                 <ErrorWithRetry 
                   error={errorLatest} 
                   onRetry={retryLatest} 
                   section="latest"
                 />
-              ) : latestArticles.length > 0 ? (
+              ) : latestList.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {latestArticles.map((article) => (
+                  {latestList.map((article) => (
                     <ArticleCard 
                       key={`latest-${article.id}`} 
                       article={article} 
@@ -615,10 +902,71 @@ const Home: React.FC = () => {
                   </p>
                 </div>
               )}
+
+              {/* Load More / Infinite Scroll Sentinel */}
+              <div className="mt-6 flex items-center justify-center">
+                {loadingMoreLatest ? (
+                  <div className="text-gray-500 text-sm">Loading more…</div>
+                ) : latestHasMore ? (
+                  <button
+                    type="button"
+                    onClick={() => loadLatestPage(latestPage + 1, activeCategory !== 'all' ? activeCategory : undefined)}
+                    className="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-800 hover:bg-gray-50"
+                  >
+                    Load More
+                  </button>
+                ) : (
+                  <div className="text-gray-500 text-sm">You reached the end</div>
+                )}
+              </div>
+              <div ref={sentinelRef} className="h-1" />
             </section>
           </div>
 
-          {/* Sidebar removed per request */}
+          {/* Trending Sidebar */}
+          <aside className="lg:col-span-3">
+            <div className="sticky top-24 space-y-6">
+              <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Trending</h3>
+                {loadingTrending ? (
+                  <div className="space-y-3">
+                    {[1,2,3,4,5,6].map(i => (
+                      <div key={`trend-skel-${i}`} className="h-16 bg-gray-100 rounded animate-pulse" />
+                    ))}
+                  </div>
+                ) : errorTrending ? (
+                  <div className="text-sm text-red-600">{errorTrending}</div>
+                ) : (
+                  <ul className="space-y-4">
+                    {trendingArticles.map((a, idx) => (
+                      <li key={`trend-${a.id}`} className="flex gap-3">
+                        <div className="w-20 aspect-[16/10] bg-gray-100 rounded overflow-hidden flex-shrink-0">
+                          <img
+                            src={a.featured_image_url || a.featured_image || a.image || '/api/placeholder/320/200'}
+                            alt={a.title}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                            onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/api/placeholder/320/200'; }}
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <Link to={a.slug ? `/article/${a.slug}` : '#'} className="block text-sm font-semibold text-gray-900 line-clamp-2 hover:text-orange-600">
+                            {idx+1}. {a.title}
+                          </Link>
+                          <div className="text-xs text-gray-500 mt-1">{formatCategoryName(a.category?.name || 'General')} • {a.estimated_read_time} min</div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+
+              {/* Ad Slot */}
+              <div className="w-full h-80 bg-gray-100 border border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-500 text-sm">
+                Ad Placement
+              </div>
+            </div>
+          </aside>
         </div>
       </div>
 
