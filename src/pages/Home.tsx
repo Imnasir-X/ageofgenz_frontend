@@ -10,8 +10,7 @@ import {
   getLatestArticles, 
   getCategories,
   getArticles,
-  getArticlesByCategory,
-  getTrendingArticles
+  getArticlesByCategory
 } from '../utils/api';
 import { RefreshCw, Search, X, TrendingUp, Clock, BookOpen, Megaphone } from 'lucide-react';
 import type { Article, Category } from '../types';
@@ -19,8 +18,7 @@ import type { Article, Category } from '../types';
 const Home: React.FC = () => {
   const [featuredArticles, setFeaturedArticles] = useState<Article[]>([]);
   const [latestArticles, setLatestArticles] = useState<Article[]>([]);
-  const [trendingArticles, setTrendingArticles] = useState<Article[]>([]);
-  const [loadingTrending, setLoadingTrending] = useState<boolean>(true);
+  
   const [searchResults, setSearchResults] = useState<Article[]>([]);
   const [popularCategories, setPopularCategories] = useState<Category[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -41,7 +39,7 @@ const Home: React.FC = () => {
   const [errorFeatured, setErrorFeatured] = useState<string | null>(null);
   const [errorLatest, setErrorLatest] = useState<string | null>(null);
   const [errorSearch, setErrorSearch] = useState<string | null>(null);
-  const [errorTrending, setErrorTrending] = useState<string | null>(null);
+  
   
   const [showSearch, setShowSearch] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -421,26 +419,13 @@ const Home: React.FC = () => {
       }
     };
 
-    const fetchTrending = async () => {
-      setLoadingTrending(true);
-      setErrorTrending(null);
-      try {
-        const response = await getTrendingArticles();
-        setTrendingArticles(response.data.results || []);
-      } catch (err: any) {
-        console.error('Trending Error:', err);
-        setErrorTrending(err.message || 'Failed to load trending');
-      } finally {
-        setLoadingTrending(false);
-      }
-    };
+    
 
     // Load all in parallel for better perceived performance
     void Promise.allSettled([
       fetchCategories(),
       fetchFeaturedArticles(),
       fetchLatestArticles(),
-      fetchTrending(),
     ]);
   }, []);
 
@@ -773,9 +758,9 @@ const Home: React.FC = () => {
         {/* Enhanced Search Results Section */}
         <SearchResultsSection />
 
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="max-w-6xl mx-auto">
           {/* Main Content */}
-          <div className="w-full lg:col-span-9">
+          <div className="w-full">
             {/* Category Tabs */}
             <section className="mb-6">
               <div className="flex items-center justify-between mb-3">
@@ -949,50 +934,7 @@ const Home: React.FC = () => {
             </section>
           </div>
 
-          {/* Trending Sidebar */}
-          <aside className="lg:col-span-3">
-            <div className="sticky top-24 space-y-6">
-              <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Trending</h3>
-                {loadingTrending ? (
-                  <div className="space-y-3">
-                    {[1,2,3,4,5,6].map(i => (
-                      <div key={`trend-skel-${i}`} className="h-16 bg-gray-100 rounded animate-pulse" />
-                    ))}
-                  </div>
-                ) : errorTrending ? (
-                  <div className="text-sm text-red-600">{errorTrending}</div>
-                ) : (
-                  <ul className="space-y-4">
-                    {trendingArticles.map((a, idx) => (
-                      <li key={`trend-${a.id}`} className="flex gap-3">
-                        <div className="w-20 aspect-[16/10] bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                          <img
-                            src={a.featured_image_url || a.featured_image || a.image || '/api/placeholder/320/200'}
-                            alt={a.title}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                            onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/api/placeholder/320/200'; }}
-                          />
-                        </div>
-                        <div className="min-w-0">
-                          <Link to={a.slug ? `/article/${a.slug}` : '#'} className="block text-sm font-semibold text-gray-900 line-clamp-2 hover:text-orange-600">
-                            {idx+1}. {a.title}
-                          </Link>
-                          <div className="text-xs text-gray-500 mt-1">{formatCategoryName(a.category?.name || 'General')} • {a.estimated_read_time} min</div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </section>
-
-              {/* Ad Slot */}
-              <div className="w-full h-80 bg-gray-100 border border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-500 text-sm">
-                Ad Placement
-              </div>
-            </div>
-          </aside>
+          
         </div>
       </div>
 
