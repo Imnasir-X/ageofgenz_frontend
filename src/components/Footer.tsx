@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { subscribeToNewsletter } from '../utils/api';
-import { Mail, MapPin, Globe, Sparkles, TrendingUp, Clock, Users, MessageCircle, Eye, BookOpen, Activity, Check, Zap, Star, Shield } from 'lucide-react';
+import { Mail, MapPin, Globe, Sparkles, TrendingUp, Clock, Users, Check, Star, Shield } from 'lucide-react';
 
 const Footer: React.FC = () => {
   const [email, setEmail] = React.useState<string>('');
@@ -15,11 +15,6 @@ const Footer: React.FC = () => {
   const [showSuccess, setShowSuccess] = React.useState<boolean>(false);
   const [currentPlaceholder, setCurrentPlaceholder] = React.useState<string>('Enter your email...');
   const [aiAnalyzing, setAiAnalyzing] = React.useState<boolean>(false);
-  const [liveStats, setLiveStats] = React.useState({
-    activeReaders: 2847,
-    storiesPublished: 127,
-    breakingAlerts: 8
-  });
 
   // Dynamic placeholders for news context
   const placeholders = [
@@ -42,18 +37,7 @@ const Footer: React.FC = () => {
     }
   }, [emailFocused, email, placeholders]);
 
-  // Enhanced live stats with news-focused updates
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      setLiveStats(prev => ({
-        activeReaders: Math.max(2000, prev.activeReaders + Math.floor(Math.random() * 16) - 8),
-        storiesPublished: prev.storiesPublished + (Math.random() > 0.85 ? 1 : 0),
-        breakingAlerts: prev.breakingAlerts + (Math.random() > 0.95 ? 1 : 0)
-      }));
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
+  
 
   // Track scroll progress for enhanced scroll button
   React.useEffect(() => {
@@ -466,69 +450,7 @@ const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/* Professional Live News Stats */}
-        <div className="border-t border-gray-800 mt-8 pt-6">
-          <div className="bg-gradient-to-r from-gray-900 via-gray-850 to-gray-900 rounded-xl p-5 mb-6 border border-gray-700/50 backdrop-blur-sm">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-sm font-semibold text-gray-300 flex items-center">
-                <Activity className="w-4 h-4 mr-2 text-orange-500" />
-                Live News Activity
-              </h4>
-              <div className="flex items-center text-xs text-gray-500">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></div>
-                Real-time updates
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-3 gap-6">
-              <div className="text-center group cursor-default">
-                <div className="relative inline-flex items-center justify-center mb-2">
-                  <div className="absolute inset-0 bg-orange-500/15 rounded-full animate-pulse"></div>
-                  <Eye className="w-5 h-5 text-orange-500 relative z-10 group-hover:scale-105 transition-transform duration-200" />
-                </div>
-                <div className="text-xl font-bold text-white mb-1 transition-all duration-300">
-                  {liveStats.activeReaders.toLocaleString()}
-                </div>
-                <div className="text-xs text-gray-400 leading-tight">active<br />readers</div>
-              </div>
-              
-              <div className="text-center group cursor-default">
-                <div className="relative inline-flex items-center justify-center mb-2">
-                  <div className="absolute inset-0 bg-blue-500/15 rounded-full animate-pulse"></div>
-                  <BookOpen className="w-5 h-5 text-blue-500 relative z-10 group-hover:scale-105 transition-transform duration-200" />
-                </div>
-                <div className="text-xl font-bold text-white mb-1 transition-all duration-300">
-                  {liveStats.storiesPublished.toLocaleString()}
-                </div>
-                <div className="text-xs text-gray-400 leading-tight">stories<br />today</div>
-              </div>
-              
-              <div className="text-center group cursor-default">
-                <div className="relative inline-flex items-center justify-center mb-2">
-                  <div className="absolute inset-0 bg-red-500/15 rounded-full animate-pulse"></div>
-                  <Zap className="w-5 h-5 text-red-500 relative z-10 group-hover:scale-105 transition-transform duration-200" />
-                </div>
-                <div className="text-xl font-bold text-white mb-1 transition-all duration-300">
-                  {liveStats.breakingAlerts}
-                </div>
-                <div className="text-xs text-gray-400 leading-tight">breaking<br />alerts</div>
-              </div>
-            </div>
-            
-            {/* News Activity Pulse */}
-            <div className="mt-4 pt-3 border-t border-gray-700/50">
-              <div className="flex items-center justify-center text-xs text-gray-500">
-                <div className="flex items-center space-x-1 mr-2">
-                  <div className="w-1 h-1 bg-orange-500 rounded-full animate-bounce"></div>
-                  <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></div>
-                  <div className="w-1 h-1 bg-red-500 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
-                </div>
-                <span>Live newsroom updates • Est. 2024</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
+        
         {/* Enhanced Contact Information */}
         <div className="border-t border-gray-800 pt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center md:text-left text-sm">
