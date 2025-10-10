@@ -39,6 +39,9 @@ const Header: React.FC = () => {
 
   // Breaking news banner
   const [breakingNews, setBreakingNews] = useState<{ title: string; slug: string } | null>(null);
+  const [breakingDismissed, setBreakingDismissed] = useState(false);
+  const [breakingError, setBreakingError] = useState(false);
+  const [isLive, setIsLive] = useState(false);
   useEffect(() => {
     let mounted = true;
     const fetchBreaking = async () => {
@@ -49,15 +52,30 @@ const Header: React.FC = () => {
         if (items.length > 0) {
           const first = items[0];
           setBreakingNews({ title: first.title || 'Breaking news', slug: first.slug });
+          // live indicator
+          const hasLive = items.some((a: any) => a.is_live || a.live);
+          setIsLive(!!hasLive);
+          setBreakingError(false);
         }
       } catch {
-        if (mounted) setBreakingNews(null);
+        if (mounted) {
+          setBreakingNews(null);
+          setBreakingError(true);
+        }
       }
     };
     fetchBreaking();
     const interval = window.setInterval(fetchBreaking, 30000);
     return () => { mounted = false; window.clearInterval(interval); };
   }, []);
+
+  // Log breaking fetch errors without showing a UI error
+  useEffect(() => {
+    if (breakingError) {
+      // eslint-disable-next-line no-console
+      console.warn('Failed to fetch breaking news');
+    }
+  }, [breakingError]);
 
   // Hide on scroll down, show on scroll up, compact mode when scrolling
   useEffect(() => {
@@ -195,22 +213,35 @@ const Header: React.FC = () => {
 
   return (
     <>
-      {breakingNews && (
-        <div className="bg-red-600 text-white px-4 py-2 text-sm font-medium flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 bg-white text-red-600 px-2 py-0.5 rounded-full text-xs font-bold animate-pulse">
-              BREAKING
-            </span>
-            <span className="line-clamp-1">{breakingNews.title}</span>
+      {breakingNews && !breakingDismissed && (
+        <div className="sticky top-0 z-[60] relative bg-gradient-to-r from-red-600 via-red-700 to-red-600 text-white px-4 py-2 text-sm font-medium overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
+          <div className="relative flex items-center justify-between">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <span className="inline-flex items-center gap-1 bg-white text-red-600 px-2 py-0.5 rounded-full text-xs font-bold">
+                <span className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse" />
+                BREAKING
+              </span>
+              <span className="line-clamp-1 animate-text-slide">{breakingNews.title}</span>
+            </div>
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <Link to={`/article/${breakingNews.slug}`} className="text-white underline hover:text-gray-200 text-xs whitespace-nowrap">
+                Read more →
+              </Link>
+              <button
+                onClick={() => setBreakingDismissed(true)}
+                className="text-white/80 hover:text-white transition-colors"
+                aria-label="Dismiss breaking news"
+              >
+                <X size={16} />
+              </button>
+            </div>
           </div>
-          <Link to={`/article/${breakingNews.slug}`} className="text-white underline hover:text-gray-200 text-xs">
-            Read more →
-          </Link>
         </div>
       )}
-      <header className={`header-nav bg-black text-white sticky top-0 z-50 transition-transform duration-300 ${isHidden ? '-translate-y-full' : 'translate-y-0'} ${hasShadow ? 'shadow-md' : ''}`} onMouseLeave={handleMouseLeave} onMouseEnter={handleMouseEnter}>
-      <div className={`container mx-auto px-4 ${isCompact ? 'py-1' : 'py-2'}`}>
-        <div className="flex justify-between items-center">
+      <header className={`header-nav bg-black text-white sticky top-0 z-[55] transition-transform duration-300 ${isHidden ? '-translate-y-full' : 'translate-y-0'} ${hasShadow ? 'shadow-md' : ''}`} onMouseLeave={handleMouseLeave} onMouseEnter={handleMouseEnter}>
+        <div className={`container mx-auto px-4 ${isCompact ? 'py-1' : 'py-2'}`}>
+          <div className="flex justify-between items-center">
           {/* Logo and Title - Force white text */}
           <Link to="/" className="flex items-center space-x-2">
             {/* ✅ FIXED: Use public folder logo with cache-busting */}
@@ -225,6 +256,17 @@ const Header: React.FC = () => {
             <ul className="flex space-x-4 items-center">
               <li><NavLink to="/home" className={navLinkClasses}>Newsroom</NavLink></li>
               <li><NavLink to="/trending" className={navLinkClasses}>Hot</NavLink></li>
+              {isLive && (
+                <li className="flex items-center gap-2 px-3 py-1.5 bg-red-600/10 rounded-md border border-red-600/20">
+                  <div className="relative flex items-center">
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                    <div className="absolute w-2 h-2 bg-red-500 rounded-full animate-ping" />
+                  </div>
+                  <Link to="/live" className="text-red-500 font-bold text-xs uppercase">
+                    Live Coverage
+                  </Link>
+                </li>
+              )}
               <li><NavLink to="/ai" className={navLinkClasses}>AI & Tech</NavLink></li>
               <li><NavLink to="/opinion" className={navLinkClasses}>Voices</NavLink></li>
               {/* World Mega Menu */}
@@ -371,12 +413,27 @@ const Header: React.FC = () => {
                                 {suggestions.map((s) => (
                                   <li key={s.id}>
                                     <button
-                                      className="w-full text-left px-2 py-2 hover:bg-gray-50 rounded text-sm text-gray-800 flex items-center gap-2"
+                                      className="w-full text-left px-2 py-2 hover:bg-gray-50 rounded text-sm text-gray-800 flex items-start gap-3"
                                       onClick={() => { navigate(`/article/${s.slug}`); setShowSuggest(false); setShowSearch(false); }}
                                     >
-                                      {s.image && (<img src={s.image} alt="" className="w-8 h-8 object-cover rounded" />)}
-                                      <span className="flex-1">{s.title}</span>
-                                      {s.date && (<span className="text-xs text-gray-500">{new Date(s.date).toLocaleDateString()}</span>)}
+                                      {s.image && (
+                                        <img src={s.image} alt="" className="w-16 h-16 object-cover rounded flex-shrink-0" />
+                                      )}
+                                      <div className="flex-1 min-w-0">
+                                        <div className="font-medium line-clamp-2 mb-1">{s.title}</div>
+                                        {(s.category || s.date) && (
+                                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                                            {s.category && (
+                                              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 font-medium">
+                                                {s.category}
+                                              </span>
+                                            )}
+                                            {s.date && (
+                                              <span>{new Date(s.date).toLocaleDateString()}</span>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
                                     </button>
                                   </li>
                                 ))}
