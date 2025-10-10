@@ -1,7 +1,10 @@
 ﻿import React from 'react';
 import { Link } from 'react-router-dom';
 import { subscribeToNewsletter } from '../utils/api';
-import { Mail, MapPin, Globe, Sparkles, Clock, Users, Check, Star, Shield } from 'lucide-react';
+import { Mail, MapPin, Globe, Sparkles, Clock, Users, Check, Star, Shield } from 'lucide-react';
+
+// Common email domains used for fast suggestion checks
+const COMMON_DOMAINS = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com'] as const;
 const Footer: React.FC = () => {
 const [email, setEmail] = React.useState<string>('');
 const [message, setMessage] = React.useState<string>('');
@@ -14,50 +17,41 @@ const [language, setLanguage] = React.useState<'en' | 'es' | 'bn'>('en');
 const successTimeoutRef = React.useRef<number | undefined>(undefined);
 // Email suggestion using closest domain match
 const commonDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com'];
-const stringDistance = (a: string, b: string) => {
-const dp = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
-for (let i = 0; i <= a.length; i++) dp[i][0] = i;
-for (let j = 0; j <= b.length; j++) dp[0][j] = j;
-for (let i = 1; i <= a.length; i++) {
-for (let j = 1; j <= b.length; j++) {
-const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-dp[i][j] = Math.min(
-dp[i - 1][j] + 1,
-dp[i][j - 1] + 1,
-dp[i - 1][j - 1] + cost
-);
-}
-}
-return dp[a.length][b.length];
-};
-const validateEmailSmart = (emailValue: string) => {
-const parts = emailValue.split('@');
-if (parts.length === 2 && parts[1]) {
-const domain = parts[1].toLowerCase().replace(',', '.');
-// If already exactly a known domain, clear suggestion
-if (commonDomains.includes(domain)) {
-setEmailSuggestion('');
-return;
-}
-// Find closest domain by edit distance
-let best = '';
-let bestScore = Number.MAX_SAFE_INTEGER;
-for (const d of commonDomains) {
-const score = stringDistance(domain, d);
-if (score < bestScore) {
-bestScore = score;
-best = d;
-}
-}
-// Suggest if reasonably close (distance <= 2)
-if (best && bestScore <= 2) {
-setEmailSuggestion(`${parts[0]}@${best}`);
-return;
-}
-}
-setEmailSuggestion('');
-};
-const handleNewsletterSubmit = async (e: React.FormEvent) => {
+// Fast email suggestion without heavy Levenshtein
+const validateEmailSmart = React.useCallback((emailValue: string) => {
+  const parts = emailValue.split('@');
+  if (parts.length === 2 && parts[1]) {
+    const domain = parts[1].toLowerCase().replace(',', '.');
+    // If already a known domain
+    if ((COMMON_DOMAINS as readonly string[]).includes(domain)) {
+      setEmailSuggestion('');
+      return;
+    }
+    // Common typo map
+    const typoMap: Record<string, string> = {
+      'gmial.com': 'gmail.com',
+      'gmai.com': 'gmail.com',
+      'gmali.com': 'gmail.com',
+      'yahooo.com': 'yahoo.com',
+      'yaho.com': 'yahoo.com',
+      'hotmial.com': 'hotmail.com',
+      'outlok.com': 'outlook.com',
+      'iclod.com': 'icloud.com',
+    };
+    if (typoMap[domain]) {
+      setEmailSuggestion(`${parts[0]}@${typoMap[domain]}`);
+      return;
+    }
+    // Fuzzy prefix match fallback
+    for (const d of COMMON_DOMAINS as readonly string[]) {
+      if (domain.length >= 4 && d.startsWith(domain.slice(0, 4))) {
+        setEmailSuggestion(`${parts[0]}@${d}`);
+        return;
+      }
+    }
+  }
+  setEmailSuggestion('');
+}, []);const handleNewsletterSubmit = async (e: React.FormEvent) => {
 e.preventDefault();
 setMessage('');
 setError('');
@@ -446,5 +440,7 @@ aria-label="Scroll to top"
 );
 };
 export default Footer;
+
+
 
 
