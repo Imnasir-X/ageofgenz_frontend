@@ -1,9 +1,96 @@
-import React, { useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { ChevronDown, Search as SearchIcon, X } from 'lucide-react';
+import { getArticlesBySearch } from '../utils/api';
 // ✅ REMOVED: import Logo from '../assets/images/logo.png';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [openMenu, setOpenMenu] = useState<string | null>(null); // desktop mega menu key
+  const [isHidden, setIsHidden] = useState(false);
+  const [isCompact, setIsCompact] = useState(false);
+  const [hasShadow, setHasShadow] = useState(false);
+  const lastScrollYRef = useRef<number>(0);
+
+  // Search state (header search)
+  const navigate = useNavigate();
+  const [showSearch, setShowSearch] = useState(false);
+  const [query, setQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<Array<{ id: number; title: string; slug: string }>>([]);
+  const [loadingSuggest, setLoadingSuggest] = useState(false);
+  const [showSuggest, setShowSuggest] = useState(false);
+  const searchBoxRef = useRef<HTMLLIElement | null>(null);
+  const recentKey = 'recentSearches';
+  const recentSearches: string[] = useMemo(() => {
+    try {
+      const raw = localStorage.getItem(recentKey);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  }, [showSearch]);
+  const trendingSearches = ['AI', 'Elections', 'World', 'Sports', 'Opinion'];
+
+  // Hide on scroll down, show on scroll up, compact mode when scrolling
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY || 0;
+      const last = lastScrollYRef.current || 0;
+      const delta = y - last;
+      if (y > 80 && delta > 0) {
+        setIsHidden(true);
+      } else {
+        setIsHidden(false);
+      }
+      setIsCompact(y > 40);
+      setHasShadow(y > 0);
+      lastScrollYRef.current = y;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true } as AddEventListenerOptions);
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll as any);
+  }, []);
+
+  // Close mega menu when leaving header area
+  const closeMenus = () => setOpenMenu(null);
+
+  // Debounced suggestions
+  useEffect(() => {
+    if (!showSearch) return;
+    if (query.trim().length < 2) {
+      setSuggestions([]);
+      setLoadingSuggest(false);
+      return;
+    }
+    let cancelled = false;
+    setLoadingSuggest(true);
+    const t = window.setTimeout(async () => {
+      try {
+        const res = await getArticlesBySearch(query.trim());
+        if (cancelled) return;
+        const results = (res.data?.results || []).slice(0, 6).map((a: any) => ({ id: a.id, title: a.title, slug: a.slug }));
+        setSuggestions(results);
+      } catch {
+        if (!cancelled) setSuggestions([]);
+      } finally {
+        if (!cancelled) setLoadingSuggest(false);
+      }
+    }, 350);
+    return () => { cancelled = true; window.clearTimeout(t); };
+  }, [query, showSearch]);
+
+  // Click outside to close search dropdown
+  useEffect(() => {
+    if (!showSearch) return;
+    const onClick = (e: MouseEvent) => {
+      if (!searchBoxRef.current) return;
+      if (!searchBoxRef.current.contains(e.target as Node)) {
+        setShowSuggest(false);
+      }
+    };
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [showSearch]);
 
   // Desktop nav link styles - with explicit colors to prevent CSS conflicts
   const navLinkClasses = ({ isActive }: { isActive: boolean }): string =>
@@ -14,14 +101,14 @@ const Header: React.FC = () => {
     `block py-2 px-3 text-sm ${isActive ? 'text-orange-500 font-semibold bg-gray-800 rounded' : 'text-white'} hover:text-orange-500 hover:bg-gray-800 rounded transition-all duration-200`;
 
   return (
-    <header className="header-nav bg-black text-white shadow-md sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-2">
+    <header className={`header-nav bg-black text-white sticky top-0 z-50 transition-transform duration-300 ${isHidden ? '-translate-y-full' : 'translate-y-0'} ${hasShadow ? 'shadow-md' : ''}`} onMouseLeave={closeMenus}>
+      <div className={`container mx-auto px-4 ${isCompact ? 'py-1' : 'py-2'}`}>
         <div className="flex justify-between items-center">
           {/* Logo and Title - Force white text */}
           <Link to="/" className="flex items-center space-x-2">
             {/* ✅ FIXED: Use public folder logo with cache-busting */}
-            <img src="/logo.png?v=2025" alt="The Age of GenZ" className="h-10 w-auto" />
-            <span className="text-2xl md:text-3xl font-bold tracking-tight font-inknut text-white">
+            <img src="/logo.png?v=2025" alt="The Age of GenZ" className={`${isCompact ? 'h-8' : 'h-10'} w-auto transition-all`} />
+            <span className={`${isCompact ? 'text-xl md:text-2xl' : 'text-2xl md:text-3xl'} font-bold tracking-tight font-inknut text-white transition-all`}>
               The Age Of GenZ 
             </span>
           </Link>
@@ -33,8 +120,50 @@ const Header: React.FC = () => {
               <li><NavLink to="/trending" className={navLinkClasses}>Hot</NavLink></li>
               <li><NavLink to="/ai" className={navLinkClasses}>AI & Tech</NavLink></li>
               <li><NavLink to="/opinion" className={navLinkClasses}>Voices</NavLink></li>
-              <li><NavLink to="/world" className={navLinkClasses}>World</NavLink></li>
-              <li><NavLink to="/politics" className={navLinkClasses}>Politics</NavLink></li>
+              {/* World Mega Menu */}
+              <li className="relative" onMouseEnter={() => setOpenMenu('world')}>
+                <button type="button" className={`${navLinkClasses({ isActive: false })} inline-flex items-center gap-1`} aria-haspopup="true" aria-expanded={openMenu==='world'}>
+                  World <ChevronDown size={14} />
+                </button>
+                {openMenu === 'world' && (
+                  <div className="absolute left-0 mt-2 w-[560px] bg-white text-gray-900 rounded-lg shadow-xl p-4 grid grid-cols-2 gap-4 border border-gray-200">
+                    {[
+                      { label: 'Europe', to: '/category/europe' },
+                      { label: 'Asia', to: '/category/asia' },
+                      { label: 'Middle East', to: '/category/middle-east' },
+                      { label: 'Africa', to: '/category/africa' },
+                      { label: 'Americas', to: '/category/americas' },
+                      { label: 'Australia', to: '/category/australia' },
+                    ].map((item) => (
+                      <NavLink key={item.label} to={item.to} className={({ isActive }) => `block px-3 py-2 rounded hover:bg-gray-100 ${isActive ? 'text-orange-600 font-semibold' : 'text-gray-800'}`}>
+                        {item.label}
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
+              </li>
+              {/* Politics Mega Menu */}
+              <li className="relative" onMouseEnter={() => setOpenMenu('politics')}>
+                <button type="button" className={`${navLinkClasses({ isActive: false })} inline-flex items-center gap-1`} aria-haspopup="true" aria-expanded={openMenu==='politics'}>
+                  Politics <ChevronDown size={14} />
+                </button>
+                {openMenu === 'politics' && (
+                  <div className="absolute left-0 mt-2 w-[560px] bg-white text-gray-900 rounded-lg shadow-xl p-4 grid grid-cols-2 gap-4 border border-gray-200">
+                    {[
+                      { label: 'U.S. Politics', to: '/politics' },
+                      { label: 'World Politics', to: '/world' },
+                      { label: 'Elections', to: '/category/elections' },
+                      { label: 'Congress', to: '/category/congress' },
+                      { label: 'Supreme Court', to: '/category/supreme-court' },
+                      { label: 'Opinion', to: '/opinion' },
+                    ].map((item) => (
+                      <NavLink key={item.label} to={item.to} className={({ isActive }) => `block px-3 py-2 rounded hover:bg-gray-100 ${isActive ? 'text-orange-600 font-semibold' : 'text-gray-800'}`}>
+                        {item.label}
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
+              </li>
 
               <li>
                 <NavLink
@@ -51,6 +180,110 @@ const Header: React.FC = () => {
                 >
                   Login
                 </NavLink>
+              </li>
+              {/* Search icon + expandable */}
+              <li className="relative" ref={searchBoxRef}>
+                <button
+                  type="button"
+                  className="ml-2 p-2 rounded-md text-white hover:text-orange-500 hover:bg-gray-800 transition-colors"
+                  aria-label="Search"
+                  onClick={() => { setShowSearch((s) => !s); setShowSuggest(true); }}
+                >
+                  {showSearch ? <X size={18} /> : <SearchIcon size={18} />}
+                </button>
+                {showSearch && (
+                  <div className="absolute right-0 mt-2 w-[480px] bg-white text-gray-900 rounded-lg shadow-2xl border border-gray-200 p-3">
+                    <div className="flex items-center gap-2">
+                      <SearchIcon size={16} className="text-gray-400" />
+                      <input
+                        autoFocus
+                        type="text"
+                        value={query}
+                        onChange={(e) => { setQuery(e.target.value); setShowSuggest(true); }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && query.trim()) {
+                            const q = query.trim();
+                            const next = [q, ...recentSearches.filter(x => x.toLowerCase() !== q.toLowerCase())].slice(0, 6);
+                            localStorage.setItem(recentKey, JSON.stringify(next));
+                            navigate(`/search?q=${encodeURIComponent(q)}`);
+                            setShowSuggest(false);
+                            setShowSearch(false);
+                          }
+                        }}
+                        placeholder="Search articles…"
+                        className="flex-1 outline-none bg-transparent text-sm placeholder:text-gray-400"
+                      />
+                      <button
+                        className="px-2 py-1 rounded bg-orange-500 text-white text-xs hover:bg-orange-600"
+                        onClick={() => {
+                          if (!query.trim()) return;
+                          const q = query.trim();
+                          const next = [q, ...recentSearches.filter(x => x.toLowerCase() !== q.toLowerCase())].slice(0, 6);
+                          localStorage.setItem(recentKey, JSON.stringify(next));
+                          navigate(`/search?q=${encodeURIComponent(q)}`);
+                          setShowSuggest(false);
+                          setShowSearch(false);
+                        }}
+                      >
+                        Search
+                      </button>
+                    </div>
+                    {showSuggest && (
+                      <div className="mt-3">
+                        {query.trim().length >= 2 ? (
+                          <div>
+                            <div className="text-xs text-gray-500 mb-2">Suggestions</div>
+                            {loadingSuggest ? (
+                              <div className="text-sm text-gray-500">Searching…</div>
+                            ) : suggestions.length > 0 ? (
+                              <ul className="divide-y divide-gray-100">
+                                {suggestions.map((s) => (
+                                  <li key={s.id}>
+                                    <button
+                                      className="w-full text-left px-2 py-2 hover:bg-gray-50 rounded text-sm"
+                                      onClick={() => { navigate(`/article/${s.slug}`); setShowSuggest(false); setShowSearch(false); }}
+                                    >
+                                      {s.title}
+                                    </button>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <div className="text-sm text-gray-500">No results</div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <div className="text-xs text-gray-500 mb-2">Recent searches</div>
+                              {recentSearches.length === 0 ? (
+                                <div className="text-sm text-gray-500">No recent searches</div>
+                              ) : (
+                                <div className="flex flex-wrap gap-2">
+                                  {recentSearches.map((r) => (
+                                    <button key={r} className="px-2 py-1 text-xs rounded-full bg-gray-100 hover:bg-gray-200" onClick={() => { navigate(`/search?q=${encodeURIComponent(r)}`); setShowSuggest(false); setShowSearch(false); }}>
+                                      {r}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              <div className="text-xs text-gray-500 mb-2">Trending</div>
+                              <div className="flex flex-wrap gap-2">
+                                {trendingSearches.map((t) => (
+                                  <button key={t} className="px-2 py-1 text-xs rounded-full bg-orange-50 text-orange-700 hover:bg-orange-100" onClick={() => { navigate(`/search?q=${encodeURIComponent(t)}`); setShowSuggest(false); setShowSearch(false); }}>
+                                    {t}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </li>
             </ul>
           </nav>

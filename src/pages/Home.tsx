@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import SearchBar from '../components/SearchBar';
 // Removed DonationPlaceholder per request
 import Newsletter from '../components/Newsletter';
 import ArticleCard from '../components/ArticleCard';
@@ -630,11 +629,8 @@ const Home: React.FC = () => {
     <div className={`min-h-screen bg-gray-50 ${rootFontClass}`}>
       <div className="container mx-auto px-4 py-8">
         {/* Compact Header Section */}
-        <div className="mb-6">
-          <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="w-full sm:w-auto max-w-2xl flex-1">
-              <SearchBar onSearch={handleSearch} />
-            </div>
+        <div className="mb-4">
+          <div className="max-w-6xl mx-auto flex items-center justify-end">
             <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg p-1">
               <span className="text-xs text-gray-500 px-2">Font</span>
               <button type="button" aria-label="Smaller text" className={`px-2 py-1 rounded ${fontSize==='sm'?'bg-gray-900 text-white':'hover:bg-gray-100'}`} onClick={() => setFontSize('sm')}>A-</button>
