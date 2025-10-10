@@ -54,6 +54,10 @@ const Home: React.FC = () => {
   const [heroIndex, setHeroIndex] = useState<number>(0);
   const heroTimerRef = useRef<number | null>(null);
 
+  // Font size adjuster
+  const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg'>('base');
+  const rootFontClass = fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-lg' : 'text-base';
+
   // Function to format category names professionally
   const formatCategoryName = (name: string): string => {
     const formatted = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
@@ -88,7 +92,7 @@ const Home: React.FC = () => {
   }, []);
 
   // Progressive image component (simple LQ placeholder fade-in)
-  const ProgressiveImage: React.FC<{ src: string | null | undefined; alt: string; className?: string }> = ({ src, alt, className }) => {
+  const ProgressiveImage: React.FC<{ src: string | null | undefined; alt: string; className?: string; eager?: boolean }> = ({ src, alt, className, eager = false }) => {
     const [loaded, setLoaded] = useState(false);
     const imgSrc = src || '/api/placeholder/1200/675';
     return (
@@ -97,7 +101,8 @@ const Home: React.FC = () => {
         <img
           src={imgSrc}
           alt={alt}
-          loading="lazy"
+          loading={eager ? 'eager' : 'lazy'}
+          fetchPriority={eager ? 'high' as any : 'auto' as any}
           onLoad={() => setLoaded(true)}
           onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/api/placeholder/1200/675'; setLoaded(true); }}
           className={`w-full h-full object-cover ${loaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}
@@ -637,12 +642,20 @@ const Home: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen bg-gray-50 ${rootFontClass}`}>
       <div className="container mx-auto px-4 py-8">
         {/* Compact Header Section */}
-        <div className="text-center mb-6">
-          <div className="max-w-2xl mx-auto">
-            <SearchBar onSearch={handleSearch} />
+        <div className="mb-6">
+          <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="w-full sm:w-auto max-w-2xl flex-1">
+              <SearchBar onSearch={handleSearch} />
+            </div>
+            <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg p-1">
+              <span className="text-xs text-gray-500 px-2">Font</span>
+              <button type="button" aria-label="Smaller text" className={`px-2 py-1 rounded ${fontSize==='sm'?'bg-gray-900 text-white':'hover:bg-gray-100'}`} onClick={() => setFontSize('sm')}>A-</button>
+              <button type="button" aria-label="Default text" className={`px-2 py-1 rounded ${fontSize==='base'?'bg-gray-900 text-white':'hover:bg-gray-100'}`} onClick={() => setFontSize('base')}>A</button>
+              <button type="button" aria-label="Larger text" className={`px-2 py-1 rounded ${fontSize==='lg'?'bg-gray-900 text-white':'hover:bg-gray-100'}`} onClick={() => setFontSize('lg')}>A+</button>
+            </div>
           </div>
         </div>
 
@@ -656,7 +669,7 @@ const Home: React.FC = () => {
                 return (
                   <div key={`hero-${article.id}`} className={`absolute inset-0 transition-opacity duration-700 ${isActive ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                     <div className="aspect-[16/7] w-full overflow-hidden">
-                      <ProgressiveImage src={img} alt={article.title} className="w-full h-full" />
+                      <ProgressiveImage src={img} alt={article.title} className="w-full h-full" eager />
                     </div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                     <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 md:p-8">
@@ -818,14 +831,27 @@ const Home: React.FC = () => {
                   section="featured"
                 />
               ) : displayedFeatured.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {displayedFeatured.map((article) => (
-                    <ArticleCard 
-                      key={`featured-${article.id}`} 
-                      article={article} 
-                      imagePosition={getImagePosition(article)}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                  {/* Large lead story */}
+                  <div className="lg:col-span-8">
+                    <ArticleCard
+                      key={`featured-${displayedFeatured[0].id}`}
+                      article={displayedFeatured[0]}
+                      imagePosition={getImagePosition(displayedFeatured[0])}
+                      variant="large"
                     />
-                  ))}
+                  </div>
+                  {/* Secondary compact/horizontal list */}
+                  <div className="lg:col-span-4 space-y-4">
+                    {displayedFeatured.slice(1, 5).map((a) => (
+                      <ArticleCard
+                        key={`featured-${a.id}`}
+                        article={a}
+                        imagePosition={getImagePosition(a)}
+                        variant="horizontal"
+                      />
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
