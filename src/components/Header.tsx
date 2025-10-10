@@ -122,11 +122,17 @@ const Header: React.FC = () => {
               <li><NavLink to="/opinion" className={navLinkClasses}>Voices</NavLink></li>
               {/* World Mega Menu */}
               <li className="relative" onMouseEnter={() => setOpenMenu('world')}>
-                <button type="button" className={`${navLinkClasses({ isActive: false })} inline-flex items-center gap-1`} aria-haspopup="true" aria-expanded={openMenu==='world'}>
+                <button
+                  type="button"
+                  className={`${navLinkClasses({ isActive: false })} inline-flex items-center gap-1`}
+                  aria-haspopup="true"
+                  aria-expanded={openMenu==='world'}
+                  onClick={() => setOpenMenu(openMenu === 'world' ? null : 'world')}
+                >
                   World <ChevronDown size={14} />
                 </button>
                 {openMenu === 'world' && (
-                  <div className="absolute left-0 mt-2 w-[560px] bg-white text-gray-900 rounded-lg shadow-xl p-4 grid grid-cols-2 gap-4 border border-gray-200">
+                  <div className="absolute left-0 mt-2 w-[560px] bg-white text-gray-900 rounded-lg shadow-xl p-4 grid grid-cols-2 gap-4 border border-gray-200 z-50">
                     {[
                       { label: 'Europe', to: '/category/europe' },
                       { label: 'Asia', to: '/category/asia' },
@@ -144,11 +150,17 @@ const Header: React.FC = () => {
               </li>
               {/* Politics Mega Menu */}
               <li className="relative" onMouseEnter={() => setOpenMenu('politics')}>
-                <button type="button" className={`${navLinkClasses({ isActive: false })} inline-flex items-center gap-1`} aria-haspopup="true" aria-expanded={openMenu==='politics'}>
+                <button
+                  type="button"
+                  className={`${navLinkClasses({ isActive: false })} inline-flex items-center gap-1`}
+                  aria-haspopup="true"
+                  aria-expanded={openMenu==='politics'}
+                  onClick={() => setOpenMenu(openMenu === 'politics' ? null : 'politics')}
+                >
                   Politics <ChevronDown size={14} />
                 </button>
                 {openMenu === 'politics' && (
-                  <div className="absolute left-0 mt-2 w-[560px] bg-white text-gray-900 rounded-lg shadow-xl p-4 grid grid-cols-2 gap-4 border border-gray-200">
+                  <div className="absolute left-0 mt-2 w-[560px] bg-white text-gray-900 rounded-lg shadow-xl p-4 grid grid-cols-2 gap-4 border border-gray-200 z-50">
                     {[
                       { label: 'U.S. Politics', to: '/politics' },
                       { label: 'World Politics', to: '/world' },
@@ -192,7 +204,7 @@ const Header: React.FC = () => {
                   {showSearch ? <X size={18} /> : <SearchIcon size={18} />}
                 </button>
                 {showSearch && (
-                  <div className="absolute right-0 mt-2 w-[480px] bg-white text-gray-900 rounded-lg shadow-2xl border border-gray-200 p-3">
+                  <div className="absolute right-0 mt-2 w-[480px] bg-white text-gray-900 rounded-lg shadow-2xl border border-gray-200 p-3 z-50">
                     <div className="flex items-center gap-2">
                       <SearchIcon size={16} className="text-gray-400" />
                       <input
@@ -211,7 +223,7 @@ const Header: React.FC = () => {
                           }
                         }}
                         placeholder="Search articles…"
-                        className="flex-1 outline-none bg-transparent text-sm placeholder:text-gray-400"
+                        className="flex-1 outline-none bg-transparent text-sm placeholder:text-gray-400 text-gray-900"
                       />
                       <button
                         className="px-2 py-1 rounded bg-orange-500 text-white text-xs hover:bg-orange-600"
@@ -240,7 +252,7 @@ const Header: React.FC = () => {
                                 {suggestions.map((s) => (
                                   <li key={s.id}>
                                     <button
-                                      className="w-full text-left px-2 py-2 hover:bg-gray-50 rounded text-sm"
+                                      className="w-full text-left px-2 py-2 hover:bg-gray-50 rounded text-sm text-gray-800"
                                       onClick={() => { navigate(`/article/${s.slug}`); setShowSuggest(false); setShowSearch(false); }}
                                     >
                                       {s.title}

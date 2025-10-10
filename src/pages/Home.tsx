@@ -51,9 +51,7 @@ const Home: React.FC = () => {
   const [heroIndex, setHeroIndex] = useState<number>(0);
   const heroTimerRef = useRef<number | null>(null);
 
-  // Font size adjuster
-  const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg'>('base');
-  const rootFontClass = fontSize === 'sm' ? 'text-sm' : fontSize === 'lg' ? 'text-lg' : 'text-base';
+  // Font size adjuster removed per request
 
   // Function to format category names professionally
   const formatCategoryName = (name: string): string => {
@@ -626,19 +624,10 @@ const Home: React.FC = () => {
   }, []);
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${rootFontClass}`}>
+    <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         {/* Compact Header Section */}
-        <div className="mb-4">
-          <div className="max-w-6xl mx-auto flex items-center justify-end">
-            <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg p-1">
-              <span className="text-xs text-gray-500 px-2">Font</span>
-              <button type="button" aria-label="Smaller text" className={`px-2 py-1 rounded ${fontSize==='sm'?'bg-gray-900 text-white':'hover:bg-gray-100'}`} onClick={() => setFontSize('sm')}>A-</button>
-              <button type="button" aria-label="Default text" className={`px-2 py-1 rounded ${fontSize==='base'?'bg-gray-900 text-white':'hover:bg-gray-100'}`} onClick={() => setFontSize('base')}>A</button>
-              <button type="button" aria-label="Larger text" className={`px-2 py-1 rounded ${fontSize==='lg'?'bg-gray-900 text-white':'hover:bg-gray-100'}`} onClick={() => setFontSize('lg')}>A+</button>
-            </div>
-          </div>
-        </div>
+        
 
         {/* Hero Carousel */}
         {heroItems.length > 0 && (
