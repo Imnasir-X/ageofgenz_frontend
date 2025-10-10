@@ -1,33 +1,33 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import Header from './components/Header';
 import Footer from './components/Footer';
-import Home from './pages/Home';
-import Trending from './pages/Trending';
-import Opinion from './pages/Opinion';
-import AI from './pages/AI';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import Category from './pages/Category';
-import Privacy from './pages/Privacy';
-import Login from './pages/Login';
-import ArticleDetail from './pages/ArticleDetail';
-import Subscribe from './pages/Subscribe';
-import SearchResults from './pages/SearchResults';
-import ForgotPassword from './pages/ForgotPassword';
-import Politics from './pages/Politics';
-import Culture from './pages/Culture';
-import Sports from './pages/Sports';
-import World from './pages/world';
-import Insights from './pages/Insights';
-import Memes from './pages/Memes';
-import Terms from './pages/Terms';
-import ThankYou from './pages/ThankYou';
-import Cancel from './pages/Cancel';
-import DonationPlaceholder from './components/DonationPlaceholder';
-import Signup from './pages/Signup';
+const Home = lazy(() => import('./pages/Home'));
+const Trending = lazy(() => import('./pages/Trending'));
+const Opinion = lazy(() => import('./pages/Opinion'));
+const AI = lazy(() => import('./pages/AI'));
+const About = lazy(() => import('./pages/About'));
+const Contact = lazy(() => import('./pages/Contact'));
+const Category = lazy(() => import('./pages/Category'));
+const Privacy = lazy(() => import('./pages/Privacy'));
+const Login = lazy(() => import('./pages/Login'));
+const ArticleDetail = lazy(() => import('./pages/ArticleDetail'));
+const Subscribe = lazy(() => import('./pages/Subscribe'));
+const SearchResults = lazy(() => import('./pages/SearchResults'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const Politics = lazy(() => import('./pages/Politics'));
+const Culture = lazy(() => import('./pages/Culture'));
+const Sports = lazy(() => import('./pages/Sports'));
+const World = lazy(() => import('./pages/world'));
+const Insights = lazy(() => import('./pages/Insights'));
+const Memes = lazy(() => import('./pages/Memes'));
+const Terms = lazy(() => import('./pages/Terms'));
+const ThankYou = lazy(() => import('./pages/ThankYou'));
+const Cancel = lazy(() => import('./pages/Cancel'));
+const DonationPlaceholder = lazy(() => import('./components/DonationPlaceholder'));
+const Signup = lazy(() => import('./pages/Signup'));
 
 const App: React.FC = () => {
   return (
@@ -42,6 +42,7 @@ const App: React.FC = () => {
             </Helmet>
             <Header />
             <main className="flex-grow">
+              <Suspense fallback={<div className="p-6 text-center text-gray-500">Loading…</div>}>
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/home" element={<Home />} />
@@ -74,6 +75,7 @@ const App: React.FC = () => {
                 <Route path="/donation/cancelled" element={<Cancel />} />
                 <Route path="/signup" element={<Signup />} />
               </Routes>
+              </Suspense>
             </main>
             <Footer />
           </div>
