@@ -10,6 +10,8 @@ const Header: React.FC = () => {
   const [isCompact, setIsCompact] = useState(false);
   const [hasShadow, setHasShadow] = useState(false);
   const [shrink, setShrink] = useState(0); // 0 (full) → 1 (compact)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [isDesktop, setIsDesktop] = useState<boolean>(() => (typeof window !== 'undefined' ? window.matchMedia('(min-width: 768px)').matches : true));
 
   // Search state (header search)
   const navigate = useNavigate();
@@ -76,22 +78,45 @@ const Header: React.FC = () => {
     }
   }, [breakingError]);
 
-  // Compact mode on scroll (always sticky; no hide) + smooth shrink factor
+  // Preferences + viewport listeners
   useEffect(() => {
-    const onScroll = () => {
+    const mqlReduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const mqlDesktop = window.matchMedia('(min-width: 768px)');
+    const onReduced = () => setPrefersReducedMotion(!!mqlReduced.matches);
+    const onDesktop = () => setIsDesktop(!!mqlDesktop.matches);
+    onReduced();
+    onDesktop();
+    mqlReduced.addEventListener?.('change', onReduced);
+    mqlDesktop.addEventListener?.('change', onDesktop);
+    return () => {
+      mqlReduced.removeEventListener?.('change', onReduced);
+      mqlDesktop.removeEventListener?.('change', onDesktop);
+    };
+  }, []);
+
+  // Compact mode on scroll (always sticky; no hide) + smooth shrink factor (rAF)
+  useEffect(() => {
+    let rafId: number | null = null;
+    const handle = () => {
+      rafId = null;
       const y = window.scrollY || 0;
-      // continuous shrink between 0 and 140px
       const start = 0;
-      const end = 140;
+      const end = isDesktop ? 140 : 100; // mobile-specific threshold
       const s = Math.max(0, Math.min(1, (y - start) / (end - start)));
       setShrink(s);
       setIsCompact(y > 80);
       setHasShadow(y > 0);
     };
+    const onScroll = () => {
+      if (rafId == null) rafId = window.requestAnimationFrame(handle);
+    };
     window.addEventListener('scroll', onScroll, { passive: true } as AddEventListenerOptions);
-    onScroll();
-    return () => window.removeEventListener('scroll', onScroll as any);
-  }, []);
+    handle();
+    return () => {
+      window.removeEventListener('scroll', onScroll as any);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, [isDesktop]);
 
   // Close mega menu when leaving header area
   const closeMenus = () => setOpenMenu(null);
@@ -150,7 +175,7 @@ const Header: React.FC = () => {
 
   // Desktop nav link styles - responsive to compact state
   const navLinkClasses = ({ isActive }: { isActive: boolean }): string =>
-    `transition-colors font-medium ${isCompact ? 'text-xs md:text-sm' : 'text-sm md:text-base'} ${isActive ? 'text-orange-500' : 'text-white'} hover:text-orange-500`;
+    `transition-colors ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'} font-medium ${isCompact ? 'text-xs md:text-sm' : 'text-sm md:text-base'} ${isActive ? 'text-orange-500' : 'text-white'} hover:text-orange-500`;
 
   // Mobile nav link styles - with explicit colors
   const mobileNavLinkClasses = ({ isActive }: { isActive: boolean }): string =>
@@ -235,34 +260,48 @@ const Header: React.FC = () => {
           </div>
         </div>
       )}
-      <header className={`header-nav bg-black text-white sticky top-0 z-[55] transition-[padding,transform,background-color] duration-300 ${hasShadow ? 'shadow-md' : ''}`} onMouseLeave={handleMouseLeave} onMouseEnter={handleMouseEnter}>
-        {/* Top bar (date + socials) - hidden in compact */}
-        {!isCompact && (
-          <div className="hidden md:flex items-center justify-between px-4 py-1 border-b border-gray-800 text-xs text-gray-300 transition-opacity duration-300">
-            <div>
-              {new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-            </div>
-            <div className="flex items-center gap-4">
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-orange-500 transition-colors">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                </svg>
-              </a>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-orange-500 transition-colors">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                </svg>
-              </a>
-              <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-orange-500 transition-colors">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M9.75 2.25h2.25a5.25 5.25 0 005.25 5.25v2.25a7.5 7.5 0 01-5.25-2.25v6.939a4.689 4.689 0 11-4.5-4.689v2.295a2.25 2.25 0 102.25 2.25V2.25z" />
-                </svg>
-              </a>
-            </div>
-          </div>
-        )}
+      <header
+        className={`header-nav sticky top-0 z-[55] text-white ${hasShadow ? 'shadow-md' : ''} ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'} transition-[padding,transform,background-color,backdrop-filter] bg-black/70 backdrop-blur-md`}
+        onMouseLeave={handleMouseLeave}
+        onMouseEnter={handleMouseEnter}
+      >
+        {/* Top bar (date + socials) - continuous fade/compress on desktop */}
         <div
-          className={`container mx-auto px-4 transition-all duration-300`}
+          className="hidden md:flex items-center justify-between px-4 border-b text-xs text-gray-300 transition-[opacity,max-height,padding]"
+          style={{
+            opacity: 1 - shrink,
+            paddingTop: `${4 * (1 - shrink)}px`,
+            paddingBottom: `${4 * (1 - shrink)}px`,
+            maxHeight: `${28 * (1 - shrink)}px`,
+            borderColor: `rgba(31,41,55,${1 - shrink})`,
+            overflow: 'hidden',
+            transitionDuration: prefersReducedMotion ? '0ms' : '300ms',
+            transitionTimingFunction: 'ease-out',
+          }}
+        >
+          <div>
+            {new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          </div>
+          <div className="flex items-center gap-4">
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-orange-500 transition-colors">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+            </a>
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-orange-500 transition-colors">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+              </svg>
+            </a>
+            <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-orange-500 transition-colors">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M9.75 2.25h2.25a5.25 5.25 0 005.25 5.25v2.25a7.5 7.5 0 01-5.25-2.25v6.939a4.689 4.689 0 11-4.5-4.689v2.295a2.25 2.25 0 102.25 2.25V2.25z" />
+              </svg>
+            </a>
+          </div>
+        </div>
+        <div
+          className={`container mx-auto px-4 ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'} transition-all`}
           style={{ paddingTop: 16 - 12 * shrink, paddingBottom: 16 - 12 * shrink }}
         >
           <div className="flex justify-between items-center">
@@ -272,16 +311,23 @@ const Header: React.FC = () => {
             <img
               src="/logo.png?v=2025"
               alt="The Age Of GenZ - Home"
-              className={`${isCompact ? 'h-6 md:h-8' : 'h-12 md:h-14'} w-auto transition-transform duration-300`}
-              style={{ transform: `scale(${1 - 0.45 * shrink})`, transformOrigin: 'left center' }}
+              className={`${isCompact ? 'h-6 md:h-8' : 'h-12 md:h-14'} w-auto transition-transform ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'}`}
+              style={{
+                transform: `scale(${isDesktop ? 1 - 0.7 * shrink : 1 - 0.55 * shrink})`, // min 0.30 desktop, ~0.45 mobile
+                transformOrigin: 'left center',
+              }}
             />
             <span
-              className={`${isCompact ? 'text-lg md:text-xl' : 'text-3xl md:text-4xl'} font-bold tracking-tight font-inknut text-white transition-transform duration-300`}
-              style={{ transform: `scale(${1 - 0.35 * shrink})`, transformOrigin: 'left center' }}
+              className={`${isCompact ? 'text-lg md:text-xl' : 'text-3xl md:text-4xl'} font-bold tracking-tight font-inknut text-white transition-transform ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'}`}
+              style={{
+                transform: `scale(${isDesktop ? 1 - 0.8 * shrink : 1 - 0.65 * shrink})`, // min 0.20 desktop, ~0.35 mobile
+                transformOrigin: 'left center',
+              }}
             >
               The Age Of GenZ 
             </span>
-            <span className={`hidden md:inline ml-2 text-gray-400 font-normal transition-opacity duration-300 text-sm md:text-base`}
+            <span
+              className={`hidden md:inline ml-2 text-gray-400 font-normal transition-opacity ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'} text-sm md:text-base`}
               style={{ opacity: 1 - shrink }}
             >
               Insights for the next generation
@@ -290,7 +336,10 @@ const Header: React.FC = () => {
 
           {/* Desktop Navigation - Force styles to prevent conflicts */}
           <nav className="hidden lg:block header-desktop-nav">
-            <ul className={`flex items-center transition-all duration-300`} style={{ gap: `${12 + (20 - 12) * (1 - shrink)}px` }}>
+            <ul
+              className={`flex items-center transition-all ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'}`}
+              style={{ gap: `${(isDesktop ? 12 : 10) + ((isDesktop ? 20 : 14) - (isDesktop ? 12 : 10)) * (1 - shrink)}px` }}
+            >
               <li><NavLink to="/home" className={navLinkClasses}>Newsroom</NavLink></li>
               <li><NavLink to="/trending" className={navLinkClasses}>Hot</NavLink></li>
               {isLive && (
