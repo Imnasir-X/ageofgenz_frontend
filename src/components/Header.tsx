@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { ChevronDown, Search as SearchIcon, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Search as SearchIcon, X } from 'lucide-react';
 import { getArticlesBySearch, getLatestArticles } from '../utils/api';
 // ✅ REMOVED: import Logo from '../assets/images/logo.png';
 
@@ -175,7 +175,7 @@ const Header: React.FC = () => {
 
   // Desktop nav link styles - responsive to compact state
   const navLinkClasses = ({ isActive }: { isActive: boolean }): string =>
-    `transition-colors ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'} font-medium ${isCompact ? 'text-xs md:text-sm' : 'text-sm md:text-base'} ${isActive ? 'text-orange-500' : 'text-white'} hover:text-orange-500`;
+    `transition-colors ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'} font-semibold text-sm uppercase tracking-wide ${isActive ? 'text-orange-500' : 'text-white'} hover:text-orange-500`;
 
   // Mobile nav link styles - with explicit colors
   const mobileNavLinkClasses = ({ isActive }: { isActive: boolean }): string =>
@@ -261,7 +261,7 @@ const Header: React.FC = () => {
         </div>
       )}
       <header
-        className={`header-nav sticky top-0 z-[55] text-white ${hasShadow ? 'shadow-md' : ''} ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'} transition-[padding,transform,background-color,backdrop-filter] bg-black/70 backdrop-blur-md`}
+        className={`header-nav sticky top-0 z-[55] text-white font-sans ${hasShadow ? 'shadow-md' : ''} ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'} transition-[padding,transform,background-color,backdrop-filter] bg-black/70 backdrop-blur-md`}
         onMouseLeave={handleMouseLeave}
         onMouseEnter={handleMouseEnter}
       >
@@ -279,8 +279,9 @@ const Header: React.FC = () => {
             transitionTimingFunction: 'ease-out',
           }}
         >
-          <div>
-            {new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          <div className="text-xs uppercase tracking-wider font-medium">
+            {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()}
+            {isLive ? ' • LIVE' : ''}
           </div>
           <div className="flex items-center gap-4">
             <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-orange-500 transition-colors">
@@ -318,19 +319,19 @@ const Header: React.FC = () => {
               }}
             />
             <span
-              className={`${isCompact ? 'text-lg md:text-xl' : 'text-3xl md:text-4xl'} font-bold tracking-tight font-inknut text-white transition-transform ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'}`}
+              className={`${isCompact ? 'text-lg md:text-xl' : 'text-3xl md:text-4xl'} font-bold tracking-normal leading-tight font-serif text-white transition-transform ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'}`}
               style={{
                 transform: `scale(${isDesktop ? 1 - 0.8 * shrink : 1 - 0.65 * shrink})`, // min 0.20 desktop, ~0.35 mobile
                 transformOrigin: 'left center',
               }}
             >
-              The Age Of GenZ 
+              The Age of GenZ
             </span>
             <span
-              className={`hidden md:inline ml-2 text-gray-400 font-normal transition-opacity ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'} text-sm md:text-base`}
+              className={`hidden lg:inline ml-4 text-gray-500 font-light transition-opacity ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'} text-xs tracking-wider`}
               style={{ opacity: 1 - shrink }}
             >
-              Insights for the next generation
+              EST. 2025 • GEN Z NEWS
             </span>
           </Link>
 
@@ -340,8 +341,8 @@ const Header: React.FC = () => {
               className={`flex items-center transition-all ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'}`}
               style={{ gap: `${(isDesktop ? 12 : 10) + ((isDesktop ? 20 : 14) - (isDesktop ? 12 : 10)) * (1 - shrink)}px` }}
             >
-              <li><NavLink to="/home" className={navLinkClasses}>Newsroom</NavLink></li>
-              <li><NavLink to="/trending" className={navLinkClasses}>Hot</NavLink></li>
+              <li><NavLink to="/home" className={navLinkClasses}>Latest</NavLink></li>
+              <li><NavLink to="/trending" className={navLinkClasses}>Trending</NavLink></li>
               {isLive && (
                 <li className="flex items-center gap-2 px-3 py-1.5 bg-red-600/10 rounded-md border border-red-600/20">
                   <div className="relative flex items-center">
@@ -353,8 +354,8 @@ const Header: React.FC = () => {
                   </Link>
                 </li>
               )}
-              <li><NavLink to="/ai" className={navLinkClasses}>AI & Tech</NavLink></li>
-              <li><NavLink to="/opinion" className={navLinkClasses}>Voices</NavLink></li>
+              <li><NavLink to="/ai" className={navLinkClasses}>Tech</NavLink></li>
+              <li><NavLink to="/opinion" className={navLinkClasses}>Opinion</NavLink></li>
               {/* World Mega Menu */}
               <li className="relative" onMouseEnter={() => setOpenMenu('world')}>
                 <button
@@ -365,7 +366,7 @@ const Header: React.FC = () => {
                   onClick={() => setOpenMenu(openMenu === 'world' ? null : 'world')}
                   onKeyDown={onMegaKeyDown('world', 'mega-world')}
                 >
-                  World <ChevronDown size={14} />
+                  Global <ChevronDown size={14} />
                 </button>
                 {openMenu === 'world' && (
                   <div id="mega-world" className="absolute left-0 mt-2 w-[560px] bg-white text-gray-900 rounded-lg shadow-xl p-4 grid grid-cols-2 gap-4 border border-gray-200 z-50">
@@ -590,51 +591,69 @@ const Header: React.FC = () => {
               {/* Main Navigation */}
               <div className="space-y-1">
                 <NavLink to="/home" className={mobileNavLinkClasses} onClick={() => setIsMenuOpen(false)}>
-                  <div className="flex items-center space-x-3">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m2.25-13.5h.75c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-2.25M3.75 5.25h.75c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.75m0 0h-.375c-.621 0-1.125-.504-1.125-1.125V5.625c0-.621.504-1.125 1.125-1.125H3.75z" />
-                    </svg>
-                    <span className="text-white">Newsroom</span>
+                      </svg>
+                      <span className="font-medium">Latest</span>
+                    </div>
+                    <ChevronRight size={16} className="text-gray-500" />
                   </div>
                 </NavLink>
                 <NavLink to="/trending" className={mobileNavLinkClasses} onClick={() => setIsMenuOpen(false)}>
-                  <div className="flex items-center space-x-3">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
-                    </svg>
-                    <span className="text-white">What's Hot</span>
+                      </svg>
+                      <span className="font-medium">Trending</span>
+                    </div>
+                    <ChevronRight size={16} className="text-gray-500" />
                   </div>
                 </NavLink>
                 <NavLink to="/ai" className={mobileNavLinkClasses} onClick={() => setIsMenuOpen(false)}>
-                  <div className="flex items-center space-x-3">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />
-                    </svg>
-                    <span className="text-white">AI & Tech</span>
+                      </svg>
+                      <span className="font-medium">Tech</span>
+                    </div>
+                    <ChevronRight size={16} className="text-gray-500" />
                   </div>
                 </NavLink>
                 <NavLink to="/opinion" className={mobileNavLinkClasses} onClick={() => setIsMenuOpen(false)}>
-                  <div className="flex items-center space-x-3">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
-                    </svg>
-                    <span className="text-white">Voices</span>
+                      </svg>
+                      <span className="font-medium">Opinion</span>
+                    </div>
+                    <ChevronRight size={16} className="text-gray-500" />
                   </div>
                 </NavLink>
                 <NavLink to="/world" className={mobileNavLinkClasses} onClick={() => setIsMenuOpen(false)}>
-                  <div className="flex items-center space-x-3">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
-                    </svg>
-                    <span className="text-white">World</span>
+                      </svg>
+                      <span className="font-medium">Global</span>
+                    </div>
+                    <ChevronRight size={16} className="text-gray-500" />
                   </div>
                 </NavLink>
                 <NavLink to="/politics" className={mobileNavLinkClasses} onClick={() => setIsMenuOpen(false)}>
-                  <div className="flex items-center space-x-3">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15l-.75 18h-13.5L4.5 3z" />
-                    </svg>
-                    <span className="text-white">Politics</span>
+                      </svg>
+                      <span className="font-medium">Politics</span>
+                    </div>
+                    <ChevronRight size={16} className="text-gray-500" />
                   </div>
                 </NavLink>
               </div>
@@ -644,25 +663,25 @@ const Header: React.FC = () => {
                 <Link
                   to="/subscribe"
                   onClick={() => setIsMenuOpen(false)}
-                  className="block w-full text-center bg-orange-500 hover:bg-orange-600 text-white px-4 py-2.5 rounded-lg font-medium transition-colors text-sm"
+                  className="block w-full text-center bg-orange-500 hover:bg-orange-600 text-white px-4 py-2.5 rounded-lg font-bold uppercase tracking-wide transition-colors text-sm"
                 >
                   <div className="flex items-center justify-center space-x-2">
                     <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
                     </svg>
-                    <span className="text-white">Subscribe</span>
+                    <span className="text-white">Get Free Updates</span>
                   </div>
                 </Link>
                 <Link
                   to="/login"
                   onClick={() => setIsMenuOpen(false)}
-                  className="block w-full text-center border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white px-4 py-2.5 rounded-lg font-medium transition-colors text-sm"
+                  className="block w-full text-center border-2 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white px-4 py-2.5 rounded-lg font-semibold transition-colors text-sm"
                 >
                   <div className="flex items-center justify-center space-x-2">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
                     </svg>
-                    <span>Login</span>
+                    <span>Member Login</span>
                   </div>
                 </Link>
               </div>
