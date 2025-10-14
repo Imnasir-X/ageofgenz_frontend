@@ -698,41 +698,51 @@ const Home: React.FC = () => {
           <div className="w-full h-20 bg-gray-100 border border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-500 text-sm">Ad Placement</div>
         </div>
 
-        {/* Breaking News - compact rotating card */}
+        {/* Breaking News - large featured card */}
         {breakingItems.length > 0 && (
-          <div className="max-w-6xl mx-auto mb-10">
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-3 sm:p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Megaphone size={18} className="text-red-500" aria-hidden="true" />
-                <span className="text-sm font-semibold text-gray-900">Breaking</span>
+          <div className="max-w-6xl mx-auto mb-12">
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-4 sm:p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Megaphone size={20} className="text-red-500" aria-hidden="true" />
+                <span className="text-sm font-semibold text-gray-900 tracking-wide">Breaking</span>
               </div>
               {(() => {
                 const a = breakingItems[breakingIndex];
                 const href = a?.slug ? `/article/${a.slug}` : '#';
                 const dateText = new Date(a?.date || a?.published_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                const img = a?.featured_image_url || a?.image || a?.featured_image || '/api/placeholder/400/250';
+                const categoryText = a?.category?.name || a?.category_name || 'News';
+                const img = a?.featured_image_url || a?.image || a?.featured_image || '/api/placeholder/1200/675';
                 return (
                   <Link to={href} className="block group">
-                    <div className="flex items-center gap-3">
-                      <div className="w-36 sm:w-44 md:w-52 aspect-[16/10] bg-gray-100 overflow-hidden rounded-md flex-shrink-0">
+                    {/* Headline */}
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight text-gray-900 group-hover:text-orange-500 transition-colors mb-4">
+                      {a?.title || 'Untitled Article'}
+                    </h2>
+                    {/* Image */}
+                    <div className="w-full rounded-xl overflow-hidden bg-gray-100 mb-4">
+                      <div className="aspect-[16/9]">
                         <img
                           src={img}
                           alt={a?.title || 'Breaking image'}
-                          className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                           loading="lazy"
-                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/api/placeholder/400/250'; }}
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/api/placeholder/1200/675'; }}
                         />
                       </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center text-[11px] text-gray-500 mb-1">
-                          <Clock size={10} className="mr-1" />
-                          {dateText}
-                        </div>
-                        <h3 className="text-sm sm:text-base font-semibold text-gray-900 line-clamp-2 group-hover:text-orange-500 transition-colors">
-                          {a?.title || 'Untitled Article'}
-                        </h3>
-                      </div>
                     </div>
+                    {/* Meta and excerpt */}
+                    <div className="flex items-center gap-3 text-sm text-gray-600 mb-3">
+                      <span className="uppercase tracking-wide text-orange-500 font-semibold">{categoryText}</span>
+                      <span className="text-gray-300">•</span>
+                      <span className="flex items-center">
+                        <Clock size={14} className="mr-1" /> {dateText}
+                      </span>
+                    </div>
+                    {a?.excerpt && (
+                      <p className="text-gray-700 text-base leading-relaxed line-clamp-3">
+                        {a.excerpt}
+                      </p>
+                    )}
                   </Link>
                 );
               })()}
