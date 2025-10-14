@@ -9,11 +9,12 @@
 :root {
   --text-primary: #1a1a1a;
   --text-secondary: #6b7280;
-  --text-muted: #9ca3af;
+  --text-muted: #4b5563;
   --bg-primary: #ffffff;
   --bg-secondary: #f9fafb;
-  --accent-orange: #f97316;
+  --accent-orange: #c2410c;
   --accent-orange-hover: #ea580c;
+  --accent-red: #b91c1c;
   --border-light: #e5e7eb;
   
   /* Typography scale - EXPLICIT FONT DEFINITIONS */
@@ -36,15 +37,7 @@
 }
 
 /* quick overrides for any hard-coded classes */
-.text-gray-500,
-.text-gray-400,
-.text-red-500,
-.text-orange-500 {
-  color: var(--text-muted) !important;
-}
 
-.text-red-500 { color: var(--accent-red) !important; }
-.text-orange-500 { color: var(--accent-orange) !important; }
 
 /* Global typography improvements */
 @layer base {
@@ -75,24 +68,7 @@
     line-height: 1.6;
   }
   
-  /* Fix text visibility on dark backgrounds */
-  .bg-gray-900 *, 
-  .bg-black *,
-  .bg-gray-800 * {
-    color: #ffffff !important;
-    font-family: inherit !important;
-  }
-  
-  /* Ensure proper contrast for links */
-  a {
-    color: #374151 !important;
-    transition: color 0.2s ease;
-    text-decoration: none;
-  }
-  
-  a:hover {
-    color: #f97316 !important;
-  }
+  /* Removed global dark-surface and link overrides; handle per component */
 }
 
 /* PROFESSIONAL ARTICLE CONTENT STYLING - UNIFIED APPROACH */
@@ -1044,43 +1020,15 @@
 @layer utilities {
   /* Category pages - Dark background with light text */
   .category-hero,
-  .dark-hero,
-  .bg-gray-900,
-  .bg-black {
+  .dark-hero {
     background-color: #111827 !important;
   }
   
   .category-hero *,
-  .dark-hero *,
-  .bg-gray-900 *,
-  .bg-black * {
+  .dark-hero * {
     color: #ffffff !important;
   }
-  
-  /* Footer fixes */
-  footer,
-  .footer,
-  .footer-section {
-    background-color: #1f2937 !important;
-  }
-  
-  footer *,
-  .footer *,
-  .footer-section * {
-    color: #d1d5db !important;
-  }
-  
-  footer h1, footer h2, footer h3, footer h4,
-  .footer h1, .footer h2, .footer h3, .footer h4,
-  .footer-heading {
-    color: #ffffff !important;
-    font-weight: 600;
-  }
-  
-  footer a, .footer a, .footer-link {
-    color: #d1d5db !important;
-    transition: color 0.2s ease;
-  }
+
   
   footer a:hover, .footer a:hover, .footer-link:hover {
     color: #fbbf24 !important;
