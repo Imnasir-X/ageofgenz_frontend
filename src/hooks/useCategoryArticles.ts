@@ -4,7 +4,8 @@ import { getArticlesByCategory } from '../utils/api';
 
 interface UseCategoryArticles {
   articles: Article[];
-  loading: boolean;
+  loading: boolean; // initial load
+  loadingMore: boolean; // pagination load
   error: string | null;
   hasMore: boolean;
   page: number;
@@ -15,12 +16,17 @@ interface UseCategoryArticles {
 export function useCategoryArticles(slug: string): UseCategoryArticles {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(false);
 
   const fetchPage = useCallback(async (targetPage: number, append = false) => {
-    setLoading(true);
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
     setError(null);
     try {
       const res = await getArticlesByCategory(slug, targetPage);
@@ -30,7 +36,11 @@ export function useCategoryArticles(slug: string): UseCategoryArticles {
     } catch (e: any) {
       setError(e?.message || 'Failed to load articles');
     } finally {
-      setLoading(false);
+      if (append) {
+        setLoadingMore(false);
+      } else {
+        setLoading(false);
+      }
     }
   }, [slug]);
 
@@ -54,8 +64,7 @@ export function useCategoryArticles(slug: string): UseCategoryArticles {
     fetchPage(1, false);
   }, [fetchPage]);
 
-  return { articles, loading, error, hasMore, page, loadMore, retry };
+  return { articles, loading, loadingMore, error, hasMore, page, loadMore, retry };
 }
 
 export default useCategoryArticles;
-
