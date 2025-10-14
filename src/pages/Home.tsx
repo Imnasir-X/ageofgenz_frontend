@@ -11,7 +11,7 @@ import {
   getArticles,
   getArticlesByCategory
 } from '../utils/api';
-import { RefreshCw, Search, X, TrendingUp, Clock, BookOpen, Megaphone } from 'lucide-react';
+import { RefreshCw, Search, X, TrendingUp, Clock, BookOpen, Megaphone, MessageCircle } from 'lucide-react';
 import type { Article, Category } from '../types';
 
 const Home: React.FC = () => {
@@ -698,52 +698,63 @@ const Home: React.FC = () => {
           <div className="w-full h-20 bg-gray-100 border border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-500 text-sm">Ad Placement</div>
         </div>
 
-        {/* Breaking News - large featured card */}
+        {/* Breaking News - styled like reference (headline > image > meta + rule > excerpt) */}
         {breakingItems.length > 0 && (
           <div className="max-w-6xl mx-auto mb-12">
             <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-4 sm:p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Megaphone size={20} className="text-red-500" aria-hidden="true" />
-                <span className="text-sm font-semibold text-gray-900 tracking-wide">Breaking</span>
-              </div>
               {(() => {
                 const a = breakingItems[breakingIndex];
                 const href = a?.slug ? `/article/${a.slug}` : '#';
                 const dateText = new Date(a?.date || a?.published_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                const categoryText = a?.category?.name || a?.category_name || 'News';
+                const categoryText = (a?.category?.name || a?.category_name || 'World').toUpperCase();
+                const comments = typeof a?.view_count === 'number' ? a.view_count : undefined;
                 const img = a?.featured_image_url || a?.image || a?.featured_image || '/api/placeholder/1200/675';
                 return (
-                  <Link to={href} className="block group">
-                    {/* Headline */}
-                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight text-gray-900 group-hover:text-orange-500 transition-colors mb-4">
-                      {a?.title || 'Untitled Article'}
-                    </h2>
-                    {/* Image */}
-                    <div className="w-full rounded-xl overflow-hidden bg-gray-100 mb-4">
-                      <div className="aspect-[16/9]">
+                  <div className="block max-w-4xl mx-auto">
+                    {/* Headline - large with underline like reference */}
+                    <Link to={href} className="group inline-block mb-4">
+                      <h2 className="font-serif font-extrabold tracking-tight text-gray-900 leading-snug text-4xl md:text-5xl underline decoration-gray-900 decoration-2 underline-offset-[10px]">
+                        {a?.title || 'Untitled Article'}
+                      </h2>
+                    </Link>
+
+                    {/* Large image with 16:10 ratio similar to screenshot */}
+                    <Link to={href} className="block rounded-xl overflow-hidden bg-gray-100 mb-4">
+                      <div className="aspect-[16/10]">
                         <img
                           src={img}
                           alt={a?.title || 'Breaking image'}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-[1.01]"
                           loading="lazy"
                           onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/api/placeholder/1200/675'; }}
                         />
                       </div>
-                    </div>
-                    {/* Meta and excerpt */}
-                    <div className="flex items-center gap-3 text-sm text-gray-600 mb-3">
-                      <span className="uppercase tracking-wide text-orange-500 font-semibold">{categoryText}</span>
+                    </Link>
+
+                    {/* Meta row */}
+                    <div className="flex items-center gap-3 text-[13px] text-gray-700 mb-2">
+                      <span className="text-orange-500 font-semibold uppercase">{categoryText}</span>
                       <span className="text-gray-300">•</span>
                       <span className="flex items-center">
                         <Clock size={14} className="mr-1" /> {dateText}
                       </span>
+                      {typeof comments !== 'undefined' && (
+                        <>
+                          <span className="text-gray-300">•</span>
+                          <span className="flex items-center"><MessageCircle size={14} className="mr-1" /> {comments}</span>
+                        </>
+                      )}
                     </div>
+                    {/* Orange divider like the reference */}
+                    <div className="w-16 h-0.5 bg-orange-400 mb-3"></div>
+
+                    {/* Excerpt */}
                     {a?.excerpt && (
-                      <p className="text-gray-700 text-base leading-relaxed line-clamp-3">
+                      <p className="text-gray-700 text-base leading-relaxed">
                         {a.excerpt}
                       </p>
                     )}
-                  </Link>
+                  </div>
                 );
               })()}
             </div>
