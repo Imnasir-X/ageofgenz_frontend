@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 import { subscribeToNewsletter } from '../utils/api';
 
-import { Mail, MapPin, Globe, Sparkles, Clock, Users, Check, Star, Shield } from 'lucide-react';
+import { Mail, Globe, Sparkles, Clock, Users, Check, Star, Shield } from 'lucide-react';
 
 // Common email domains used for fast suggestion checks
 const COMMON_DOMAINS = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com'] as const;
@@ -205,7 +205,7 @@ const isEmailValid = React.useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email
 
 return (
 
-<footer className="bg-black text-white pt-12 pb-6">
+<footer className="bg-black/70 backdrop-blur-md text-white pt-12 pb-6">
 
 <div className="container mx-auto px-4">
 
@@ -647,15 +647,7 @@ No spam policy
 
 <div className="border-t border-gray-800 pt-6">
 
-<div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center md:text-left text-sm">
-
-<div className="flex flex-col md:flex-row items-center md:items-start">
-<MapPin className="w-4 h-4 text-orange-500 mr-2 mb-1 md:mb-0 flex-shrink-0" />
-<div>
-<p className="text-gray-300 font-medium">71 No. Councilor Street, Dhaka, Bangladesh</p>
-<p className="text-xs text-gray-500 mt-1">Editorial office - Press accredited</p>
-</div>
-</div>
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center md:text-left text-sm">
 
 <div className="flex flex-col md:flex-row items-center md:items-start">
 
