@@ -29,13 +29,6 @@
   --lead-paragraph-spacing: 2.25rem;
 }
 
-/* ✅ Contrast-only fix – drop-in, zero risk */
-:root {
-  --text-muted: #4b5563;        /* was #9ca3af → now gray-600 on gray-50 */
-  --accent-orange: #c2410c;     /* was #f97316 → now orange-700 on orange-100 */
-  --accent-red: #b91c1c;        /* was #ef4444 → now red-700 on red-100 */
-}
-
 /* quick overrides for any hard-coded classes */
 
 
@@ -51,20 +44,20 @@
     @apply bg-gray-50;
     font-family: var(--font-sans);
     line-height: 1.6;
-    color: #1f2937 !important; /* EXPLICIT COLOR DEFINITION */
+    color: var(--text-primary);
   }
   
   /* EXPLICIT FONT FAMILY ASSIGNMENTS */
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-sans) !important;
-    color: #111827 !important;
+    font-family: var(--font-sans);
+    color: inherit;
     font-weight: 600;
     line-height: 1.3;
   }
   
   p {
-    font-family: var(--font-serif) !important;
-    color: #374151 !important;
+    font-family: var(--font-serif);
+    color: inherit;
     line-height: 1.6;
   }
   
