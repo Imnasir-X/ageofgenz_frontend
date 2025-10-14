@@ -11,7 +11,7 @@ import {
   getArticles,
   getArticlesByCategory
 } from '../utils/api';
-import { RefreshCw, Search, X, TrendingUp, Clock, BookOpen, Megaphone, MessageCircle } from 'lucide-react';
+import { RefreshCw, Search, X, TrendingUp, Clock, BookOpen } from 'lucide-react';
 import type { Article, Category } from '../types';
 
 const Home: React.FC = () => {
@@ -700,31 +700,30 @@ const Home: React.FC = () => {
 
         {/* Breaking News - styled like reference (headline > image > meta + rule > excerpt) */}
         {breakingItems.length > 0 && (
-          <div className="max-w-6xl mx-auto mb-12">
-            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-4 sm:p-6">
+          <div className="max-w-6xl mx-auto mb-8">
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-3 sm:p-4">
               {(() => {
                 const a = breakingItems[breakingIndex];
                 const href = a?.slug ? `/article/${a.slug}` : '#';
                 const dateText = new Date(a?.date || a?.published_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 const categoryText = (a?.category?.name || a?.category_name || 'World').toUpperCase();
-                const comments = typeof a?.view_count === 'number' ? a.view_count : undefined;
                 const img = a?.featured_image_url || a?.image || a?.featured_image || '/api/placeholder/1200/675';
                 return (
-                  <div className="block max-w-4xl mx-auto">
+                  <div className="block max-w-3xl mx-auto">
                     {/* Headline - large with underline like reference */}
                     <Link to={href} className="group inline-block mb-4">
-                      <h2 className="font-serif font-extrabold tracking-tight text-gray-900 leading-snug text-4xl md:text-5xl underline decoration-gray-900 decoration-2 underline-offset-[10px]">
+                      <h2 className="font-serif font-extrabold tracking-tight text-gray-900 leading-snug text-3xl sm:text-4xl underline decoration-gray-900 decoration-1 underline-offset-8">
                         {a?.title || 'Untitled Article'}
                       </h2>
                     </Link>
 
                     {/* Large image with 16:10 ratio similar to screenshot */}
-                    <Link to={href} className="block rounded-xl overflow-hidden bg-gray-100 mb-4">
+                    <Link to={href} className="block rounded-lg overflow-hidden bg-gray-100 mb-3">
                       <div className="aspect-[16/10]">
                         <img
                           src={img}
                           alt={a?.title || 'Breaking image'}
-                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-[1.01]"
+                          className="w-full h-full object-cover"
                           loading="lazy"
                           onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/api/placeholder/1200/675'; }}
                         />
@@ -732,25 +731,19 @@ const Home: React.FC = () => {
                     </Link>
 
                     {/* Meta row */}
-                    <div className="flex items-center gap-3 text-[13px] text-gray-700 mb-2">
+                    <div className="flex items-center gap-2 text-sm text-gray-700 mb-2">
                       <span className="text-orange-500 font-semibold uppercase">{categoryText}</span>
                       <span className="text-gray-300">•</span>
                       <span className="flex items-center">
                         <Clock size={14} className="mr-1" /> {dateText}
                       </span>
-                      {typeof comments !== 'undefined' && (
-                        <>
-                          <span className="text-gray-300">•</span>
-                          <span className="flex items-center"><MessageCircle size={14} className="mr-1" /> {comments}</span>
-                        </>
-                      )}
                     </div>
                     {/* Orange divider like the reference */}
-                    <div className="w-16 h-0.5 bg-orange-400 mb-3"></div>
+                    <div className="w-14 h-0.5 bg-orange-400 mb-2"></div>
 
                     {/* Excerpt */}
                     {a?.excerpt && (
-                      <p className="text-gray-700 text-base leading-relaxed">
+                      <p className="text-gray-700 text-sm leading-relaxed">
                         {a.excerpt}
                       </p>
                     )}
