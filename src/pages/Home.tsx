@@ -700,7 +700,7 @@ const Home: React.FC = () => {
 
         {/* Breaking News - styled like reference (headline > image > meta + rule > excerpt) */}
         {breakingItems.length > 0 && (
-          <div className="max-w-6xl mx-auto mb-8">
+          <div className="max-w-6xl mx-auto mb-6">
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-3 sm:p-4">
               {(() => {
                 const a = breakingItems[breakingIndex];
@@ -709,16 +709,16 @@ const Home: React.FC = () => {
                 const categoryText = (a?.category?.name || a?.category_name || 'World').toUpperCase();
                 const img = a?.featured_image_url || a?.image || a?.featured_image || '/api/placeholder/1200/675';
                 return (
-                  <div className="block max-w-3xl mx-auto">
+                  <div className="block max-w-[700px] mx-auto">
                     {/* Headline - large with underline like reference */}
                     <Link to={href} className="group inline-block mb-4">
-                      <h2 className="font-serif font-extrabold tracking-tight text-gray-900 leading-snug text-3xl sm:text-4xl underline decoration-gray-900 decoration-1 underline-offset-8">
+                      <h2 className="font-serif font-extrabold tracking-tight text-gray-900 leading-snug text-2xl sm:text-3xl underline decoration-gray-900 decoration-1 underline-offset-6">
                         {a?.title || 'Untitled Article'}
                       </h2>
                     </Link>
 
                     {/* Large image with 16:10 ratio similar to screenshot */}
-                    <Link to={href} className="block rounded-lg overflow-hidden bg-gray-100 mb-3">
+                    <Link to={href} className="block rounded-lg overflow-hidden bg-gray-100 mb-2">
                       <div className="aspect-[16/10]">
                         <img
                           src={img}
@@ -731,7 +731,7 @@ const Home: React.FC = () => {
                     </Link>
 
                     {/* Meta row */}
-                    <div className="flex items-center gap-2 text-sm text-gray-700 mb-2">
+                    <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-700 mb-2">
                       <span className="text-orange-500 font-semibold uppercase">{categoryText}</span>
                       <span className="text-gray-300">•</span>
                       <span className="flex items-center">
@@ -739,11 +739,11 @@ const Home: React.FC = () => {
                       </span>
                     </div>
                     {/* Orange divider like the reference */}
-                    <div className="w-14 h-0.5 bg-orange-400 mb-2"></div>
+                    <div className="w-12 h-0.5 bg-orange-400 mb-2"></div>
 
                     {/* Excerpt */}
                     {a?.excerpt && (
-                      <p className="text-gray-700 text-sm leading-relaxed">
+                      <p className="text-gray-700 text-sm leading-relaxed line-clamp-2">
                         {a.excerpt}
                       </p>
                     )}
