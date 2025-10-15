@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+﻿import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async'; 
 import { getArticleBySlug, getArticles } from '../utils/api';
@@ -36,80 +36,78 @@ const ArticleDetail: React.FC = () => {
   // Calculate reading time based on word count
   const estimatedReadTime = useMemo(() => {
     if (!article?.content) return 5;
-    const wordCount = article.content.replace(/<[^>]*>/g, '').split(/\s+/).filter(word => word.length > 0).length;
-    return Math.max(1, Math.ceil(wordCount / 200)); // Average reading speed: 200 words/minute
+    const textOnly = article.content.replace(/<[^>]*>/g, ' ');
+    const wordCount = textOnly.split(/\s+/).filter(word => word.length > 0).length;
+    const imageCount = (article.content.match(/<img/gi) || []).length;
+    const codeBlockCount = (article.content.match(/<pre|```/gi) || []).length;
+    const wordsPerMinute = 238; // Research-backed average
+
+    const baseMinutes = wordCount / wordsPerMinute;
+    const imageMinutes = (imageCount * 12) / 60; // +12 seconds per image
+    const codeMinutes = codeBlockCount * 0.5; // slower scanning for code & data blocks
+
+    return Math.max(1, Math.ceil(baseMinutes + imageMinutes + codeMinutes));
   }, [article?.content]);
 
-  // ✅ FIXED: Enhanced content formatter with proper spacing
+  // Article content formatter tuned for editorial styling
   const formattedContent = useMemo(() => {
-    if (!article?.content) return { __html: '<p class="text-gray-600">No content available.</p>' };
-    
-    let content = article.content.trim();
-    
-    // Handle HTML content properly with enhanced spacing
-    if (content.includes('<p>') || content.includes('<br>') || content.includes('<h')) {
-      // Clean up and enhance existing HTML
-      content = content
-        // Remove empty paragraphs
-        .replace(/<p>\s*<\/p>/g, '')
-        // Ensure proper paragraph spacing with inline styles
-        .replace(/<p>/g, '<p style="margin-bottom: 1.75rem !important; line-height: 1.7; font-size: 1.125rem; color: #374151;">')
-        .replace(/<p([^>]*)>/g, '<p$1 style="margin-bottom: 1.75rem !important; line-height: 1.7; font-size: 1.125rem; color: #374151;">')
-        
-        // Enhanced heading spacing
-        .replace(/<h2>/g, '<h2 style="margin-top: 3rem !important; margin-bottom: 1.5rem !important; font-size: 2rem; font-weight: 700; color: #111827; border-top: 1px solid #e5e7eb; padding-top: 2rem;">')
-        .replace(/<h3>/g, '<h3 style="margin-top: 2rem !important; margin-bottom: 1rem !important; font-size: 1.5rem; font-weight: 600; color: #1f2937;">')
-        
-        // Enhanced blockquotes
-        .replace(/<blockquote>/g, '<blockquote style="border-left: 4px solid #f97316; padding-left: 1.5rem; margin: 2rem 0 !important; font-style: italic; color: #4b5563; font-size: 1.25rem; background: #fef3f2; padding: 1.5rem; border-radius: 0 8px 8px 0;">')
-        
-        // Enhanced lists
-        .replace(/<ul>/g, '<ul style="margin: 1.5rem 0 !important; padding-left: 2rem; color: #374151;">')
-        .replace(/<ol>/g, '<ol style="margin: 1.5rem 0 !important; padding-left: 2rem; color: #374151;">')
-        .replace(/<li>/g, '<li style="margin-bottom: 0.5rem !important; line-height: 1.6; color: #374151;">')
-        
-        // Auto-detect pull quotes
-        .replace(
-          /<p[^>]*>["']([^"']{50,200})["']<\/p>/g, 
-          '<div class="pullquote" style="font-size: 1.75rem; font-weight: 500; text-align: center; margin: 3rem auto; padding: 2rem; border-top: 3px solid #f97316; border-bottom: 3px solid #f97316; background: #fef3f2; border-radius: 12px; max-width: 90%; line-height: 1.4; color: #1f2937;">$1</div>'
-        );
-      
+    if (!article?.content) {
+      return { __html: '<p class="text-gray-600">No content available.</p>' };
+    }
+
+    const transformPullQuotes = (markup: string) =>
+      markup.replace(/<p([^>]*)>["']([^"']{50,200})["']<\/p>/gi, (_match, attrs, quote) => {
+        if (/class\s*=/.test(attrs || '') && /article-pullquote/.test(attrs || '')) {
+          return _match;
+        }
+        return `<div class="article-pullquote">${quote}</div>`;
+      });
+
+    const ensureLazyImages = (markup: string) =>
+      markup.replace(/<img([^>]*)>/gi, (match, attrs) => {
+        if (/loading\s*=/.test(attrs)) {
+          return match;
+        }
+        return `<img${attrs} loading="lazy">`;
+      });
+
+    const htmlPattern = /<(p|br|h[1-6]|ul|ol|blockquote|figure|pre|code|img)/i;
+
+    if (htmlPattern.test(article.content)) {
+      let content = article.content.trim();
+      content = content.replace(/<p>\s*<\/p>/gi, '');
+      content = transformPullQuotes(content);
+      content = ensureLazyImages(content);
       return { __html: content };
     }
-    
-    // Handle plain text with proper spacing
-    const paragraphs = content.split(/\n\s*\n/).filter(p => p.trim().length > 0);
-    
-    const formatted = paragraphs.map((paragraph, index) => {
-      const trimmed = paragraph.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
-      
-      if (!trimmed) return '';
-      
-      // Detect pull quotes
-      if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || 
-          (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
-        const text = trimmed.slice(1, -1);
-        if (text.length >= 50 && text.length <= 200) {
-          return `<div class="pullquote" style="font-size: 1.75rem; font-weight: 500; text-align: center; margin: 3rem auto; padding: 2rem; border-top: 3px solid #f97316; border-bottom: 3px solid #f97316; background: #fef3f2; border-radius: 12px; max-width: 90%; line-height: 1.4; color: #1f2937;">${text}</div>`;
+
+    const paragraphs = article.content
+      .split(/\n\s*\n/)
+      .map((paragraph) => paragraph.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim())
+      .filter((paragraph) => paragraph.length > 0);
+
+    const html = paragraphs
+      .map((paragraph) => {
+        if ((paragraph.startsWith('"') && paragraph.endsWith('"')) || (paragraph.startsWith("'") && paragraph.endsWith("'"))) {
+          const text = paragraph.slice(1, -1);
+          if (text.length >= 50 && text.length <= 200) {
+            return `<div class="article-pullquote">${text}</div>`;
+          }
         }
-      }
-      
-      // Handle different paragraph types
-      if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
-        const text = trimmed.slice(2, -2);
-        return `<h3 style="margin-top: 2rem !important; margin-bottom: 1rem !important; font-size: 1.5rem; font-weight: 600; color: #1f2937;">${text}</h3>`;
-      }
-      
-      if (trimmed.startsWith('> ')) {
-        const text = trimmed.slice(2);
-        return `<blockquote style="border-left: 4px solid #f97316; padding-left: 1.5rem; margin: 2rem 0 !important; font-style: italic; color: #4b5563; font-size: 1.25rem; background: #fef3f2; padding: 1.5rem; border-radius: 0 8px 8px 0;">${text}</blockquote>`;
-      }
-      
-      // Regular paragraphs with proper spacing
-      return `<p style="margin-bottom: 1.75rem !important; line-height: 1.7; font-size: 1.125rem; color: #374151;">${trimmed}</p>`;
-    }).filter(p => p.length > 0).join('');
-    
-    return { __html: formatted };
+
+        if (paragraph.startsWith('> ')) {
+          return `<blockquote>${paragraph.slice(2)}</blockquote>`;
+        }
+
+        if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
+          return `<h3>${paragraph.slice(2, -2)}</h3>`;
+        }
+
+        return `<p>${paragraph}</p>`;
+      })
+      .join('');
+
+    return { __html: html };
   }, [article?.content]);
 
   // Reading progress tracking
@@ -203,9 +201,9 @@ const ArticleDetail: React.FC = () => {
           <div className="container mx-auto px-4 py-3">
             <div className="flex items-center space-x-2 text-sm">
               <div className="w-12 h-4 bg-gray-200 rounded animate-pulse"></div>
-              <span className="text-gray-400">›</span>
+            <span className="text-gray-400">›</span>
               <div className="w-20 h-4 bg-gray-200 rounded animate-pulse"></div>
-              <span className="text-gray-400">›</span>
+            <span className="text-gray-400">›</span>
               <div className="w-32 h-4 bg-gray-200 rounded animate-pulse"></div>
             </div>
           </div>
@@ -366,13 +364,13 @@ const ArticleDetail: React.FC = () => {
         </div>
       </nav>
 
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="lg:flex lg:gap-12">
+      <div className="mx-auto max-w-4xl px-5 py-8 md:px-12 md:py-12 lg:px-16 lg:py-16">
+        <div className="space-y-12 xl:flex xl:gap-12 xl:space-y-0">
           {/* Main Article Content */}
-          <article className="lg:w-2/3">
-            <div className="bg-white rounded-xl shadow-sm p-4 md:p-8 lg:p-12">
+          <article className="xl:w-2/3">
+            <div className="bg-white rounded-2xl shadow-sm px-6 py-8 md:px-12 md:py-12 lg:px-14 lg:py-16">
               {/* Article Header */}
-              <header className="mb-8">
+              <header className="mb-12">
                 {/* Category Badge */}
                 <div className="mb-4 md:mb-6">
                   <Link 
@@ -384,19 +382,19 @@ const ArticleDetail: React.FC = () => {
                 </div>
                 
                 {/* Article Title */}
-                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4 leading-tight text-gray-900">
+                <h1 className="article-title text-gray-900">
                   {article.title}
                 </h1>
                 
                 {/* Article Subtitle/Excerpt */}
                 {article.excerpt && (
-                  <p className="text-base md:text-lg text-gray-600 mb-4 md:mb-6 leading-relaxed">
+                  <p className="text-lg md:text-xl text-gray-600 leading-relaxed tracking-[0.01em] mb-8 max-w-2xl">
                     {article.excerpt}
                   </p>
                 )}
 
-                {/* ✅ FIXED: Clean, Professional Article Meta - Mobile Responsive */}
-                <div className="py-4 border-t border-b border-gray-200 bg-gray-50 rounded-lg px-4">
+                {/* Article meta */}
+                <div className="px-5 py-5 border border-gray-200 bg-gray-50/80 rounded-xl">
                   {/* Desktop Layout */}
                   <div className="hidden md:flex items-center justify-between">
                     <div className="flex items-center space-x-6">
@@ -479,23 +477,15 @@ const ArticleDetail: React.FC = () => {
                 </div>
               )}
 
-              {/* ✅ FIXED: Article Content with Enhanced Mobile Spacing */}
-              <div className="max-w-none">
-                <div 
-                  className="prose prose-lg prose-article max-w-none article-content-container"
-                  style={{ 
-                    color: '#1f2937',
-                    maxWidth: 'none',
-                    fontSize: 'clamp(1rem, 2.5vw, 1.125rem)', // Responsive font size
-                    lineHeight: '1.7'
-                  }}
-                  dangerouslySetInnerHTML={formattedContent}
-                />
-              </div>
+              {/* Article body */}
+              <div
+                className="article-content-container article-content"
+                dangerouslySetInnerHTML={formattedContent}
+              />
 
               {/* Tags */}
               {article.tags && article.tags.length > 0 && (
-                <div className="mt-12 pt-8 border-t border-gray-200">
+                <div className="mt-16 pt-10 border-t border-gray-200">
                   <div className="flex items-start flex-wrap gap-3">
                     <div className="flex items-center gap-2 mb-2">
                       <Tag size={18} className="text-gray-500" />
@@ -516,7 +506,7 @@ const ArticleDetail: React.FC = () => {
               )}
 
               {/* Social Share */}
-              <div className="mt-10 pt-8 border-t border-gray-200">
+              <div className="mt-16 pt-10 border-t border-gray-200">
                 <SocialShare
                   url={articleUrl}
                   title={article.title}
@@ -528,7 +518,7 @@ const ArticleDetail: React.FC = () => {
           </article>
 
           {/* Enhanced Sidebar */}
-          <aside className="lg:w-1/3 mt-12 lg:mt-0">
+          <aside className="xl:w-1/3 xl:mt-0">
             <div className="sticky top-24 space-y-8">
               <DonationPlaceholder />
               
@@ -579,3 +569,4 @@ const ArticleDetail: React.FC = () => {
 };
 
 export default ArticleDetail;
+
