@@ -200,11 +200,11 @@ const ArticleDetail: React.FC = () => {
         <nav className="bg-white border-b border-gray-200">
           <div className="container mx-auto px-4 py-3">
             <div className="flex items-center space-x-2 text-sm">
-              <div className="w-12 h-4 bg-gray-200 rounded animate-pulse"></div>
+            <span className="text-gray-400">›</span>
             <span className="text-gray-400">›</span>
               <div className="w-20 h-4 bg-gray-200 rounded animate-pulse"></div>
             <span className="text-gray-400">›</span>
-              <div className="w-32 h-4 bg-gray-200 rounded animate-pulse"></div>
+            <span className="text-gray-400">›</span>
             </div>
           </div>
         </nav>
@@ -364,21 +364,24 @@ const ArticleDetail: React.FC = () => {
         </div>
       </nav>
 
-      <div className="mx-auto max-w-4xl px-5 py-8 md:px-12 md:py-12 lg:px-16 lg:py-16">
+      <div className="mx-auto max-w-5xl px-5 py-8 md:px-12 md:py-12 lg:px-16 lg:py-16">
         <div className="space-y-12 xl:flex xl:gap-12 xl:space-y-0">
           {/* Main Article Content */}
           <article className="xl:w-2/3">
             <div className="bg-white rounded-2xl shadow-sm px-6 py-8 md:px-12 md:py-12 lg:px-14 lg:py-16">
               {/* Article Header */}
               <header className="mb-12">
-                {/* Category Badge */}
-                <div className="mb-4 md:mb-6">
-                  <Link 
+                <div className="mb-5 text-xs md:text-sm uppercase tracking-[0.28em] text-orange-600 font-semibold flex flex-wrap items-center gap-3">
+                  <Link
                     to={`/${article.category?.slug}`}
-                    className="inline-flex items-center bg-orange-500 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium hover:bg-orange-600 transition-colors"
+                    className="hover:text-orange-500 transition-colors"
                   >
-                    {article.category?.name || 'Uncategorized'}
+                    {article.category?.name || 'News'}
                   </Link>
+                  <span className="text-gray-400">•</span>
+                  <span className="text-gray-500">{publishedDate}</span>
+                  <span className="text-gray-400">•</span>
+                  <span className="text-gray-500">The Age of GenZ</span>
                 </div>
                 
                 {/* Article Title */}
@@ -388,7 +391,7 @@ const ArticleDetail: React.FC = () => {
                 
                 {/* Article Subtitle/Excerpt */}
                 {article.excerpt && (
-                  <p className="text-lg md:text-xl text-gray-600 leading-relaxed tracking-[0.01em] mb-8 max-w-2xl">
+                  <p className="text-lg md:text-xl text-gray-600 leading-relaxed tracking-[0.01em] mb-10 max-w-2xl">
                     {article.excerpt}
                   </p>
                 )}
@@ -456,14 +459,14 @@ const ArticleDetail: React.FC = () => {
               {/* Featured Image */}
               {(article.featured_image_url || article.featured_image) && (
                 <div className="mb-6 md:mb-10">
-                  <figure className="relative">
+                  <figure className="relative rounded-xl overflow-hidden border border-gray-200 shadow-md">
                     {!imageLoaded && (
-                      <div className="absolute inset-0 bg-gray-200 rounded-lg md:rounded-xl animate-pulse aspect-[16/10]"></div>
+                      <div className="absolute inset-0 bg-gray-200 animate-pulse aspect-[16/10]"></div>
                     )}
                     <img
                       src={imageUrl}
                       alt={article.title}
-                      className={`w-full aspect-[16/10] object-cover rounded-lg md:rounded-xl shadow-lg transition-opacity duration-500 ${
+                      className={`w-full aspect-[16/10] object-cover transition-opacity duration-500 ${
                         imageLoaded ? 'opacity-100' : 'opacity-0'
                       }`}
                       onLoad={() => setImageLoaded(true)}
