@@ -3,13 +3,18 @@ import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async'; 
 import { getArticleBySlug, getArticles } from '../utils/api';
 import DonationPlaceholder from '../components/DonationPlaceholder';
-import SocialShare from '../components/SocialShare';
-import { Clock, Eye, User, Calendar, Tag, BookOpen } from 'lucide-react';
+import { Eye, User, Calendar, Tag, BookOpen, Facebook, Mail, Link2 } from 'lucide-react';
 import { Article } from '../types';
 
 // Cache for articles to avoid refetching
 const articleCache = new Map<string, Article>();
 const relatedCache = new Map<string, Article[]>();
+
+const XIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" width={24} height={24} {...props}>
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
 
 const ArticleDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -19,6 +24,7 @@ const ArticleDetail: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [imageLoaded, setImageLoaded] = useState<boolean>(false);
   const [readingProgress, setReadingProgress] = useState<number>(0);
+  const [copySuccess, setCopySuccess] = useState<boolean>(false);
 
   // Memoized date formatter
   const formatDate = useCallback((dateString: string) => {
@@ -279,6 +285,35 @@ const ArticleDetail: React.FC = () => {
   const articleUrl = `https://theageofgenz.com/article/${article.slug}`;
   const publishedDate = formatDate(article.published_at || article.created_at);
   const imageUrl = article.featured_image_url || article.featured_image || 'https://theageofgenz.com/og-image.jpg';
+  const encodedShareUrl = encodeURIComponent(articleUrl);
+  const encodedShareTitle = encodeURIComponent(article.title);
+  const shareLinks = [
+    {
+      name: 'Facebook',
+      href: `https://www.facebook.com/sharer/sharer.php?u=${encodedShareUrl}`,
+      icon: <Facebook size={24} />,
+    },
+    {
+      name: 'X',
+      href: `https://x.com/intent/tweet?url=${encodedShareUrl}&text=${encodedShareTitle}`,
+      icon: <XIcon />,
+    },
+    {
+      name: 'Email',
+      href: `mailto:?subject=${encodedShareTitle}&body=${encodedShareTitle}%0A%0A${encodedShareUrl}`,
+      icon: <Mail size={24} />,
+    },
+  ];
+
+  const handleCopyShare = async () => {
+    try {
+      await navigator.clipboard.writeText(articleUrl);
+      setCopySuccess(true);
+      window.setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy link', err);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -378,9 +413,9 @@ const ArticleDetail: React.FC = () => {
                   >
                     {article.category?.name || 'News'}
                   </Link>
-                  <span className="text-gray-400">•</span>
+                  <span className="text-gray-400" aria-hidden="true">{'·'}</span>
                   <span className="text-gray-500">{publishedDate}</span>
-                  <span className="text-gray-400">•</span>
+                  <span className="text-gray-400" aria-hidden="true">{'·'}</span>
                   <span className="text-gray-500">The Age of GenZ</span>
                 </div>
                 
@@ -444,6 +479,34 @@ const ArticleDetail: React.FC = () => {
                 </div>
               )}
 
+              <div className="-mx-6 md:-mx-12 lg:-mx-14 border-t border-b border-orange-200 bg-white/90">
+                <div className="px-6 md:px-12 lg:px-14 py-4 flex items-center justify-between md:justify-around text-orange-500">
+                  {shareLinks.map((share) => (
+                    <a
+                      key={share.name}
+                      href={share.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-col items-center gap-2 hover:text-orange-600 transition-colors"
+                    >
+                      {share.icon}
+                      <span className="sr-only">Share on {share.name}</span>
+                    </a>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={handleCopyShare}
+                    className="flex flex-col items-center gap-2 hover:text-orange-600 transition-colors"
+                  >
+                    <Link2 size={24} />
+                    <span className="sr-only">Copy article link</span>
+                  </button>
+                </div>
+                {copySuccess && (
+                  <p className="px-6 md:px-12 lg:px-14 pb-3 text-center text-xs text-gray-500">Link copied</p>
+                )}
+              </div>
+
               {/* Article body */}
               <div
                 className="article-content-container article-content"
@@ -472,15 +535,6 @@ const ArticleDetail: React.FC = () => {
                 </div>
               )}
 
-              {/* Social Share */}
-              <div className="mt-16 pt-10 border-t border-gray-200">
-                <SocialShare
-                  url={articleUrl}
-                  title={article.title}
-                  description={article.excerpt || ''}
-                  hashtags={article.tags}
-                />
-              </div>
             </div>
           </article>
 
