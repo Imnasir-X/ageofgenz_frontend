@@ -359,7 +359,7 @@ key={link.to}
 
 to={link.to}
 
-className="relative text-gray-400 hover:text-orange-600 transition-colors duration-200 flex items-center"
+  className="relative text-gray-200 hover:text-orange-500 transition-colors duration-200 flex items-center"
 
 >
 
@@ -389,7 +389,7 @@ Stay Informed
 
 <div className="mb-4">
 
-<p className="text-gray-300 text-sm mb-2 flex items-center">
+<p className="text-gray-200 text-sm mb-2 flex items-center">
 
 <Shield className="w-4 h-4 mr-2 text-blue-500" />
 
@@ -397,7 +397,7 @@ Join <span className="text-orange-500 font-bold mx-1">25,000+</span> informed re
 
 </p>
 
-<div className="flex items-center text-xs text-gray-400 space-x-4">
+<div className="flex items-center text-xs text-gray-300 space-x-4">
 
 <span className="flex items-center">
 

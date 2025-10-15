@@ -369,7 +369,7 @@ const Header: React.FC = () => {
                   Global <ChevronDown size={14} />
                 </button>
                 {openMenu === 'world' && (
-                  <div id="mega-world" className="absolute left-0 mt-2 w-[560px] bg-white text-gray-900 rounded-lg shadow-xl p-4 grid grid-cols-2 gap-4 border border-gray-200 z-50">
+                    <div id="mega-world" className="absolute left-0 mt-2 w-[560px] rounded-lg border border-gray-800 bg-gray-900/95 text-gray-100 shadow-xl backdrop-blur-md p-4 grid grid-cols-2 gap-4 z-50">
                     {[
                       { label: 'Europe', to: '/category/europe' },
                       { label: 'Asia', to: '/category/asia' },
@@ -378,7 +378,7 @@ const Header: React.FC = () => {
                       { label: 'Americas', to: '/category/americas' },
                       { label: 'Australia', to: '/category/australia' },
                     ].map((item) => (
-                      <NavLink key={item.label} to={item.to} className={({ isActive }) => `block px-3 py-2 rounded hover:bg-gray-100 ${isActive ? 'text-orange-600 font-semibold' : 'text-gray-800'}`}>
+                        <NavLink key={item.label} to={item.to} className={({ isActive }) => `block px-3 py-2 rounded transition-colors duration-150 hover:bg-gray-800 ${isActive ? 'text-orange-400 font-semibold' : 'text-gray-200'}`}>
                         {item.label}
                       </NavLink>
                     ))}
@@ -398,7 +398,7 @@ const Header: React.FC = () => {
                   Politics <ChevronDown size={14} />
                 </button>
                 {openMenu === 'politics' && (
-                  <div id="mega-politics" className="absolute left-0 mt-2 w-[560px] bg-white text-gray-900 rounded-lg shadow-xl p-4 grid grid-cols-2 gap-4 border border-gray-200 z-50">
+                    <div id="mega-politics" className="absolute left-0 mt-2 w-[560px] rounded-lg border border-gray-800 bg-gray-900/95 text-gray-100 shadow-xl backdrop-blur-md p-4 grid grid-cols-2 gap-4 z-50">
                     {[
                       { label: 'U.S. Politics', to: '/politics' },
                       { label: 'World Politics', to: '/world' },
@@ -407,7 +407,7 @@ const Header: React.FC = () => {
                       { label: 'Supreme Court', to: '/category/supreme-court' },
                       { label: 'Opinion', to: '/opinion' },
                     ].map((item) => (
-                      <NavLink key={item.label} to={item.to} className={({ isActive }) => `block px-3 py-2 rounded hover:bg-gray-100 ${isActive ? 'text-orange-600 font-semibold' : 'text-gray-800'}`}>
+                        <NavLink key={item.label} to={item.to} className={({ isActive }) => `block px-3 py-2 rounded transition-colors duration-150 hover:bg-gray-800 ${isActive ? 'text-orange-400 font-semibold' : 'text-gray-200'}`}>
                         {item.label}
                       </NavLink>
                     ))}
@@ -442,14 +442,14 @@ const Header: React.FC = () => {
                   {showSearch ? <X size={18} /> : <SearchIcon size={18} />}
                 </button>
                 {showSearch && (
-                  <div className="absolute right-0 mt-2 w-[480px] bg-white text-gray-900 rounded-lg shadow-2xl border border-gray-200 p-3 z-50">
+                    <div className="absolute right-0 mt-2 w-[480px] rounded-lg border border-gray-800 bg-gray-900/95 text-gray-100 shadow-2xl backdrop-blur-md p-3 z-50">
                     <div className="flex items-center gap-2">
                       <SearchIcon size={16} className="text-gray-400" />
-                      <input
-                        autoFocus
-                        type="text"
-                        value={query}
-                        onChange={(e) => { setQuery(e.target.value); setShowSuggest(true); }}
+                        <input
+                          autoFocus
+                          type="text"
+                          value={query}
+                          onChange={(e) => { setQuery(e.target.value); setShowSuggest(true); }}
                         aria-label="Search articles"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && query.trim()) {
@@ -461,15 +461,15 @@ const Header: React.FC = () => {
                             setShowSearch(false);
                           }
                         }}
-                        placeholder="Search articles…"
-                        className="flex-1 outline-none bg-transparent text-sm placeholder:text-gray-400 text-gray-900"
-                      />
-                      {query && (
-                        <button
-                          className="px-2 py-1 rounded text-gray-600 hover:text-gray-900 text-xs"
-                          aria-label="Clear search"
-                          onClick={() => { setQuery(''); setShowSuggest(true); }}
-                        >
+                          placeholder="Search articles…"
+                          className="flex-1 outline-none bg-transparent text-sm placeholder:text-gray-400 text-gray-100"
+                        />
+                        {query && (
+                          <button
+                            className="px-2 py-1 rounded text-gray-400 hover:text-white text-xs transition-colors"
+                            aria-label="Clear search"
+                            onClick={() => { setQuery(''); setShowSuggest(true); }}
+                          >
                           Clear
                         </button>
                       )}
@@ -492,15 +492,15 @@ const Header: React.FC = () => {
                       <div className="mt-3">
                         {query.trim().length >= 2 ? (
                           <div>
-                            <div className="text-xs text-gray-500 mb-2">Suggestions</div>
+                            <div className="text-xs text-gray-400 mb-2">Suggestions</div>
                             {loadingSuggest ? (
-                              <div className="text-sm text-gray-500">Searching…</div>
+                              <div className="text-sm text-gray-400">Searching…</div>
                             ) : suggestions.length > 0 ? (
                               <ul className="divide-y divide-gray-100">
                                 {suggestions.map((s) => (
                                   <li key={s.id}>
                                     <button
-                                      className="w-full text-left px-2 py-2 hover:bg-gray-50 rounded text-sm text-gray-800 flex items-start gap-3"
+                                      className="w-full text-left px-2 py-2 rounded text-sm text-gray-100 flex items-start gap-3 hover:bg-gray-800 transition-colors"
                                       onClick={() => { navigate(`/article/${s.slug}`); setShowSuggest(false); setShowSearch(false); }}
                                     >
                                       {s.image && (
@@ -509,12 +509,12 @@ const Header: React.FC = () => {
                                       <div className="flex-1 min-w-0">
                                         <div className="font-medium line-clamp-2 mb-1">{s.title}</div>
                                         {(s.category || s.date) && (
-                                          <div className="flex items-center gap-2 text-xs text-gray-500">
-                                            {s.category && (
-                                              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 font-medium">
-                                                {s.category}
-                                              </span>
-                                            )}
+                                            <div className="flex items-center gap-2 text-xs text-gray-400">
+                                              {s.category && (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-200 font-medium">
+                                                  {s.category}
+                                                </span>
+                                              )}
                                             {s.date && (
                                               <span>{new Date(s.date).toLocaleDateString()}</span>
                                             )}
@@ -526,21 +526,21 @@ const Header: React.FC = () => {
                                 ))}
                               </ul>
                             ) : (
-                              <div className="text-sm text-gray-500">No results</div>
+                              <div className="text-sm text-gray-400">No results</div>
                             )}
                           </div>
                         ) : (
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <div className="text-xs text-gray-500 mb-2">Recent searches</div>
+                              <div className="text-xs text-gray-400 mb-2">Recent searches</div>
                               {loadingRecent ? (
-                                <div className="text-sm text-gray-500">Loading…</div>
+                                <div className="text-sm text-gray-400">Loading…</div>
                               ) : recentSearches.length === 0 ? (
-                                <div className="text-sm text-gray-500">No recent searches</div>
+                                  <div className="text-sm text-gray-400">No recent searches</div>
                               ) : (
                                 <div className="flex flex-wrap gap-2">
                                   {recentSearches.map((r) => (
-                                    <button key={r} className="px-2 py-1 text-xs rounded-full bg-gray-100 hover:bg-gray-200" onClick={() => { navigate(`/search?q=${encodeURIComponent(r)}`); setShowSuggest(false); setShowSearch(false); }}>
+                                    <button key={r} className="px-2 py-1 text-xs rounded-full bg-gray-800 text-gray-200 hover:bg-gray-700 transition-colors" onClick={() => { navigate(`/search?q=${encodeURIComponent(r)}`); setShowSuggest(false); setShowSearch(false); }}>
                                       {r}
                                     </button>
                                   ))}
@@ -548,10 +548,10 @@ const Header: React.FC = () => {
                               )}
                             </div>
                             <div>
-                              <div className="text-xs text-gray-500 mb-2">Trending</div>
+                                <div className="text-xs text-gray-400 mb-2">Trending</div>
                               <div className="flex flex-wrap gap-2">
-                                {trendingSearches.map((t) => (
-                                  <button key={t} className="px-2 py-1 text-xs rounded-full bg-orange-50 text-orange-700 hover:bg-orange-100" onClick={() => { navigate(`/search?q=${encodeURIComponent(t)}`); setShowSuggest(false); setShowSearch(false); }}>
+                                  {trendingSearches.map((t) => (
+                                    <button key={t} className="px-2 py-1 text-xs rounded-full bg-orange-500/20 text-orange-200 hover:bg-orange-500/30 transition-colors" onClick={() => { navigate(`/search?q=${encodeURIComponent(t)}`); setShowSuggest(false); setShowSearch(false); }}>
                                     {t}
                                   </button>
                                 ))}
