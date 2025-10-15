@@ -261,7 +261,7 @@ const Header: React.FC = () => {
         </div>
       )}
       <header
-        className={`header-nav sticky top-0 z-[55] text-white font-sans ${hasShadow ? 'shadow-md' : ''} ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'} transition-[padding,transform,background-color,backdrop-filter] bg-black/70 backdrop-blur-md`}
+        className={`header-nav sticky top-0 z-[55] text-white font-sans ${hasShadow ? 'shadow-md' : ''} ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'} transition-[padding,transform,background-color,backdrop-filter] bg-black backdrop-blur-md`}
         onMouseLeave={handleMouseLeave}
         onMouseEnter={handleMouseEnter}
       >

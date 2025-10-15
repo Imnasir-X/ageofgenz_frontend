@@ -205,7 +205,7 @@ const isEmailValid = React.useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email
 
 return (
 
-<footer className="bg-black/70 backdrop-blur-md text-white pt-12 pb-6">
+<footer className="bg-black backdrop-blur-md text-white pt-12 pb-6">
 
 <div className="container mx-auto px-4">
 
