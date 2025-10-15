@@ -3,18 +3,13 @@ import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async'; 
 import { getArticleBySlug, getArticles } from '../utils/api';
 import DonationPlaceholder from '../components/DonationPlaceholder';
-import { Eye, User, Calendar, Tag, BookOpen, Facebook, Mail, Link2, Home, CheckCircle2 } from 'lucide-react';
+import SocialShare from '../components/SocialShare';
+import { Clock, Eye, User, Calendar, Tag, BookOpen } from 'lucide-react';
 import { Article } from '../types';
 
 // Cache for articles to avoid refetching
 const articleCache = new Map<string, Article>();
 const relatedCache = new Map<string, Article[]>();
-
-const XIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" width={24} height={24} {...props}>
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-  </svg>
-);
 
 const ArticleDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -24,7 +19,6 @@ const ArticleDetail: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [imageLoaded, setImageLoaded] = useState<boolean>(false);
   const [readingProgress, setReadingProgress] = useState<number>(0);
-  const [copySuccess, setCopySuccess] = useState<boolean>(false);
 
   // Memoized date formatter
   const formatDate = useCallback((dateString: string) => {
@@ -42,92 +36,80 @@ const ArticleDetail: React.FC = () => {
   // Calculate reading time based on word count
   const estimatedReadTime = useMemo(() => {
     if (!article?.content) return 5;
-    const textOnly = article.content.replace(/<[^>]*>/g, ' ');
-    const wordCount = textOnly.split(/\s+/).filter(word => word.length > 0).length;
-    const imageCount = (article.content.match(/<img/gi) || []).length;
-    const codeBlockCount = (article.content.match(/<pre|```/gi) || []).length;
-    const wordsPerMinute = 238; // Research-backed average
-
-    const baseMinutes = wordCount / wordsPerMinute;
-    const imageMinutes = (imageCount * 12) / 60; // +12 seconds per image
-    const codeMinutes = codeBlockCount * 0.5; // slower scanning for code & data blocks
-
-    return Math.max(1, Math.ceil(baseMinutes + imageMinutes + codeMinutes));
+    const wordCount = article.content.replace(/<[^>]*>/g, '').split(/\s+/).filter(word => word.length > 0).length;
+    return Math.max(1, Math.ceil(wordCount / 200)); // Average reading speed: 200 words/minute
   }, [article?.content]);
 
-  // Article content formatter tuned for editorial styling
+  // ✅ FIXED: Enhanced content formatter with proper spacing
   const formattedContent = useMemo(() => {
-    if (!article?.content) {
-      return { __html: '<p class="text-gray-600">No content available.</p>' };
-    }
-
-    const highlightImportantSegments = (markup: string) => {
-      const wrapText = (text: string) =>
-        text.replace(/([^<]+!+)/g, (segment) => {
-          if (segment.includes('article-sentence-highlight')) return segment;
-          return `<span class="article-sentence-highlight">${segment}</span>`;
-        });
-
-      return markup.replace(/(<p[^>]*>)([\s\S]*?)(<\/p>)/gi, (_match, open, inner, close) => {
-        if (!inner.includes('!')) return `${open}${inner}${close}`;
-        return `${open}${wrapText(inner)}${close}`;
-      });
-    };
-
-    const transformPullQuotes = (markup: string) =>
-      markup.replace(/<p([^>]*)>["']([^"']{50,200})["']<\/p>/gi, (_match, attrs, quote) => {
-        if (/class\s*=/.test(attrs || '') && /article-pullquote/.test(attrs || '')) {
-          return _match;
-        }
-        return `<div class="article-pullquote">${quote}</div>`;
-      });
-
-    const ensureLazyImages = (markup: string) =>
-      markup.replace(/<img([^>]*)>/gi, (match, attrs) => {
-        if (/loading\s*=/.test(attrs)) {
-          return match;
-        }
-        return `<img${attrs} loading="lazy">`;
-      });
-
-    const htmlPattern = /<(p|br|h[1-6]|ul|ol|blockquote|figure|pre|code|img)/i;
-
-    if (htmlPattern.test(article.content)) {
-      let content = article.content.trim();
-      content = content.replace(/<p>\s*<\/p>/gi, '');
-      content = transformPullQuotes(content);
-      content = ensureLazyImages(content);
-      content = highlightImportantSegments(content);
+    if (!article?.content) return { __html: '<p class="text-gray-600">No content available.</p>' };
+    
+    let content = article.content.trim();
+    
+    // Handle HTML content properly with enhanced spacing
+    if (content.includes('<p>') || content.includes('<br>') || content.includes('<h')) {
+      // Clean up and enhance existing HTML
+      content = content
+        // Remove empty paragraphs
+        .replace(/<p>\s*<\/p>/g, '')
+        // Ensure proper paragraph spacing with inline styles
+        .replace(/<p>/g, '<p style="margin-bottom: 1.75rem !important; line-height: 1.7; font-size: 1.125rem; color: #374151;">')
+        .replace(/<p([^>]*)>/g, '<p$1 style="margin-bottom: 1.75rem !important; line-height: 1.7; font-size: 1.125rem; color: #374151;">')
+        
+        // Enhanced heading spacing
+        .replace(/<h2>/g, '<h2 style="margin-top: 3rem !important; margin-bottom: 1.5rem !important; font-size: 2rem; font-weight: 700; color: #111827; border-top: 1px solid #e5e7eb; padding-top: 2rem;">')
+        .replace(/<h3>/g, '<h3 style="margin-top: 2rem !important; margin-bottom: 1rem !important; font-size: 1.5rem; font-weight: 600; color: #1f2937;">')
+        
+        // Enhanced blockquotes
+        .replace(/<blockquote>/g, '<blockquote style="border-left: 4px solid #f97316; padding-left: 1.5rem; margin: 2rem 0 !important; font-style: italic; color: #4b5563; font-size: 1.25rem; background: #fef3f2; padding: 1.5rem; border-radius: 0 8px 8px 0;">')
+        
+        // Enhanced lists
+        .replace(/<ul>/g, '<ul style="margin: 1.5rem 0 !important; padding-left: 2rem; color: #374151;">')
+        .replace(/<ol>/g, '<ol style="margin: 1.5rem 0 !important; padding-left: 2rem; color: #374151;">')
+        .replace(/<li>/g, '<li style="margin-bottom: 0.5rem !important; line-height: 1.6; color: #374151;">')
+        
+        // Auto-detect pull quotes
+        .replace(
+          /<p[^>]*>["']([^"']{50,200})["']<\/p>/g, 
+          '<div class="pullquote" style="font-size: 1.75rem; font-weight: 500; text-align: center; margin: 3rem auto; padding: 2rem; border-top: 3px solid #f97316; border-bottom: 3px solid #f97316; background: #fef3f2; border-radius: 12px; max-width: 90%; line-height: 1.4; color: #1f2937;">$1</div>'
+        );
+      
       return { __html: content };
     }
-
-    const paragraphs = article.content
-      .split(/\n\s*\n/)
-      .map((paragraph) => paragraph.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim())
-      .filter((paragraph) => paragraph.length > 0);
-
-    const html = paragraphs
-      .map((paragraph) => {
-        if ((paragraph.startsWith('"') && paragraph.endsWith('"')) || (paragraph.startsWith("'") && paragraph.endsWith("'"))) {
-          const text = paragraph.slice(1, -1);
-          if (text.length >= 50 && text.length <= 200) {
-            return `<div class="article-pullquote">${text}</div>`;
-          }
+    
+    // Handle plain text with proper spacing
+    const paragraphs = content.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+    
+    const formatted = paragraphs.map((paragraph, index) => {
+      const trimmed = paragraph.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+      
+      if (!trimmed) return '';
+      
+      // Detect pull quotes
+      if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || 
+          (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+        const text = trimmed.slice(1, -1);
+        if (text.length >= 50 && text.length <= 200) {
+          return `<div class="pullquote" style="font-size: 1.75rem; font-weight: 500; text-align: center; margin: 3rem auto; padding: 2rem; border-top: 3px solid #f97316; border-bottom: 3px solid #f97316; background: #fef3f2; border-radius: 12px; max-width: 90%; line-height: 1.4; color: #1f2937;">${text}</div>`;
         }
-
-        if (paragraph.startsWith('> ')) {
-          return `<blockquote>${paragraph.slice(2)}</blockquote>`;
-        }
-
-        if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
-          return `<h3>${paragraph.slice(2, -2)}</h3>`;
-        }
-
-        return `<p>${paragraph}</p>`;
-      })
-      .join('');
-
-    return { __html: highlightImportantSegments(html) };
+      }
+      
+      // Handle different paragraph types
+      if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
+        const text = trimmed.slice(2, -2);
+        return `<h3 style="margin-top: 2rem !important; margin-bottom: 1rem !important; font-size: 1.5rem; font-weight: 600; color: #1f2937;">${text}</h3>`;
+      }
+      
+      if (trimmed.startsWith('> ')) {
+        const text = trimmed.slice(2);
+        return `<blockquote style="border-left: 4px solid #f97316; padding-left: 1.5rem; margin: 2rem 0 !important; font-style: italic; color: #4b5563; font-size: 1.25rem; background: #fef3f2; padding: 1.5rem; border-radius: 0 8px 8px 0;">${text}</blockquote>`;
+      }
+      
+      // Regular paragraphs with proper spacing
+      return `<p style="margin-bottom: 1.75rem !important; line-height: 1.7; font-size: 1.125rem; color: #374151;">${trimmed}</p>`;
+    }).filter(p => p.length > 0).join('');
+    
+    return { __html: formatted };
   }, [article?.content]);
 
   // Reading progress tracking
@@ -220,11 +202,11 @@ const ArticleDetail: React.FC = () => {
         <nav className="bg-white border-b border-gray-200">
           <div className="container mx-auto px-4 py-3">
             <div className="flex items-center space-x-2 text-sm">
-            <span className="text-gray-400">·</span>
-            <span className="text-gray-400">·</span>
+              <div className="w-12 h-4 bg-gray-200 rounded animate-pulse"></div>
+              <span className="text-gray-400">›</span>
               <div className="w-20 h-4 bg-gray-200 rounded animate-pulse"></div>
-            <span className="text-gray-400">·</span>
-            <span className="text-gray-400">·</span>
+              <span className="text-gray-400">›</span>
+              <div className="w-32 h-4 bg-gray-200 rounded animate-pulse"></div>
             </div>
           </div>
         </nav>
@@ -297,42 +279,8 @@ const ArticleDetail: React.FC = () => {
   }
 
   const articleUrl = `https://theageofgenz.com/article/${article.slug}`;
-  const categorySlug = article.category?.slug;
-  const categoryName = article.category?.name || 'News';
   const publishedDate = formatDate(article.published_at || article.created_at);
   const imageUrl = article.featured_image_url || article.featured_image || 'https://theageofgenz.com/og-image.jpg';
-  const encodedShareUrl = encodeURIComponent(articleUrl);
-  const encodedShareTitle = encodeURIComponent(article.title);
-  const shareLinks = [
-    {
-      name: 'Facebook',
-      href: `https://www.facebook.com/sharer/sharer.php?u=${encodedShareUrl}`,
-      icon: <Facebook size={20} />,
-      label: 'Facebook',
-    },
-    {
-      name: 'X',
-      href: `https://x.com/intent/tweet?url=${encodedShareUrl}&text=${encodedShareTitle}`,
-      icon: <XIcon width={20} height={20} />,
-      label: 'X (Twitter)',
-    },
-    {
-      name: 'Email',
-      href: `mailto:?subject=${encodedShareTitle}&body=${encodedShareTitle}%0A%0A${encodedShareUrl}`,
-      icon: <Mail size={20} />,
-      label: 'Email',
-    },
-  ];
-
-  const handleCopyShare = async () => {
-    try {
-      await navigator.clipboard.writeText(articleUrl);
-      setCopySuccess(true);
-      window.setTimeout(() => setCopySuccess(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy link', err);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -404,111 +352,120 @@ const ArticleDetail: React.FC = () => {
       {/* Breadcrumb Navigation */}
       <nav className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Link
-              to="/"
-              className="flex items-center gap-1.5 px-2 py-1 rounded-full hover:bg-orange-50 hover:text-orange-600 transition-colors"
-            >
-              <Home size={16} />
-              <span className="hidden sm:inline">Home</span>
+          <div className="flex items-center space-x-2 text-sm text-gray-600">
+            <Link to="/" className="hover:text-orange-500 transition-colors">Home</Link>
+            <span className="text-gray-400">›</span>
+            <Link to={`/${article.category?.slug}`} className="hover:text-orange-500 transition-colors">
+              {article.category?.name || 'Uncategorized'}
             </Link>
-            <svg className="h-4 w-4 text-gray-300" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path
-                fillRule="evenodd"
-                d="M7.293 4.293a1 1 0 011.414 0L13 8.586a2 2 0 010 2.828l-4.293 4.293a1 1 0 01-1.414-1.414L10.586 10 7.293 6.707a1 1 0 010-1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
-            {article.category?.slug && (
-              <>
-                <Link
-                  to={categorySlug ? `/${categorySlug}` : '#'}
-                  className="hidden xs:flex px-2 py-1 rounded-full hover:bg-orange-50 hover:text-orange-600 transition-colors"
-                >
-                  {categoryName}
-                </Link>
-                  <path
-                    fillRule="evenodd"
-                    d="M7.293 4.293a1 1 0 011.414 0L13 8.586a2 2 0 010 2.828l-4.293 4.293a1 1 0 01-1.414-1.414L10.586 10 7.293 6.707a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </>
-            )}
-            <span className="px-2 py-1 rounded-full font-semibold text-gray-800 bg-gray-100 truncate max-w-[45vw] sm:max-w-xs">
+            <span className="text-gray-400">›</span>
+            <span className="text-gray-900 truncate max-w-xs font-medium">
               {article.title}
             </span>
           </div>
         </div>
       </nav>
 
-      <div className="mx-auto max-w-5xl px-5 py-8 md:px-12 md:py-12 lg:px-16 lg:py-16">
-        <div className="space-y-12 xl:flex xl:gap-12 xl:space-y-0">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <div className="lg:flex lg:gap-12">
           {/* Main Article Content */}
-          <article className="xl:w-2/3">
-            <div className="bg-white rounded-2xl shadow-sm px-6 py-8 md:px-12 md:py-12 lg:px-14 lg:py-16">
+          <article className="lg:w-2/3">
+            <div className="bg-white rounded-xl shadow-sm p-4 md:p-8 lg:p-12">
               {/* Article Header */}
-              <header className="mb-12">
-                <div className="mb-6 text-sm md:text-base uppercase tracking-[0.18em] text-orange-600 font-semibold flex flex-wrap items-center gap-4">
-                  <Link
-                    to={categorySlug ? `/${categorySlug}` : '#'}
-                    className="hover:text-orange-500 transition-colors"
+              <header className="mb-8">
+                {/* Category Badge */}
+                <div className="mb-4 md:mb-6">
+                  <Link 
+                    to={`/${article.category?.slug}`}
+                    className="inline-flex items-center bg-orange-500 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium hover:bg-orange-600 transition-colors"
                   >
-                    {categoryName}
+                    {article.category?.name || 'Uncategorized'}
                   </Link>
-                  <span className="text-gray-400" aria-hidden="true">·</span>
-                  <span className="text-gray-500">{publishedDate}</span>
-                  <span className="text-gray-400" aria-hidden="true">·</span>
-                  <span className="text-gray-500">The Age of GenZ</span>
                 </div>
-
+                
                 {/* Article Title */}
-                <h1 className="article-title text-gray-900">
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4 leading-tight text-gray-900">
                   {article.title}
                 </h1>
-
+                
                 {/* Article Subtitle/Excerpt */}
                 {article.excerpt && (
-                  <p className="text-[1.375rem] md:text-[1.5rem] text-gray-600 leading-relaxed tracking-[0.005em] mb-12 max-w-3xl">
+                  <p className="text-base md:text-lg text-gray-600 mb-4 md:mb-6 leading-relaxed">
                     {article.excerpt}
                   </p>
                 )}
 
-                {/* Article meta */}
-                <div className="flex flex-col gap-2 text-sm text-gray-600">
-                  <div>
-                    <span className="font-semibold text-gray-900">{article.author?.name || 'The Age of GenZ'}</span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-4">
-                    <div className="flex items-center gap-1.5">
-                      <Calendar size={16} className="text-gray-400" />
-                      <span>{publishedDate}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <BookOpen size={16} className="text-gray-400" />
-                      <span>{estimatedReadTime} min read</span>
-                    </div>
-                    {article.view_count !== undefined && (
-                      <div className="flex items-center gap-1.5">
-                        <Eye size={16} className="text-gray-400" />
-                        <span>{article.view_count} views</span>
+                {/* ✅ FIXED: Clean, Professional Article Meta - Mobile Responsive */}
+                <div className="py-4 border-t border-b border-gray-200 bg-gray-50 rounded-lg px-4">
+                  {/* Desktop Layout */}
+                  <div className="hidden md:flex items-center justify-between">
+                    <div className="flex items-center space-x-6">
+                      <div className="flex items-center space-x-2">
+                        <User size={16} className="text-orange-500" />
+                        <span className="text-sm font-medium text-gray-900">
+                          {article.author?.name || 'The Age of GenZ'}
+                        </span>
                       </div>
-                    )}
+                      <div className="flex items-center space-x-2">
+                        <Calendar size={16} className="text-gray-500" />
+                        <span className="text-sm text-gray-600">{publishedDate}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-6">
+                      <div className="flex items-center space-x-2">
+                        <BookOpen size={16} className="text-gray-500" />
+                        <span className="text-sm text-gray-600">{estimatedReadTime} min read</span>
+                      </div>
+                      {article.view_count !== undefined && (
+                        <div className="flex items-center space-x-2">
+                          <Eye size={16} className="text-gray-500" />
+                          <span className="text-sm text-gray-600">{article.view_count} views</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Mobile Layout - Clean & Compact */}
+                  <div className="md:hidden space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <User size={16} className="text-orange-500" />
+                        <span className="text-sm font-medium text-gray-900">
+                          {article.author?.name || 'The Age of GenZ'}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <BookOpen size={16} className="text-gray-500" />
+                        <span className="text-sm text-gray-600">{estimatedReadTime} min</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-sm text-gray-600">
+                      <div className="flex items-center space-x-2">
+                        <Calendar size={16} className="text-gray-500" />
+                        <span>{publishedDate}</span>
+                      </div>
+                      {article.view_count !== undefined && (
+                        <div className="flex items-center space-x-2">
+                          <Eye size={16} className="text-gray-500" />
+                          <span>{article.view_count} views</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </header>
 
               {/* Featured Image */}
               {(article.featured_image_url || article.featured_image) && (
-                <div className="mb-6 md:mb-10 -mx-6 md:-mx-12 lg:-mx-14">
+                <div className="mb-6 md:mb-10">
                   <figure className="relative">
                     {!imageLoaded && (
-                      <div className="absolute inset-0 bg-gray-200 animate-pulse aspect-[16/10]"></div>
+                      <div className="absolute inset-0 bg-gray-200 rounded-lg md:rounded-xl animate-pulse aspect-[16/10]"></div>
                     )}
                     <img
                       src={imageUrl}
                       alt={article.title}
-                      className={`w-full aspect-[16/10] object-cover transition-opacity duration-500 ${
+                      className={`w-full aspect-[16/10] object-cover rounded-lg md:rounded-xl shadow-lg transition-opacity duration-500 ${
                         imageLoaded ? 'opacity-100' : 'opacity-0'
                       }`}
                       onLoad={() => setImageLoaded(true)}
@@ -522,52 +479,23 @@ const ArticleDetail: React.FC = () => {
                 </div>
               )}
 
-              <div className="-mx-6 md:-mx-12 lg:-mx-14 border-t border-b border-orange-200 bg-orange-50/60">
-                <div className="px-6 md:px-12 lg:px-14 py-6 flex flex-col items-center gap-5">
-                  <h4 className="text-xs md:text-sm font-semibold tracking-[0.2em] text-orange-600 uppercase">Share This Article</h4>
-                  <div className="flex flex-wrap justify-center gap-6 md:gap-8 text-orange-600">
-                    {shareLinks.map((share) => (
-                      <a
-                        key={share.name}
-                        href={share.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group flex min-w-[72px] flex-col items-center gap-2 text-center"
-                      >
-                        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm transition-transform duration-200 group-hover:scale-105 group-hover:shadow">
-                          {share.icon}
-                        </span>
-                        <span className="text-xs font-medium text-gray-600 group-hover:text-orange-600">{share.label}</span>
-                      </a>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={handleCopyShare}
-                      className="group flex min-w-[72px] flex-col items-center gap-2 text-center text-orange-600"
-                    >
-                      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm transition-transform duration-200 group-hover:scale-105 group-hover:shadow">
-                        <Link2 size={20} />
-                      </span>
-                      <span className="text-xs font-medium text-gray-600 group-hover:text-orange-600">Copy Link</span>
-                    </button>
-                  </div>
-                  {copySuccess && (
-                    <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-green-600 shadow-sm">
-                      <CheckCircle2 size={16} />
-                      <span>Link copied to clipboard</span>
-                    </div>
-                  )}
-                </div>
+              {/* ✅ FIXED: Article Content with Enhanced Mobile Spacing */}
+              <div className="max-w-none">
+                <div 
+                  className="prose prose-lg prose-article max-w-none article-content-container"
+                  style={{ 
+                    color: '#1f2937',
+                    maxWidth: 'none',
+                    fontSize: 'clamp(1rem, 2.5vw, 1.125rem)', // Responsive font size
+                    lineHeight: '1.7'
+                  }}
+                  dangerouslySetInnerHTML={formattedContent}
+                />
               </div>
-              {/* Article body */}
-              <div
-                className="article-content-container article-content"
-                dangerouslySetInnerHTML={formattedContent}
-              />
 
               {/* Tags */}
               {article.tags && article.tags.length > 0 && (
-                <div className="mt-16 pt-10 border-t border-gray-200">
+                <div className="mt-12 pt-8 border-t border-gray-200">
                   <div className="flex items-start flex-wrap gap-3">
                     <div className="flex items-center gap-2 mb-2">
                       <Tag size={18} className="text-gray-500" />
@@ -587,11 +515,20 @@ const ArticleDetail: React.FC = () => {
                 </div>
               )}
 
+              {/* Social Share */}
+              <div className="mt-10 pt-8 border-t border-gray-200">
+                <SocialShare
+                  url={articleUrl}
+                  title={article.title}
+                  description={article.excerpt || ''}
+                  hashtags={article.tags}
+                />
+              </div>
             </div>
           </article>
 
           {/* Enhanced Sidebar */}
-          <aside className="xl:w-1/3 xl:mt-0">
+          <aside className="lg:w-1/3 mt-12 lg:mt-0">
             <div className="sticky top-24 space-y-8">
               <DonationPlaceholder />
               
@@ -642,9 +579,3 @@ const ArticleDetail: React.FC = () => {
 };
 
 export default ArticleDetail;
-
-
-
-
-
-
