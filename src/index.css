@@ -19,7 +19,7 @@
   --font-serif: 'Playfair Display', 'Georgia', 'Merriweather', serif;
   --font-sans: 'Inter', 'SF Pro Display', var(--font-system);
   --font-mono: 'Fira Code', 'Consolas', 'SFMono-Regular', monospace;
-  --font-reading: 'Merriweather', 'Georgia', 'Times New Roman', serif;
+  --font-reading: 'SF Pro Text', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
 
   --paragraph-spacing: 1.75rem;
   --heading-spacing-top: 3rem;
@@ -102,9 +102,9 @@
 
     .article-title {
       font-family: var(--font-serif);
-      font-size: clamp(28px, 5vw, 48px);
-      font-weight: 700;
-      letter-spacing: -0.01em;
+      font-size: clamp(30px, 5vw, 54px);
+      font-weight: 800;
+      letter-spacing: -0.02em;
       color: var(--text-primary);
       line-height: 1.1;
       margin-bottom: 2rem;
@@ -131,51 +131,54 @@
   .article-content,
     .prose-article {
       font-family: var(--font-reading);
-      color: var(--text-primary);
-      font-size: 1.125rem;
-      line-height: 1.8;
-      letter-spacing: 0.01em;
+      color: #1f2937;
+      font-size: 1.25rem;
+      line-height: 1.9;
+      letter-spacing: 0.005em;
     }
 
   .article-content p,
     .prose-article p {
-      margin-bottom: 2rem;
+      margin-bottom: 2em;
+      color: #1f2937;
     }
 
   .article-content h2,
     .prose-article h2 {
       font-family: var(--font-serif);
-      font-size: clamp(1.75rem, 3vw, 2.4rem);
+      font-size: clamp(1.9rem, 3vw, 2.6rem);
       font-weight: 700;
-      margin-top: 3.5rem;
-      margin-bottom: 1.5rem;
+      margin-top: 3.75rem;
+      margin-bottom: 1.75rem;
       letter-spacing: -0.015em;
       line-height: 1.25;
+      color: #18181b;
     }
 
   .article-content h3,
     .prose-article h3 {
       font-family: var(--font-serif);
-      font-size: clamp(1.45rem, 2.5vw, 1.75rem);
+      font-size: clamp(1.55rem, 2.6vw, 1.9rem);
       font-weight: 600;
-      margin-top: 2.75rem;
-      margin-bottom: 1.25rem;
+      margin-top: 3rem;
+      margin-bottom: 1.35rem;
       letter-spacing: -0.01em;
+      color: #1f2937;
     }
 
   .article-content ul,
   .article-content ol,
     .prose-article ul,
     .prose-article ol {
-      margin: 1.75rem 0;
-      padding-inline-start: 1.75rem;
-      color: var(--text-secondary);
+      margin: 2rem 0;
+      padding-inline-start: 2rem;
+      color: #1f2937;
     }
 
   .article-content li,
     .prose-article li {
-      margin-bottom: 0.65rem;
-      line-height: 1.6;
+      margin-bottom: 0.75rem;
+      line-height: 1.65;
     }
 
   .article-byline {
@@ -203,14 +206,14 @@
       max-width: 42rem;
       margin-inline: auto;
       font-family: var(--font-reading);
-      font-size: 1.125rem;
-      line-height: 1.8;
-      letter-spacing: 0.01em;
-      color: var(--text-primary);
+      font-size: 1.25rem;
+      line-height: 1.9;
+      letter-spacing: 0.005em;
+      color: #1f2937;
     }
 
     .article-content-container p {
-      margin-bottom: 2rem;
+      margin-bottom: 2em;
     }
 
     .article-content-container h2,
@@ -254,20 +257,41 @@
     }
 
     .article-content-container blockquote {
-      border-left: 4px solid var(--accent-orange);
-      padding: 1.5rem 1.75rem;
-      margin: 2.75rem 0;
-      font-family: var(--font-reading);
-      font-size: 1.2rem;
-      line-height: 1.6;
-      background-color: #fff7ed;
-      color: var(--text-secondary);
+      border-left: 5px solid var(--accent-orange);
+      padding: 1.75rem 2rem;
+      margin: 3rem 0;
+      font-family: var(--font-serif);
+      font-size: 1.35rem;
+      line-height: 1.65;
+      background: linear-gradient(135deg, #fff7ed 0%, #fff4e6 100%);
+      color: #1f2937;
+      position: relative;
+    }
+
+    .article-content-container blockquote::before,
+    .article-content-container blockquote::after {
+      position: absolute;
+      font-family: var(--font-serif);
+      font-size: 3.5rem;
+      color: rgba(255, 165, 0, 0.35);
+    }
+
+    .article-content-container blockquote::before {
+      content: '“';
+      top: -1.25rem;
+      left: 1rem;
+    }
+
+    .article-content-container blockquote::after {
+      content: '”';
+      bottom: -2rem;
+      right: 1.75rem;
     }
 
     .article-content-container blockquote cite {
       display: block;
-      margin-top: 0.75rem;
-      font-size: 0.9rem;
+      margin-top: 1rem;
+      font-size: 0.95rem;
       font-style: normal;
       color: #6b7280;
     }
@@ -278,7 +302,7 @@
     }
 
     .article-content-container figcaption {
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       color: #6b7280;
       margin-top: 0.75rem;
       font-style: italic;
@@ -288,31 +312,95 @@
       font-family: var(--font-mono);
       background: #111827;
       color: #f9fafb;
-      padding: 1.5rem;
-      border-radius: 0.75rem;
-      margin: 2.5rem 0;
+      padding: 1.75rem;
+      border-radius: 0.9rem;
+      margin: 2.75rem 0;
       overflow-x: auto;
-      font-size: 0.95rem;
-      line-height: 1.6;
+      font-size: 1rem;
+      line-height: 1.7;
     }
 
     .article-content-container code {
       font-family: var(--font-mono);
     }
 
+    .article-content-container a {
+      color: var(--accent-orange);
+      text-decoration-line: underline;
+      text-decoration-thickness: 2px;
+      text-underline-offset: 6px;
+      font-weight: 600;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .article-content-container a:hover {
+      background-color: rgba(249, 115, 22, 0.12);
+      color: var(--accent-orange-hover);
+      box-shadow: inset 0 -6px 0 rgba(249, 115, 22, 0.15);
+    }
+
+    .article-content-container strong {
+      font-weight: 700;
+      background: linear-gradient(135deg, rgba(255, 237, 213, 0.9), rgba(255, 229, 204, 0.95));
+      padding: 0 0.2em;
+      border-radius: 0.35em;
+      color: #1f2937;
+    }
+
+    .article-content-container em {
+      font-style: italic;
+      background: linear-gradient(135deg, rgba(255, 237, 213, 0.5), rgba(255, 229, 204, 0.6));
+      padding: 0 0.15em;
+      border-radius: 0.35em;
+    }
+
     .article-pullquote,
     .pullquote {
       font-family: var(--font-serif);
-      font-size: 1.75rem;
+      font-size: 1.95rem;
       line-height: 1.45;
       text-align: center;
       max-width: 36rem;
-      margin: 3rem auto;
-      padding: 2rem 1.75rem;
-      border-radius: 1rem;
-      border-block: 3px solid var(--accent-orange);
-      background: #fff7ed;
-      color: var(--text-primary);
+      margin: 3.25rem auto;
+      padding: 2.25rem 2rem;
+      border-radius: 1.25rem;
+      border: 2px solid rgba(249, 115, 22, 0.35);
+      background: radial-gradient(circle at top, rgba(255, 247, 237, 0.9), rgba(255, 255, 255, 0.95));
+      color: #1f2937;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .article-pullquote::before,
+    .article-pullquote::after,
+    .pullquote::before,
+    .pullquote::after {
+      content: '“';
+      position: absolute;
+      font-family: var(--font-serif);
+      font-size: 5rem;
+      color: rgba(249, 115, 22, 0.18);
+    }
+
+    .article-pullquote::before,
+    .pullquote::before {
+      top: -1.5rem;
+      left: 1rem;
+    }
+
+    .article-pullquote::after,
+    .pullquote::after {
+      content: '”';
+      bottom: -2.5rem;
+      right: 1.5rem;
+    }
+
+    .article-sentence-highlight {
+      background: linear-gradient(90deg, rgba(255, 237, 213, 0.8), rgba(255, 214, 165, 0.6));
+      padding: 0 0.25em;
+      border-radius: 0.4em;
+      font-weight: 600;
+      box-shadow: inset 0 -8px 0 rgba(249, 115, 22, 0.15);
     }
 
     .professional-card {

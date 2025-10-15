@@ -61,6 +61,19 @@ const ArticleDetail: React.FC = () => {
       return { __html: '<p class="text-gray-600">No content available.</p>' };
     }
 
+    const highlightImportantSegments = (markup: string) => {
+      const wrapText = (text: string) =>
+        text.replace(/([^<]+!+)/g, (segment) => {
+          if (segment.includes('article-sentence-highlight')) return segment;
+          return `<span class="article-sentence-highlight">${segment}</span>`;
+        });
+
+      return markup.replace(/(<p[^>]*>)([\s\S]*?)(<\/p>)/gi, (_match, open, inner, close) => {
+        if (!inner.includes('!')) return `${open}${inner}${close}`;
+        return `${open}${wrapText(inner)}${close}`;
+      });
+    };
+
     const transformPullQuotes = (markup: string) =>
       markup.replace(/<p([^>]*)>["']([^"']{50,200})["']<\/p>/gi, (_match, attrs, quote) => {
         if (/class\s*=/.test(attrs || '') && /article-pullquote/.test(attrs || '')) {
@@ -84,6 +97,7 @@ const ArticleDetail: React.FC = () => {
       content = content.replace(/<p>\s*<\/p>/gi, '');
       content = transformPullQuotes(content);
       content = ensureLazyImages(content);
+      content = highlightImportantSegments(content);
       return { __html: content };
     }
 
@@ -113,7 +127,7 @@ const ArticleDetail: React.FC = () => {
       })
       .join('');
 
-    return { __html: html };
+    return { __html: highlightImportantSegments(html) };
   }, [article?.content]);
 
   // Reading progress tracking
@@ -406,7 +420,7 @@ const ArticleDetail: React.FC = () => {
             <div className="bg-white rounded-2xl shadow-sm px-6 py-8 md:px-12 md:py-12 lg:px-14 lg:py-16">
               {/* Article Header */}
               <header className="mb-12">
-                <div className="mb-5 text-xs md:text-sm uppercase tracking-[0.28em] text-orange-600 font-semibold flex flex-wrap items-center gap-3">
+                <div className="mb-6 text-sm md:text-base uppercase tracking-[0.18em] text-orange-600 font-semibold flex flex-wrap items-center gap-4">
                   <Link
                     to={`/${article.category?.slug}`}
                     className="hover:text-orange-500 transition-colors"
@@ -426,7 +440,7 @@ const ArticleDetail: React.FC = () => {
                 
                 {/* Article Subtitle/Excerpt */}
                 {article.excerpt && (
-                  <p className="text-lg md:text-xl text-gray-600 leading-relaxed tracking-[0.01em] mb-10 max-w-2xl">
+                  <p className="text-[1.375rem] md:text-[1.5rem] text-gray-600 leading-relaxed tracking-[0.005em] mb-12 max-w-3xl">
                     {article.excerpt}
                   </p>
                 )}
