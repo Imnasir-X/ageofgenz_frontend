@@ -1,9 +1,9 @@
-﻿import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async'; 
 import { getArticleBySlug, getArticles } from '../utils/api';
 import DonationPlaceholder from '../components/DonationPlaceholder';
-import { Eye, User, Calendar, Tag, BookOpen, Facebook, Mail, Link2 } from 'lucide-react';
+import { Eye, User, Calendar, Tag, BookOpen, Facebook, Mail, Link2, Home, CheckCircle2 } from 'lucide-react';
 import { Article } from '../types';
 
 // Cache for articles to avoid refetching
@@ -220,11 +220,11 @@ const ArticleDetail: React.FC = () => {
         <nav className="bg-white border-b border-gray-200">
           <div className="container mx-auto px-4 py-3">
             <div className="flex items-center space-x-2 text-sm">
-            <span className="text-gray-400">›</span>
-            <span className="text-gray-400">›</span>
+            <span className="text-gray-400">·</span>
+            <span className="text-gray-400">·</span>
               <div className="w-20 h-4 bg-gray-200 rounded animate-pulse"></div>
-            <span className="text-gray-400">›</span>
-            <span className="text-gray-400">›</span>
+            <span className="text-gray-400">·</span>
+            <span className="text-gray-400">·</span>
             </div>
           </div>
         </nav>
@@ -297,6 +297,8 @@ const ArticleDetail: React.FC = () => {
   }
 
   const articleUrl = `https://theageofgenz.com/article/${article.slug}`;
+  const categorySlug = article.category?.slug;
+  const categoryName = article.category?.name || 'News';
   const publishedDate = formatDate(article.published_at || article.created_at);
   const imageUrl = article.featured_image_url || article.featured_image || 'https://theageofgenz.com/og-image.jpg';
   const encodedShareUrl = encodeURIComponent(articleUrl);
@@ -305,17 +307,20 @@ const ArticleDetail: React.FC = () => {
     {
       name: 'Facebook',
       href: `https://www.facebook.com/sharer/sharer.php?u=${encodedShareUrl}`,
-      icon: <Facebook size={24} />,
+      icon: <Facebook size={20} />,
+      label: 'Facebook',
     },
     {
       name: 'X',
       href: `https://x.com/intent/tweet?url=${encodedShareUrl}&text=${encodedShareTitle}`,
-      icon: <XIcon />,
+      icon: <XIcon width={20} height={20} />,
+      label: 'X (Twitter)',
     },
     {
       name: 'Email',
       href: `mailto:?subject=${encodedShareTitle}&body=${encodedShareTitle}%0A%0A${encodedShareUrl}`,
-      icon: <Mail size={24} />,
+      icon: <Mail size={20} />,
+      label: 'Email',
     },
   ];
 
@@ -399,14 +404,38 @@ const ArticleDetail: React.FC = () => {
       {/* Breadcrumb Navigation */}
       <nav className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <Link to="/" className="hover:text-orange-500 transition-colors">Home</Link>
-            <span className="text-gray-400">›</span>
-            <Link to={`/${article.category?.slug}`} className="hover:text-orange-500 transition-colors">
-              {article.category?.name || 'Uncategorized'}
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <Link
+              to="/"
+              className="flex items-center gap-1.5 px-2 py-1 rounded-full hover:bg-orange-50 hover:text-orange-600 transition-colors"
+            >
+              <Home size={16} />
+              <span className="hidden sm:inline">Home</span>
             </Link>
-            <span className="text-gray-400">›</span>
-            <span className="text-gray-900 truncate max-w-xs font-medium">
+            <svg className="h-4 w-4 text-gray-300" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path
+                fillRule="evenodd"
+                d="M7.293 4.293a1 1 0 011.414 0L13 8.586a2 2 0 010 2.828l-4.293 4.293a1 1 0 01-1.414-1.414L10.586 10 7.293 6.707a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+            {article.category?.slug && (
+              <>
+                <Link
+                  to={categorySlug ? `/${categorySlug}` : '#'}
+                  className="hidden xs:flex px-2 py-1 rounded-full hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                >
+                  {categoryName}
+                </Link>
+                  <path
+                    fillRule="evenodd"
+                    d="M7.293 4.293a1 1 0 011.414 0L13 8.586a2 2 0 010 2.828l-4.293 4.293a1 1 0 01-1.414-1.414L10.586 10 7.293 6.707a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </>
+            )}
+            <span className="px-2 py-1 rounded-full font-semibold text-gray-800 bg-gray-100 truncate max-w-[45vw] sm:max-w-xs">
               {article.title}
             </span>
           </div>
@@ -422,22 +451,22 @@ const ArticleDetail: React.FC = () => {
               <header className="mb-12">
                 <div className="mb-6 text-sm md:text-base uppercase tracking-[0.18em] text-orange-600 font-semibold flex flex-wrap items-center gap-4">
                   <Link
-                    to={`/${article.category?.slug}`}
+                    to={categorySlug ? `/${categorySlug}` : '#'}
                     className="hover:text-orange-500 transition-colors"
                   >
-                    {article.category?.name || 'News'}
+                    {categoryName}
                   </Link>
-                  <span className="text-gray-400" aria-hidden="true">{'·'}</span>
+                  <span className="text-gray-400" aria-hidden="true">·</span>
                   <span className="text-gray-500">{publishedDate}</span>
-                  <span className="text-gray-400" aria-hidden="true">{'·'}</span>
+                  <span className="text-gray-400" aria-hidden="true">·</span>
                   <span className="text-gray-500">The Age of GenZ</span>
                 </div>
-                
+
                 {/* Article Title */}
                 <h1 className="article-title text-gray-900">
                   {article.title}
                 </h1>
-                
+
                 {/* Article Subtitle/Excerpt */}
                 {article.excerpt && (
                   <p className="text-[1.375rem] md:text-[1.5rem] text-gray-600 leading-relaxed tracking-[0.005em] mb-12 max-w-3xl">
@@ -493,34 +522,43 @@ const ArticleDetail: React.FC = () => {
                 </div>
               )}
 
-              <div className="-mx-6 md:-mx-12 lg:-mx-14 border-t border-b border-orange-200 bg-white/90">
-                <div className="px-6 md:px-12 lg:px-14 py-4 flex items-center justify-between md:justify-around text-orange-500">
-                  {shareLinks.map((share) => (
-                    <a
-                      key={share.name}
-                      href={share.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex flex-col items-center gap-2 hover:text-orange-600 transition-colors"
+              <div className="-mx-6 md:-mx-12 lg:-mx-14 border-t border-b border-orange-200 bg-orange-50/60">
+                <div className="px-6 md:px-12 lg:px-14 py-6 flex flex-col items-center gap-5">
+                  <h4 className="text-xs md:text-sm font-semibold tracking-[0.2em] text-orange-600 uppercase">Share This Article</h4>
+                  <div className="flex flex-wrap justify-center gap-6 md:gap-8 text-orange-600">
+                    {shareLinks.map((share) => (
+                      <a
+                        key={share.name}
+                        href={share.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex min-w-[72px] flex-col items-center gap-2 text-center"
+                      >
+                        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm transition-transform duration-200 group-hover:scale-105 group-hover:shadow">
+                          {share.icon}
+                        </span>
+                        <span className="text-xs font-medium text-gray-600 group-hover:text-orange-600">{share.label}</span>
+                      </a>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={handleCopyShare}
+                      className="group flex min-w-[72px] flex-col items-center gap-2 text-center text-orange-600"
                     >
-                      {share.icon}
-                      <span className="sr-only">Share on {share.name}</span>
-                    </a>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={handleCopyShare}
-                    className="flex flex-col items-center gap-2 hover:text-orange-600 transition-colors"
-                  >
-                    <Link2 size={24} />
-                    <span className="sr-only">Copy article link</span>
-                  </button>
+                      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm transition-transform duration-200 group-hover:scale-105 group-hover:shadow">
+                        <Link2 size={20} />
+                      </span>
+                      <span className="text-xs font-medium text-gray-600 group-hover:text-orange-600">Copy Link</span>
+                    </button>
+                  </div>
+                  {copySuccess && (
+                    <div className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-green-600 shadow-sm">
+                      <CheckCircle2 size={16} />
+                      <span>Link copied to clipboard</span>
+                    </div>
+                  )}
                 </div>
-                {copySuccess && (
-                  <p className="px-6 md:px-12 lg:px-14 pb-3 text-center text-xs text-gray-500">Link copied</p>
-                )}
               </div>
-
               {/* Article body */}
               <div
                 className="article-content-container article-content"
@@ -604,4 +642,9 @@ const ArticleDetail: React.FC = () => {
 };
 
 export default ArticleDetail;
+
+
+
+
+
 
