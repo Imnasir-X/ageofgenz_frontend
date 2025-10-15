@@ -397,69 +397,33 @@ const ArticleDetail: React.FC = () => {
                 )}
 
                 {/* Article meta */}
-                <div className="px-5 py-5 border border-gray-200 bg-gray-50/80 rounded-xl">
-                  {/* Desktop Layout */}
-                  <div className="hidden md:flex items-center justify-between">
-                    <div className="flex items-center space-x-6">
-                      <div className="flex items-center space-x-2">
-                        <User size={16} className="text-orange-500" />
-                        <span className="text-sm font-medium text-gray-900">
-                          {article.author?.name || 'The Age of GenZ'}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Calendar size={16} className="text-gray-500" />
-                        <span className="text-sm text-gray-600">{publishedDate}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-6">
-                      <div className="flex items-center space-x-2">
-                        <BookOpen size={16} className="text-gray-500" />
-                        <span className="text-sm text-gray-600">{estimatedReadTime} min read</span>
-                      </div>
-                      {article.view_count !== undefined && (
-                        <div className="flex items-center space-x-2">
-                          <Eye size={16} className="text-gray-500" />
-                          <span className="text-sm text-gray-600">{article.view_count} views</span>
-                        </div>
-                      )}
-                    </div>
+                <div className="flex flex-col gap-2 text-sm text-gray-600">
+                  <div>
+                    <span className="font-semibold text-gray-900">{article.author?.name || 'The Age of GenZ'}</span>
                   </div>
-                  
-                  {/* Mobile Layout - Clean & Compact */}
-                  <div className="md:hidden space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <User size={16} className="text-orange-500" />
-                        <span className="text-sm font-medium text-gray-900">
-                          {article.author?.name || 'The Age of GenZ'}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <BookOpen size={16} className="text-gray-500" />
-                        <span className="text-sm text-gray-600">{estimatedReadTime} min</span>
-                      </div>
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-1.5">
+                      <Calendar size={16} className="text-gray-400" />
+                      <span>{publishedDate}</span>
                     </div>
-                    <div className="flex items-center justify-between text-sm text-gray-600">
-                      <div className="flex items-center space-x-2">
-                        <Calendar size={16} className="text-gray-500" />
-                        <span>{publishedDate}</span>
-                      </div>
-                      {article.view_count !== undefined && (
-                        <div className="flex items-center space-x-2">
-                          <Eye size={16} className="text-gray-500" />
-                          <span>{article.view_count} views</span>
-                        </div>
-                      )}
+                    <div className="flex items-center gap-1.5">
+                      <BookOpen size={16} className="text-gray-400" />
+                      <span>{estimatedReadTime} min read</span>
                     </div>
+                    {article.view_count !== undefined && (
+                      <div className="flex items-center gap-1.5">
+                        <Eye size={16} className="text-gray-400" />
+                        <span>{article.view_count} views</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </header>
 
               {/* Featured Image */}
               {(article.featured_image_url || article.featured_image) && (
-                <div className="mb-6 md:mb-10">
-                  <figure className="relative rounded-xl overflow-hidden border border-gray-200 shadow-md">
+                <div className="mb-6 md:mb-10 -mx-6 md:-mx-12 lg:-mx-14">
+                  <figure className="relative">
                     {!imageLoaded && (
                       <div className="absolute inset-0 bg-gray-200 animate-pulse aspect-[16/10]"></div>
                     )}
