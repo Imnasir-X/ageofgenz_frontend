@@ -341,7 +341,7 @@ title="Subscribe to our YouTube channel"
 
 <div className="md:col-span-1">
 
-<h3 className="text-lg font-bold mb-4 text-white flex items-center">
+  <h3 className="text-lg font-bold mb-4 !text-white flex items-center">
 
 <Sparkles className="w-4 h-4 mr-2 text-orange-500" />
 
@@ -349,7 +349,7 @@ Quick Links
 
 </h3>
 
-<div className="grid grid-cols-2 gap-2 text-sm">
+  <div className="flex flex-col space-y-2 text-sm">
 
 {quickLinks.map(link => (
 
@@ -359,7 +359,7 @@ key={link.to}
 
 to={link.to}
 
-  className="relative text-gray-200 hover:text-orange-500 transition-colors duration-200 flex items-center"
+  className="relative !text-white hover:text-orange-400 transition-colors duration-200 flex items-center"
 
 >
 
@@ -379,7 +379,7 @@ to={link.to}
 
 <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-xl p-6 border border-gray-700 backdrop-blur-sm">
 
-<h3 className="text-lg font-bold mb-3 text-white flex items-center">
+  <h3 className="text-lg font-bold mb-3 !text-white flex items-center">
 
 <Sparkles className="w-5 h-5 text-orange-500 mr-3" />
 
@@ -389,7 +389,7 @@ Stay Informed
 
 <div className="mb-4">
 
-<p className="text-gray-200 text-sm mb-2 flex items-center">
+<p className="text-sm !text-white mb-2 flex items-center">
 
 <Shield className="w-4 h-4 mr-2 text-blue-500" />
 
@@ -397,7 +397,7 @@ Join <span className="text-orange-500 font-bold mx-1">25,000+</span> informed re
 
 </p>
 
-<div className="flex items-center text-xs text-gray-300 space-x-4">
+<div className="flex items-center text-xs text-white/80 space-x-4">
 
 <span className="flex items-center">
 
