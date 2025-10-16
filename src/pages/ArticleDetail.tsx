@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async'; 
 import { getArticleBySlug, getArticles } from '../utils/api';
 import DonationPlaceholder from '../components/DonationPlaceholder';
-import { Eye, User, Calendar, Tag, BookOpen, Facebook, Mail, Link2, Linkedin, MessageCircle } from 'lucide-react';
+import { Eye, Calendar, Tag, BookOpen, Facebook, Mail, Link2, Linkedin, MessageCircle } from 'lucide-react';
 import { Article } from '../types';
 
 // Cache for articles to avoid refetching
@@ -64,6 +64,38 @@ const ArticleDetail: React.FC = () => {
     const applyTextHighlights = (markup: string) =>
       markup.replace(/==([\s\S]+?)==/g, (_match, text) => `<mark>${text.trim()}</mark>`);
 
+    const applyStatHighlights = (markup: string) =>
+      markup.replace(/%%([\s\S]+?)%%/g, (_match, text) => `<span class="article-stat-highlight">${text.trim()}</span>`);
+
+    const enhanceInlineMarkup = (markup: string) => applyTextHighlights(applyStatHighlights(markup));
+
+    const createInfoboxMarkup = (variant: 'info' | 'alert', body: string) => {
+      const icon = variant === 'alert' ? '&#9888;' : '&#9432;';
+      const formattedBody = enhanceInlineMarkup(body.trim());
+      const wrappedBody = /<(p|ul|ol|div|h[1-6])/i.test(formattedBody) ? formattedBody : `<p>${formattedBody}</p>`;
+      return `<div class="article-infobox article-infobox--${variant}"><span class="article-infobox__icon" aria-hidden="true">${icon}</span><div class="article-infobox__content">${wrappedBody}</div></div>`;
+    };
+
+    const transformInfoBoxes = (markup: string) =>
+      markup
+        .replace(/<p>\s*\[(info|note)\]\s*(.*?)<\/p>/gi, (_match, _type, body) => createInfoboxMarkup('info', body))
+        .replace(/<p>\s*\[(alert|warning|important)\]\s*(.*?)<\/p>/gi, (_match, _type, body) => createInfoboxMarkup('alert', body));
+
+    const transformKeyTakeaways = (markup: string) => {
+      let updatedMarkup = markup;
+      const markerPattern = /<p>\s*\[\[key-takeaways\]\]\s*<\/p>([\s\S]*?)(<p>\s*\[\[\/key-takeaways\]\]\s*<\/p>)/i;
+
+      let match = markerPattern.exec(updatedMarkup);
+      while (match) {
+        const innerContent = enhanceInlineMarkup(match[1].trim());
+        const sectionHTML = `<section class="article-key-takeaways"><div class="article-key-takeaways__label">Key Takeaways</div><div class="article-key-takeaways__body">${innerContent}</div></section>`;
+        updatedMarkup = updatedMarkup.replace(match[0], sectionHTML);
+        match = markerPattern.exec(updatedMarkup);
+      }
+
+      return updatedMarkup;
+    };
+
     const transformPullQuotes = (markup: string) =>
       markup.replace(/<p([^>]*)>["']([^"']{50,200})["']<\/p>/gi, (_match, attrs, quote) => {
         if (/class\s*=/.test(attrs || '') && /article-pullquote/.test(attrs || '')) {
@@ -87,7 +119,9 @@ const ArticleDetail: React.FC = () => {
       content = content.replace(/<p>\s*<\/p>/gi, '');
       content = transformPullQuotes(content);
       content = ensureLazyImages(content);
-      content = applyTextHighlights(content);
+      content = transformInfoBoxes(content);
+      content = transformKeyTakeaways(content);
+      content = enhanceInlineMarkup(content);
       return { __html: content };
     }
 
@@ -96,28 +130,85 @@ const ArticleDetail: React.FC = () => {
       .map((paragraph) => paragraph.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim())
       .filter((paragraph) => paragraph.length > 0);
 
-    const html = paragraphs
-      .map((paragraph) => {
-        if ((paragraph.startsWith('"') && paragraph.endsWith('"')) || (paragraph.startsWith("'") && paragraph.endsWith("'"))) {
-          const text = paragraph.slice(1, -1);
-          if (text.length >= 50 && text.length <= 200) {
-            return `<div class="article-pullquote">${applyTextHighlights(text)}</div>`;
-          }
+    const htmlPieces: string[] = [];
+    let collectingTakeaways = false;
+    const takeawayItems: string[] = [];
+
+    const pushTakeawaySection = () => {
+      if (takeawayItems.length > 0) {
+        htmlPieces.push(
+          `<section class="article-key-takeaways"><div class="article-key-takeaways__label">Key Takeaways</div><ul class="article-key-takeaways__list">${takeawayItems.join(
+            ''
+          )}</ul></section>`
+        );
+        takeawayItems.length = 0;
+      }
+      collectingTakeaways = false;
+    };
+
+    paragraphs.forEach((paragraph) => {
+      const normalised = paragraph.replace(/\s+/g, ' ').trim();
+      if (!normalised.length) {
+        return;
+      }
+
+      if (/^\[\[key-takeaways\]\]/i.test(normalised)) {
+        collectingTakeaways = true;
+        return;
+      }
+
+      if (/^\[\[\/key-takeaways\]\]/i.test(normalised)) {
+        pushTakeawaySection();
+        return;
+      }
+
+      if (collectingTakeaways) {
+        const item = normalised.replace(/^[*-]\s*/, '');
+        takeawayItems.push(`<li>${enhanceInlineMarkup(item)}</li>`);
+        return;
+      }
+
+      if (/^\[(info|note)\]/i.test(normalised)) {
+        const body = normalised.replace(/^\[(info|note)\]\s*/i, '');
+        htmlPieces.push(createInfoboxMarkup('info', body));
+        return;
+      }
+
+      if (/^\[(alert|warning|important)\]/i.test(normalised)) {
+        const body = normalised.replace(/^\[(alert|warning|important)\]\s*/i, '');
+        htmlPieces.push(createInfoboxMarkup('alert', body));
+        return;
+      }
+
+      if (
+        (normalised.startsWith('"') && normalised.endsWith('"')) ||
+        (normalised.startsWith("'") && normalised.endsWith("'"))
+      ) {
+        const text = normalised.slice(1, -1);
+        if (text.length >= 50 && text.length <= 200) {
+          htmlPieces.push(`<div class="article-pullquote">${enhanceInlineMarkup(text)}</div>`);
+          return;
         }
+      }
 
-        if (paragraph.startsWith('> ')) {
-          return `<blockquote>${applyTextHighlights(paragraph.slice(2))}</blockquote>`;
-        }
+      if (normalised.startsWith('> ')) {
+        htmlPieces.push(`<blockquote>${enhanceInlineMarkup(normalised.slice(2))}</blockquote>`);
+        return;
+      }
 
-        if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
-          return `<h3>${applyTextHighlights(paragraph.slice(2, -2))}</h3>`;
-        }
+      if (normalised.startsWith('**') && normalised.endsWith('**')) {
+        htmlPieces.push(`<h3>${enhanceInlineMarkup(normalised.slice(2, -2))}</h3>`);
+        return;
+      }
 
-        return `<p>${applyTextHighlights(paragraph)}</p>`;
-      })
-      .join('');
+      htmlPieces.push(`<p>${enhanceInlineMarkup(normalised)}</p>`);
+    });
 
-    return { __html: html };
+    if (collectingTakeaways) {
+      pushTakeawaySection();
+    }
+
+    return { __html: htmlPieces.join('') };
   }, [article?.content]);
 
   // Reading progress tracking
