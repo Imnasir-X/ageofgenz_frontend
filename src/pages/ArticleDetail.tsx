@@ -461,7 +461,7 @@ const ArticleDetail: React.FC = () => {
 
               {/* Featured Image */}
               {(article.featured_image_url || article.featured_image) && (
-                <div className="mb-0 md:mb-2 -mx-6 md:-mx-12 lg:-mx-14">
+                <div className="-mx-6 md:-mx-12 lg:-mx-14">
                   <figure className="relative">
                     {!imageLoaded && (
                       <div className="absolute inset-0 bg-gray-200 animate-pulse aspect-[16/10]"></div>
