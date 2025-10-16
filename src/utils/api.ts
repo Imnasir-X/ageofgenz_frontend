@@ -339,10 +339,10 @@ export const getTrendingArticles = async () => {
   }
 };
 
-export const getArticlesBySearch = async (query: string) => {
+export const getArticlesBySearch = async (query: string, signal?: AbortSignal) => {
   console.log('ðŸ” Searching articles for:', query);
   const response = await retryRequest<any>(() =>
-    api.get(`/api/articles/?search=${encodeURIComponent(query)}`)
+    api.get(`/api/articles/?search=${encodeURIComponent(query)}`, { signal })
   );
   
   let results = [];
