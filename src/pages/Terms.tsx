@@ -1,18 +1,37 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import { FileText, ShieldCheck, Gavel, Scale, HelpCircle, ExternalLink, ArrowUpRight, MessageCircle, Users } from 'lucide-react';
+
+const sectionNav = [
+  { id: 'agreement', title: 'Agreement and Acceptance' },
+  { id: 'service', title: 'Description of Service' },
+  { id: 'accounts', title: 'User Accounts' },
+  { id: 'content', title: 'Content Rights' },
+  { id: 'usage', title: 'Acceptable Use' },
+  { id: 'subscriptions', title: 'Subscriptions & Payments' },
+  { id: 'intellectual', title: 'Intellectual Property' },
+  { id: 'third-party', title: 'Third-Party Services' },
+  { id: 'disclaimer', title: 'Disclaimers' },
+  { id: 'liability', title: 'Liability & Indemnity' },
+  { id: 'general', title: 'General Provisions' },
+];
 
 const Terms: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div id="terms-top" className="min-h-screen bg-gray-50 py-12">
       <Helmet>
         <title>Terms of Service - The Age Of GenZ | User Agreement & Legal Terms</title>
         <meta name="description" content="The Age Of GenZ Terms of Service. Legal agreement governing use of our news platform, content policies, and user rights and responsibilities." />
         <meta name="keywords" content="terms of service, user agreement, legal terms, The Age Of GenZ terms, news organization legal" />
       </Helmet>
 
-      <div className="container mx-auto px-4 max-w-5xl">
-        <section className="mb-8 text-center">
+      <div className="container mx-auto px-4 max-w-6xl">
+        <section className="mb-10 text-center bg-white/70 backdrop-blur rounded-2xl shadow-sm border border-gray-100 p-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-700 rounded-full text-sm font-medium mb-4">
+            <ShieldCheck className="w-4 h-4" />
+            Legal Framework
+          </div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
             Terms of Service
           </h1>
@@ -22,12 +41,80 @@ const Terms: React.FC = () => {
           <p className="text-gray-500 text-base">
             <strong>Last Updated:</strong> January 15, 2025 | <strong>Effective Date:</strong> January 15, 2025
           </p>
-          <div className="w-24 h-1 bg-orange-500 mx-auto rounded mt-4"></div>
+          <div className="w-24 h-1 bg-orange-500 mx-auto rounded mt-6"></div>
+
+          <div className="mt-8 grid gap-6 md:grid-cols-3 text-left">
+            <div className="p-4 rounded-xl border border-gray-200 bg-white shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-orange-500" />
+                What this covers
+              </h3>
+              <p className="text-sm text-gray-600">
+                Rules for using our content, services, community spaces, and subscription products.
+              </p>
+            </div>
+            <div className="p-4 rounded-xl border border-gray-200 bg-white shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-orange-500" />
+                Your responsibilities
+              </h3>
+              <p className="text-sm text-gray-600">
+                Keep your account secure, respect intellectual property, and follow fair-use guidelines.
+              </p>
+            </div>
+            <div className="p-4 rounded-xl border border-gray-200 bg-white shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                <Scale className="w-4 h-4 text-orange-500" />
+                How we resolve issues
+              </h3>
+              <p className="text-sm text-gray-600">
+                Our dispute-resolution approach prioritises collaboration before formal legal steps.
+              </p>
+            </div>
+          </div>
         </section>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="flex flex-col lg:flex-row gap-8">
+          <aside className="lg:w-72">
+            <div className="sticky top-24 bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+              <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">On this page</h2>
+              <nav aria-label="Terms of Service sections">
+                <ul className="space-y-2 text-sm text-gray-600">
+                  {sectionNav.map((item) => (
+                    <li key={item.id}>
+                      <a
+                        href={`#${item.id}`}
+                        className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                      >
+                        <span className="block h-1 w-1 rounded-full bg-gray-300" />
+                        {item.title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+              <div className="mt-6 p-4 bg-orange-50 border border-orange-100 rounded-lg text-sm text-orange-800">
+                <p className="font-semibold mb-1 flex items-center gap-2">
+                  <HelpCircle className="w-4 h-4" />
+                  Need clarification?
+                </p>
+                <p className="mb-3">
+                  Reach out to our legal team for bespoke guidance regarding these terms.
+                </p>
+                <Link
+                  to="/contact"
+                  className="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 font-medium"
+                >
+                  Contact Support <ArrowUpRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+          </aside>
+
+          <div className="flex-1">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           {/* Introduction */}
-          <section className="p-8 border-b border-gray-200">
+          <section id="agreement" className="p-8 border-b border-gray-200">
             <h2 className="text-2xl font-bold mb-4 text-gray-900 border-b-2 border-orange-500 pb-2 inline-block">
               1. Agreement and Acceptance
             </h2>
@@ -47,7 +134,7 @@ const Terms: React.FC = () => {
           </section>
 
           {/* Service Description */}
-          <section className="p-8 bg-gray-50 border-b border-gray-200">
+          <section id="service" className="p-8 bg-gray-50 border-b border-gray-200">
             <h2 className="text-2xl font-bold mb-4 text-gray-900 border-b-2 border-orange-500 pb-2 inline-block">
               2. Description of Service
             </h2>
@@ -86,7 +173,7 @@ const Terms: React.FC = () => {
           </section>
 
           {/* User Accounts */}
-          <section className="p-8 border-b border-gray-200">
+          <section id="accounts" className="p-8 border-b border-gray-200">
             <h2 className="text-2xl font-bold mb-4 text-gray-900 border-b-2 border-orange-500 pb-2 inline-block">
               3. User Accounts and Registration
             </h2>
@@ -132,7 +219,7 @@ const Terms: React.FC = () => {
           </section>
 
           {/* Content and Intellectual Property */}
-          <section className="p-8 bg-gray-50 border-b border-gray-200">
+          <section id="content" className="p-8 bg-gray-50 border-b border-gray-200">
             <h2 className="text-2xl font-bold mb-4 text-gray-900 border-b-2 border-orange-500 pb-2 inline-block">
               4. Content and Intellectual Property
             </h2>
@@ -190,7 +277,7 @@ const Terms: React.FC = () => {
           </section>
 
           {/* Acceptable Use Policy */}
-          <section className="p-8 border-b border-gray-200">
+          <section id="usage" className="p-8 border-b border-gray-200">
             <h2 className="text-2xl font-bold mb-4 text-gray-900 border-b-2 border-orange-500 pb-2 inline-block">
               5. Acceptable Use Policy
             </h2>
@@ -241,7 +328,7 @@ const Terms: React.FC = () => {
           </section>
 
           {/* Privacy and Data */}
-          <section className="p-8 bg-gray-50 border-b border-gray-200">
+          <section id="subscriptions" className="p-8 bg-gray-50 border-b border-gray-200">
             <h2 className="text-2xl font-bold mb-4 text-gray-900 border-b-2 border-orange-500 pb-2 inline-block">
               6. Privacy and Data Protection
             </h2>
@@ -280,7 +367,7 @@ const Terms: React.FC = () => {
           </section>
 
           {/* Disclaimers and Limitation of Liability */}
-          <section className="p-8 border-b border-gray-200">
+          <section id="intellectual" className="p-8 border-b border-gray-200">
             <h2 className="text-2xl font-bold mb-4 text-gray-900 border-b-2 border-orange-500 pb-2 inline-block">
               7. Disclaimers and Limitation of Liability
             </h2>
@@ -326,7 +413,7 @@ const Terms: React.FC = () => {
           </section>
 
           {/* Indemnification */}
-          <section className="p-8 bg-gray-50 border-b border-gray-200">
+          <section id="third-party" className="p-8 bg-gray-50 border-b border-gray-200">
             <h2 className="text-2xl font-bold mb-4 text-gray-900 border-b-2 border-orange-500 pb-2 inline-block">
               8. Indemnification
             </h2>
@@ -347,7 +434,7 @@ const Terms: React.FC = () => {
           </section>
 
           {/* Termination */}
-          <section className="p-8 border-b border-gray-200">
+          <section id="disclaimer" className="p-8 border-b border-gray-200">
             <h2 className="text-2xl font-bold mb-4 text-gray-900 border-b-2 border-orange-500 pb-2 inline-block">
               9. Termination
             </h2>
@@ -395,7 +482,7 @@ const Terms: React.FC = () => {
           </section>
 
           {/* Governing Law */}
-          <section className="p-8 bg-gray-50 border-b border-gray-200">
+          <section id="liability" className="p-8 bg-gray-50 border-b border-gray-200">
             <h2 className="text-2xl font-bold mb-4 text-gray-900 border-b-2 border-orange-500 pb-2 inline-block">
               10. Governing Law and Dispute Resolution
             </h2>
@@ -419,22 +506,22 @@ const Terms: React.FC = () => {
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="text-center p-4 bg-white rounded-lg border border-gray-200">
-                      <div className="w-10 h-10 bg-blue-100 rounded-lg mx-auto mb-2 flex items-center justify-center">
-                        <span className="text-lg">💬</span>
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg mx-auto mb-2 flex items-center justify-center text-blue-600">
+                        <MessageCircle className="w-5 h-5" />
                       </div>
                       <h4 className="font-semibold text-gray-900 text-sm">Step 1: Direct Contact</h4>
                       <p className="text-xs text-gray-600 mt-1">Email us with your concern</p>
                     </div>
                     <div className="text-center p-4 bg-white rounded-lg border border-gray-200">
-                      <div className="w-10 h-10 bg-green-100 rounded-lg mx-auto mb-2 flex items-center justify-center">
-                        <span className="text-lg">🤝</span>
+                      <div className="w-10 h-10 bg-green-100 rounded-lg mx-auto mb-2 flex items-center justify-center text-green-600">
+                        <Users className="w-5 h-5" />
                       </div>
                       <h4 className="font-semibold text-gray-900 text-sm">Step 2: Negotiation</h4>
                       <p className="text-xs text-gray-600 mt-1">Work together on a solution</p>
                     </div>
                     <div className="text-center p-4 bg-white rounded-lg border border-gray-200">
-                      <div className="w-10 h-10 bg-orange-100 rounded-lg mx-auto mb-2 flex items-center justify-center">
-                        <span className="text-lg">⚖️</span>
+                      <div className="w-10 h-10 bg-orange-100 rounded-lg mx-auto mb-2 flex items-center justify-center text-orange-600">
+                        <Gavel className="w-5 h-5" />
                       </div>
                       <h4 className="font-semibold text-gray-900 text-sm">Step 3: Legal Action</h4>
                       <p className="text-xs text-gray-600 mt-1">If necessary, pursue formal resolution</p>
@@ -446,7 +533,7 @@ const Terms: React.FC = () => {
           </section>
 
           {/* General Provisions */}
-          <section className="p-8">
+          <section id="general" className="p-8">
             <h2 className="text-2xl font-bold mb-4 text-gray-900 border-b-2 border-orange-500 pb-2 inline-block">
               11. General Provisions
             </h2>
@@ -506,12 +593,59 @@ const Terms: React.FC = () => {
             </div>
           </section>
         </div>
+      </div>
+    </div>
+
+    <div className="mt-12 grid gap-6 md:grid-cols-2">
+        <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
+          <div className="flex items-start gap-3">
+            <FileText className="w-10 h-10 text-orange-500" />
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Need a signed copy?</h3>
+              <p className="text-sm text-gray-600 mb-3">
+                Request an executed agreement or compliance documentation tailored for your organisation.
+              </p>
+              <Link to="/contact" className="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 font-medium">
+                Contact legal team <ArrowUpRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+        <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
+          <div className="flex items-start gap-3">
+            <HelpCircle className="w-10 h-10 text-orange-500" />
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Questions about compliance?</h3>
+              <p className="text-sm text-gray-600 mb-3">
+                Explore our privacy practices, editorial standards, and escalation process for reporting issues.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Link to="/privacy" className="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 font-medium">
+                  Privacy policy <ExternalLink className="w-4 h-4" />
+                </Link>
+                <a
+                  href="mailto:contact@theageofgenz.com"
+                  className="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 font-medium"
+                >
+                  Email support <ExternalLink className="w-4 h-4" />
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
         {/* Footer Navigation */}
         <div className="mt-12 text-center">
-          <div className="flex flex-wrap justify-center gap-6 text-sm">
+          <a
+            href="#terms-top"
+            className="inline-flex items-center gap-2 text-sm font-medium text-orange-600 hover:text-orange-700 mb-6"
+          >
+            Back to top <ArrowUpRight className="w-4 h-4" />
+          </a>
+          <div className="mt-4 flex flex-wrap justify-center gap-6 text-sm">
             <Link to="/" className="text-orange-500 hover:text-orange-600 transition-colors">
-              ← Return to Home
+              Return to Home
             </Link>
             <Link to="/privacy" className="text-gray-600 hover:text-orange-600 transition-colors">
               Privacy Policy
