@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async'; 
 import { getArticleBySlug, getArticles } from '../utils/api';
 import DonationPlaceholder from '../components/DonationPlaceholder';
-import { Eye, User, Calendar, Tag, BookOpen, Facebook, Mail, Link2 } from 'lucide-react';
+import { Eye, User, Calendar, Tag, BookOpen, Facebook, Mail, Link2, Linkedin, MessageCircle } from 'lucide-react';
 import { Article } from '../types';
 
 // Cache for articles to avoid refetching
@@ -303,9 +303,19 @@ const ArticleDetail: React.FC = () => {
       Icon: XIcon,
     },
     {
+      name: 'LinkedIn',
+      href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedShareUrl}`,
+      Icon: Linkedin,
+    },
+    {
       name: 'Email',
       href: `mailto:?subject=${encodedShareTitle}&body=${encodedShareTitle}%0A%0A${encodedShareUrl}`,
       Icon: Mail,
+    },
+    {
+      name: 'WhatsApp',
+      href: `https://wa.me/?text=${encodedShareTitle}%20${encodedShareUrl}`,
+      Icon: MessageCircle,
     },
   ];
 
@@ -496,25 +506,30 @@ const ArticleDetail: React.FC = () => {
                         aria-label={`Share on ${name}`}
                         className="article-share-button"
                       >
-                        <Icon className="article-share-icon" size={18} />
+                        <Icon className="article-share-icon" size={16} />
+                        <span className="sr-only">Share on {name}</span>
                       </a>
                     ))}
-                    <button
-                      type="button"
-                      onClick={handleCopyShare}
-                      aria-label="Copy article link"
-                      className="article-share-button"
-                    >
-                      <Link2 className="article-share-icon" size={18} />
-                      <span className="sr-only">{copySuccess ? 'Link copied' : 'Copy link'}</span>
-                    </button>
+                    <div className="article-share-copy">
+                      <button
+                        type="button"
+                        onClick={handleCopyShare}
+                        aria-label="Copy article link"
+                        className={`article-share-button article-share-button--copy ${copySuccess ? 'is-success' : ''}`}
+                      >
+                        <Link2 className="article-share-icon" size={16} />
+                        <span className="sr-only">{copySuccess ? 'Link copied' : 'Copy link'}</span>
+                      </button>
+                      <span
+                        className={`article-share-tooltip ${copySuccess ? 'is-visible is-success' : ''}`}
+                        role="status"
+                        aria-live="polite"
+                      >
+                        {copySuccess ? 'Link copied!' : 'Copy link'}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                {copySuccess && (
-                  <p className="article-share-feedback px-6 md:px-12 lg:px-14 pb-3 text-center text-xs text-gray-500">
-                    Link copied to clipboard
-                  </p>
-                )}
               </div>
 
               {/* Article body */}
