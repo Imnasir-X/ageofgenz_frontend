@@ -554,37 +554,44 @@ const ArticleDetail: React.FC = () => {
               <DonationPlaceholder />
               
               {relatedArticles.length > 0 && (
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                  <h3 className="text-xl font-bold mb-6 pb-3 border-b-2 border-orange-500 text-gray-900">
-                    More in {article.category?.name}
-                  </h3>
-                  <div className="space-y-6">
+                <div className="trending-widget">
+                  <h3 className="trending-title">Trending Articles</h3>
+                  <div className="trending-list">
                     {relatedArticles.map((relatedArticle) => (
-                      <article key={relatedArticle.id} className="group">
-                        <Link to={`/article/${relatedArticle.slug}`} className="block">
-                          <div className="flex gap-4">
-                            {(relatedArticle.featured_image_url || relatedArticle.featured_image) && (
-                              <div className="flex-shrink-0">
-                                <img
-                                  src={relatedArticle.featured_image_url || relatedArticle.featured_image || '/api/placeholder/80/80'}
-                                  alt={relatedArticle.title}
-                                  className="w-20 h-20 object-cover rounded-lg group-hover:opacity-90 transition-opacity"
-                                  loading="lazy"
-                                  onError={(e) => {
-                                    e.currentTarget.src = '/api/placeholder/80/80';
-                                  }}
-                                />
-                              </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-sm mb-2 line-clamp-3 group-hover:text-orange-600 transition-colors text-gray-900">
-                                {relatedArticle.title}
-                              </h4>
-                              <div className="text-xs text-gray-500">
-                                {formatDate(relatedArticle.published_at || relatedArticle.created_at)}
-                              </div>
-                            </div>
+                      <article key={relatedArticle.id} className="trending-item">
+                        <Link to={`/article/${relatedArticle.slug}`} className="trending-link">
+                          <div className="trending-image-wrap">
+                            <img
+                              src={relatedArticle.featured_image_url || relatedArticle.featured_image || '/api/placeholder/420/240'}
+                              alt={relatedArticle.title}
+                              className="trending-image"
+                              loading="lazy"
+                              onError={(e) => {
+                                e.currentTarget.src = '/api/placeholder/420/240';
+                              }}
+                            />
                           </div>
+                          <div className="trending-meta">
+                            <span className="trending-meta-pill">
+                              {relatedArticle.category?.name?.toUpperCase() || 'TRENDING'}
+                            </span>
+                            <span className="trending-meta-separator" aria-hidden="true">•</span>
+                            <span className="trending-meta-date">
+                              {formatDate(relatedArticle.published_at || relatedArticle.created_at)}
+                            </span>
+                            {typeof relatedArticle.view_count === 'number' && (
+                              <>
+                                <span className="trending-meta-separator" aria-hidden="true">•</span>
+                                <span className="trending-meta-views">
+                                  <Eye size={14} aria-hidden="true" />
+                                  <span>{relatedArticle.view_count}</span>
+                                </span>
+                              </>
+                            )}
+                          </div>
+                          <h4 className="trending-headline">
+                            {relatedArticle.title}
+                          </h4>
                         </Link>
                       </article>
                     ))}
