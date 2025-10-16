@@ -485,7 +485,7 @@ const ArticleDetail: React.FC = () => {
 
               <div className="-mx-6 md:-mx-12 lg:-mx-14 border-t border-b border-orange-200 bg-white/90">
                 <div className="article-share-wrap px-6 md:px-12 lg:px-14">
-                  <div className="article-share-heading">Share this article</div>
+                  <span className="sr-only">Share this article</span>
                   <div className="article-share-grid">
                     {shareLinks.map(({ name, href, Icon }) => (
                       <a
@@ -496,10 +496,7 @@ const ArticleDetail: React.FC = () => {
                         aria-label={`Share on ${name}`}
                         className="article-share-button"
                       >
-                        <span className="article-share-button__icon">
-                          <Icon className="article-share-icon" size={22} />
-                        </span>
-                        <span className="article-share-button__label">{name}</span>
+                        <Icon className="article-share-icon" size={18} />
                       </a>
                     ))}
                     <button
@@ -508,12 +505,8 @@ const ArticleDetail: React.FC = () => {
                       aria-label="Copy article link"
                       className="article-share-button"
                     >
-                      <span className="article-share-button__icon">
-                        <Link2 className="article-share-icon" size={22} />
-                      </span>
-                      <span className="article-share-button__label">
-                        {copySuccess ? 'Copied!' : 'Copy link'}
-                      </span>
+                      <Link2 className="article-share-icon" size={18} />
+                      <span className="sr-only">{copySuccess ? 'Link copied' : 'Copy link'}</span>
                     </button>
                   </div>
                 </div>
