@@ -207,13 +207,31 @@
       margin-inline: auto;
       font-family: var(--font-reading);
       font-size: 1.25rem;
-      line-height: 1.9;
+      line-height: 1.95;
       letter-spacing: 0.005em;
       color: #1f2937;
     }
 
     .article-content-container p {
       margin-bottom: 2em;
+      line-height: 1.9;
+      font-weight: 400;
+    }
+
+    .article-content-container p:first-of-type {
+      font-weight: 500;
+    }
+
+    .article-content-container p:first-of-type::first-letter {
+      float: left;
+      font-family: var(--font-serif);
+      font-size: clamp(3.4rem, 6vw, 4.5rem);
+      line-height: 0.85;
+      padding-right: 0.2em;
+      margin-top: 0.05em;
+      font-weight: 700;
+      color: var(--accent-orange);
+      text-transform: uppercase;
     }
 
     .article-content-container h2,
@@ -229,6 +247,7 @@
       margin-top: 4rem;
       margin-bottom: 1.75rem;
       line-height: 1.2;
+      font-weight: 700;
     }
 
     .article-content-container h3 {
@@ -236,6 +255,7 @@
       margin-top: 3rem;
       margin-bottom: 1.25rem;
       line-height: 1.3;
+      font-weight: 600;
     }
 
     .article-content-container h4 {
@@ -243,6 +263,7 @@
       margin-top: 2.5rem;
       margin-bottom: 1rem;
       line-height: 1.35;
+      font-weight: 600;
     }
 
     .article-content-container ul,
@@ -339,6 +360,15 @@
       box-shadow: inset 0 -6px 0 rgba(249, 115, 22, 0.15);
     }
 
+    .article-content-container mark {
+      background: linear-gradient(120deg, rgba(255, 237, 213, 0.95), rgba(255, 220, 160, 0.75));
+      color: #1f2937;
+      padding: 0 0.25em;
+      border-radius: 0.4em;
+      box-shadow: inset 0 -0.55em 0 rgba(249, 115, 22, 0.18);
+      font-weight: 600;
+    }
+
     .article-content-container strong {
       font-weight: 700;
       background: linear-gradient(135deg, rgba(255, 237, 213, 0.9), rgba(255, 229, 204, 0.95));
@@ -362,10 +392,10 @@
       text-align: center;
       max-width: 36rem;
       margin: 3.25rem auto;
-      padding: 2.25rem 2rem;
+      padding: 2.5rem 2.25rem;
       border-radius: 1.25rem;
-      border: 2px solid rgba(249, 115, 22, 0.35);
-      background: radial-gradient(circle at top, rgba(255, 247, 237, 0.9), rgba(255, 255, 255, 0.95));
+      border: 2px solid rgba(249, 115, 22, 0.25);
+      background: linear-gradient(135deg, rgba(255, 243, 224, 0.95), rgba(255, 225, 196, 0.92));
       color: #1f2937;
       position: relative;
       overflow: hidden;
@@ -375,23 +405,24 @@
     .article-pullquote::after,
     .pullquote::before,
     .pullquote::after {
-      content: '“';
       position: absolute;
       font-family: var(--font-serif);
-      font-size: 5rem;
-      color: rgba(249, 115, 22, 0.18);
+      font-size: 5.5rem;
+      color: rgba(249, 115, 22, 0.2);
+      line-height: 1;
     }
 
     .article-pullquote::before,
     .pullquote::before {
-      top: -1.5rem;
-      left: 1rem;
+      content: "\201C";
+      top: -1rem;
+      left: 1.25rem;
     }
 
     .article-pullquote::after,
     .pullquote::after {
-      content: '”';
-      bottom: -2.5rem;
+      content: "\201D";
+      bottom: -1.5rem;
       right: 1.5rem;
     }
 

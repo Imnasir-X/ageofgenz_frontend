@@ -61,6 +61,9 @@ const ArticleDetail: React.FC = () => {
       return { __html: '<p class="text-gray-600">No content available.</p>' };
     }
 
+    const applyTextHighlights = (markup: string) =>
+      markup.replace(/==([\s\S]+?)==/g, (_match, text) => `<mark>${text.trim()}</mark>`);
+
     const transformPullQuotes = (markup: string) =>
       markup.replace(/<p([^>]*)>["']([^"']{50,200})["']<\/p>/gi, (_match, attrs, quote) => {
         if (/class\s*=/.test(attrs || '') && /article-pullquote/.test(attrs || '')) {
@@ -84,6 +87,7 @@ const ArticleDetail: React.FC = () => {
       content = content.replace(/<p>\s*<\/p>/gi, '');
       content = transformPullQuotes(content);
       content = ensureLazyImages(content);
+      content = applyTextHighlights(content);
       return { __html: content };
     }
 
@@ -97,19 +101,19 @@ const ArticleDetail: React.FC = () => {
         if ((paragraph.startsWith('"') && paragraph.endsWith('"')) || (paragraph.startsWith("'") && paragraph.endsWith("'"))) {
           const text = paragraph.slice(1, -1);
           if (text.length >= 50 && text.length <= 200) {
-            return `<div class="article-pullquote">${text}</div>`;
+            return `<div class="article-pullquote">${applyTextHighlights(text)}</div>`;
           }
         }
 
         if (paragraph.startsWith('> ')) {
-          return `<blockquote>${paragraph.slice(2)}</blockquote>`;
+          return `<blockquote>${applyTextHighlights(paragraph.slice(2))}</blockquote>`;
         }
 
         if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
-          return `<h3>${paragraph.slice(2, -2)}</h3>`;
+          return `<h3>${applyTextHighlights(paragraph.slice(2, -2))}</h3>`;
         }
 
-        return `<p>${paragraph}</p>`;
+        return `<p>${applyTextHighlights(paragraph)}</p>`;
       })
       .join('');
 
