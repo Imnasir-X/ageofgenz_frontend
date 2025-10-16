@@ -387,43 +387,37 @@
     .article-share-wrap {
       display: flex;
       justify-content: center;
-      padding: 0.15rem 0 0.3rem;
+      padding: 0.05rem 0 0.25rem;
     }
 
     .article-share-grid {
       display: flex;
       align-items: center;
-      gap: 0.65rem;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      padding-bottom: 0.1rem;
-    }
-
-    .article-share-grid::-webkit-scrollbar {
-      display: none;
+      justify-content: center;
+      gap: 1.5rem;
+      width: 100%;
     }
 
     .article-share-button {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 2.75rem;
-      height: 2.75rem;
+      width: 2.4rem;
+      height: 2.4rem;
       border-radius: 9999px;
-      border: 1px solid rgba(249, 115, 22, 0.22);
-      background: linear-gradient(145deg, rgba(255, 243, 224, 0.96), rgba(255, 228, 197, 0.96));
-      color: #b45309;
-      box-shadow: 0 12px 24px rgba(249, 115, 22, 0.12);
-      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+      border: 1.5px solid rgba(249, 115, 22, 0.6);
+      background-color: #ffffff;
+      color: rgba(234, 88, 12, 0.85);
+      transition: transform 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
       cursor: pointer;
     }
 
     .article-share-button:hover,
     .article-share-button:focus-visible {
-      transform: translateY(-2px);
-      border-color: rgba(234, 88, 12, 0.35);
-      color: #9a3412;
-      box-shadow: 0 18px 28px rgba(234, 88, 12, 0.16);
+      transform: translateY(-1px);
+      border-color: rgba(234, 88, 12, 0.85);
+      color: rgba(194, 65, 12, 0.95);
+      box-shadow: 0 10px 18px rgba(234, 88, 12, 0.12);
     }
 
     .article-share-button:focus-visible {
