@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useAuth } from '../context/AuthContext';
 
 const Login: React.FC = () => {
@@ -7,10 +8,27 @@ const Login: React.FC = () => {
     email: '',
     password: '',
   });
+  const [rememberMe, setRememberMe] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const errorRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const REMEMBERED_EMAIL_KEY = 'aoz_remembered_email';
+
+  useEffect(() => {
+    const storedEmail = localStorage.getItem(REMEMBERED_EMAIL_KEY);
+    if (storedEmail) {
+      setFormData((prev) => ({ ...prev, email: storedEmail }));
+      setRememberMe(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.focus();
+    }
+  }, [error]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -43,12 +61,14 @@ const Login: React.FC = () => {
     }
 
     try {
-      console.log('Attempting login for:', formData.email);
       await login(formData.email, formData.password);
-      console.log('Login successful, redirecting to home');
+      if (rememberMe) {
+        localStorage.setItem(REMEMBERED_EMAIL_KEY, formData.email);
+      } else {
+        localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+      }
       navigate('/home');
     } catch (err: any) {
-      console.error('Login Error:', err);
       const errorMessage = err.response?.data?.detail || 
                           err.response?.data?.non_field_errors?.[0] || 
                           err.message || 
@@ -61,6 +81,13 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 py-8">
+      <Helmet>
+        <title>Login | The Age of GenZ</title>
+        <meta
+          name="description"
+          content="Access your The Age of GenZ account to manage subscriptions, bookmarks, and personalized news."
+        />
+      </Helmet>
       <div className="container mx-auto px-4 max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
@@ -76,7 +103,13 @@ const Login: React.FC = () => {
         <div className="bg-white rounded-lg shadow-md p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+              <div
+                ref={errorRef}
+                className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md"
+                role="alert"
+                aria-live="assertive"
+                tabIndex={-1}
+              >
                 {error}
               </div>
             )}
@@ -121,6 +154,8 @@ const Login: React.FC = () => {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
+                  checked={rememberMe}
+                  onChange={(event) => setRememberMe(event.target.checked)}
                   className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
@@ -165,7 +200,7 @@ const Login: React.FC = () => {
         {/* Back to Home */}
         <div className="mt-6 text-center">
           <Link to="/home" className="text-orange-600 hover:text-orange-500 text-sm">
-            ← Back to Home
+            Back to Home
           </Link>
         </div>
       </div>

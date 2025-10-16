@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Heart, CheckCircle, Star, Share2, Twitter, Facebook, Copy, Home, FileText, MessageCircle } from 'lucide-react';
 
 const ThankYou: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [copied, setCopied] = useState(false);
+  const [shareError, setShareError] = useState('');
   const sessionId = searchParams.get('session_id');
+  const copyTimeoutRef = useRef<number | null>(null);
   
   // Confetti effect particles
   const [confetti, setConfetti] = useState<Array<{
@@ -27,27 +30,74 @@ const ThankYou: React.FC = () => {
     setConfetti(particles);
   }, []);
 
-  const handleShare = async (platform: string) => {
-    const shareText = "I just supported The Age of GenZ - independent journalism for our generation!";
-    const shareUrl = "https://theageofgenz.com";
-    
-    if (platform === 'twitter') {
-      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
-    } else if (platform === 'facebook') {
-      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
-    } else if (platform === 'copy') {
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current !== null) {
+        window.clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const shareText = useMemo(
+    () => 'I just supported The Age of GenZ – independent journalism for our generation!',
+    []
+  );
+  const shareUrl = useMemo(() => 'https://theageofgenz.com', []);
+
+  const handleShare = async (platform: 'twitter' | 'facebook' | 'copy') => {
+    setShareError('');
+
+    if (platform === 'copy') {
       try {
-        await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+        } else {
+          const tempInput = document.createElement('textarea');
+          tempInput.value = `${shareText} ${shareUrl}`;
+          tempInput.setAttribute('readonly', '');
+          tempInput.style.position = 'absolute';
+          tempInput.style.left = '-9999px';
+          document.body.appendChild(tempInput);
+          tempInput.select();
+          document.execCommand('copy');
+          document.body.removeChild(tempInput);
+        }
         setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch (err) {
-        console.error('Failed to copy:', err);
+        copyTimeoutRef.current = window.setTimeout(() => setCopied(false), 2000);
+      } catch (err: any) {
+        setShareError(err?.message || 'Unable to copy link. Please copy it manually.');
+      }
+      return;
+    }
+
+    const shareLinks: Record<'twitter' | 'facebook', string> = {
+      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ text: shareText, url: shareUrl });
+        return;
+      } catch (err: any) {
+        if (err?.name !== 'AbortError') {
+          setShareError('Sharing cancelled. You can still copy the link below.');
+        }
       }
     }
+
+    window.open(shareLinks[platform], '_blank', 'noopener,noreferrer');
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50 to-purple-50 py-8 relative overflow-hidden">
+      <Helmet>
+        <title>Thank You | The Age of GenZ</title>
+        <meta
+          name="description"
+          content="Thank you for supporting The Age of GenZ. Your contribution fuels independent journalism for Generation Z."
+        />
+      </Helmet>
       {/* Confetti Animation */}
       <style>
         {`
@@ -122,7 +172,7 @@ const ThankYou: React.FC = () => {
           {sessionId && (
             <div className="mt-4 inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
               <CheckCircle className="w-4 h-4" />
-              Payment Confirmed • Session: {sessionId.slice(-8)}
+              Payment confirmed - Session: {sessionId.slice(-8)}
             </div>
           )}
         </section>
@@ -173,6 +223,15 @@ const ThankYou: React.FC = () => {
             <p className="mb-6 text-orange-100">
               Help us grow by sharing your support with friends who care about independent journalism!
             </p>
+            {shareError && (
+              <div
+                className="mb-4 bg-white/20 border border-white/40 text-sm px-4 py-2 rounded"
+                role="alert"
+                aria-live="assertive"
+              >
+                {shareError}
+              </div>
+            )}
             
             <div className="flex justify-center gap-4 flex-wrap">
               <button
@@ -215,7 +274,7 @@ const ThankYou: React.FC = () => {
               </Link>
               
               <Link
-                to="/articles"
+                to="/trending"
                 className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold py-4 rounded-xl transition-all transform hover:scale-105 text-center shadow-lg flex items-center justify-center gap-2"
               >
                 <FileText className="w-5 h-5" />
@@ -237,8 +296,18 @@ const ThankYou: React.FC = () => {
         <div className="text-center mt-8 float-up" style={{ animationDelay: '0.8s' }}>
           <p className="text-gray-600 text-sm">
             Follow us for updates: 
-            <a href="#" className="text-orange-600 hover:text-orange-700 font-medium ml-1">@theageofgenz</a>
+            <a
+              href="https://www.instagram.com/theageofgenz"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-orange-600 hover:text-orange-700 font-medium ml-1"
+            >
+              @theageofgenz
+            </a>
           </p>
+          <div className="sr-only" aria-live="polite">
+            {copied ? 'Share link copied to clipboard.' : ''}
+          </div>
         </div>
       </div>
     </div>
