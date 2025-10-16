@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -14,8 +14,10 @@ const Signup: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [step, setStep] = useState<'form' | 'success'>('form');
+  const [acceptedTerms, setAcceptedTerms] = useState<boolean>(false);
   const navigate = useNavigate();
   const { register, login } = useAuth();
+  const loginTimeoutRef = useRef<number | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -54,6 +56,10 @@ const Signup: React.FC = () => {
       setError('Passwords do not match.');
       return false;
     }
+    if (!acceptedTerms) {
+      setError('You must agree to the Terms of Service and Privacy Policy.');
+      return false;
+    }
     return true;
   };
 
@@ -68,8 +74,6 @@ const Signup: React.FC = () => {
     setLoading(true);
 
     try {
-      console.log('Attempting registration for:', formData.email);
-      
       // Register the user
       await register(
         formData.username,
@@ -80,17 +84,14 @@ const Signup: React.FC = () => {
         formData.last_name
       );
 
-      console.log('Registration successful');
       setStep('success');
 
       // Auto-login after successful registration
-      setTimeout(async () => {
+      loginTimeoutRef.current = window.setTimeout(async () => {
         try {
           await login(formData.email, formData.password);
-          console.log('Auto-login successful, redirecting to home');
           navigate('/home');
         } catch (loginError) {
-          console.error('Auto-login failed:', loginError);
           // If auto-login fails, still redirect to login page
           navigate('/login');
         }
@@ -109,6 +110,14 @@ const Signup: React.FC = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (loginTimeoutRef.current !== null) {
+        window.clearTimeout(loginTimeoutRef.current);
+      }
+    };
+  }, []);
 
   if (step === 'success') {
     return (
@@ -268,6 +277,13 @@ const Signup: React.FC = () => {
                 name="terms"
                 type="checkbox"
                 required
+                checked={acceptedTerms}
+                onChange={(event) => {
+                  setAcceptedTerms(event.target.checked);
+                  if (event.target.checked && error) {
+                    setError('');
+                  }
+                }}
                 className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
               />
               <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
@@ -312,7 +328,7 @@ const Signup: React.FC = () => {
         {/* Back to Home */}
         <div className="mt-6 text-center">
           <Link to="/home" className="text-orange-600 hover:text-orange-500 text-sm">
-            ← Back to Home
+            Back to Home
           </Link>
         </div>
       </div>

@@ -104,7 +104,7 @@ const Cancel: React.FC = () => {
           </h1>
           
           <p className="text-gray-700 text-lg max-w-2xl mx-auto leading-relaxed">
-            No worries—things happen! If you changed your mind or hit a snag, we're still cool. 
+            No worries, things happen! If you changed your mind or hit a snag, we're still cool. 
             Want to try again or chat with us? We're here for you, no judgment! 
           </p>
         </section>
@@ -205,7 +205,7 @@ const Cancel: React.FC = () => {
               </Link>
               
               <Link
-                to="/articles"
+                to="/"
                 className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold py-4 rounded-xl transition-all transform hover:scale-105 text-center shadow-lg flex items-center justify-center gap-2"
               >
                 <ArrowLeft className="w-5 h-5" />
@@ -234,8 +234,9 @@ const Cancel: React.FC = () => {
         {/* Footer Message */}
         <div className={`text-center mt-8 ${mounted ? 'slide-up' : 'opacity-0'}`} style={{ animationDelay: '0.8s' }}>
           <p className="text-gray-600 text-sm">
-            Thanks for considering supporting independent journalism • 
-            <a href="#" className="text-orange-600 hover:text-orange-700 font-medium ml-1">@theageofgenz</a>
+            Thanks for considering supporting independent journalism.
+            {' '}
+            <a href="https://www.instagram.com/theageofgenz" target="_blank" rel="noopener noreferrer" className="text-orange-600 hover:text-orange-700 font-medium ml-1">@theageofgenz</a>
           </p>
         </div>
       </div>

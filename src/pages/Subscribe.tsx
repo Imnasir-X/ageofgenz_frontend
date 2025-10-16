@@ -5,7 +5,13 @@ import { CreditCard, Calendar, CheckCircle, XCircle, AlertCircle } from 'lucide-
 import api from '../utils/api';
 import { loadStripe } from '@stripe/stripe-js';
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_...');
+const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+
+if (!stripePublishableKey) {
+  throw new Error('VITE_STRIPE_PUBLISHABLE_KEY environment variable is required to enable subscriptions.');
+}
+
+const stripePromise = loadStripe(stripePublishableKey);
 
 interface Subscription {
   id: string;
@@ -34,11 +40,11 @@ const Subscribe: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
-  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [updating, setUpdating] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
+  const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
 
   const subscriptionPlans: SubscriptionPlan[] = [
     {
@@ -98,8 +104,13 @@ const Subscribe: React.FC = () => {
     try {
       const response = await api.get('/api/subscriptions/current/');
       setSubscription(response.data);
-    } catch (err) {
-      console.log('No active subscription');
+    } catch (err: any) {
+      if (err?.response?.status === 404) {
+        setSubscription(null);
+      } else {
+        console.error('Failed to fetch subscription details:', err);
+        setError('Unable to load your current subscription. Please try again later.');
+      }
     } finally {
       setLoading(false);
     }
@@ -114,6 +125,8 @@ const Subscribe: React.FC = () => {
 
     setUpdating(true);
     setError('');
+    setSuccess('');
+    setPendingPlanId(planId);
 
     try {
       const response = await api.post('/api/subscriptions/create-checkout/', {
@@ -127,10 +140,15 @@ const Subscribe: React.FC = () => {
         sessionId: response.data.session_id
       });
 
-      if (error) throw error;
+      if (error) {
+        throw new Error(error.message || 'Something went wrong redirecting to checkout.');
+      }
     } catch (err: any) {
-      setError(err.message || 'Failed to start subscription');
+      console.error('Subscription checkout failed:', err);
+      setError(err?.message || 'Failed to start subscription.');
+    } finally {
       setUpdating(false);
+      setPendingPlanId(null);
     }
   };
 
@@ -332,7 +350,9 @@ const Subscribe: React.FC = () => {
                     : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-300'
                 }`}
               >
-                {subscription?.plan.name === plan.name && !subscription.cancel_at_period_end
+                {pendingPlanId === plan.id && updating
+                  ? 'Processing...'
+                  : subscription?.plan.name === plan.name && !subscription.cancel_at_period_end
                   ? 'Current Plan'
                   : subscription
                   ? 'Switch to This Plan'
