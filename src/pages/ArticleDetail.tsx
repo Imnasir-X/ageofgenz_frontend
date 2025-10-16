@@ -584,7 +584,7 @@ const ArticleDetail: React.FC = () => {
                         aria-label={`Share on ${name}`}
                         className="article-share-button"
                       >
-                        <Icon className="article-share-icon" size={14} />
+                        <Icon className="article-share-icon" size={12} />
                         <span className="sr-only">Share on {name}</span>
                       </a>
                     ))}
@@ -595,7 +595,7 @@ const ArticleDetail: React.FC = () => {
                         aria-label="Copy article link"
                         className={`article-share-button article-share-button--copy ${copySuccess ? 'is-success' : ''}`}
                       >
-                        <Link2 className="article-share-icon" size={14} />
+                        <Link2 className="article-share-icon" size={12} />
                         <span className="sr-only">{copySuccess ? 'Link copied' : 'Copy link'}</span>
                       </button>
                       <span
