@@ -579,15 +579,6 @@ const ArticleDetail: React.FC = () => {
                             <span className="trending-meta-date">
                               {formatDate(relatedArticle.published_at || relatedArticle.created_at)}
                             </span>
-                            {typeof relatedArticle.view_count === 'number' && (
-                              <>
-                                <span className="trending-meta-separator" aria-hidden="true">•</span>
-                                <span className="trending-meta-views">
-                                  <Eye size={14} aria-hidden="true" />
-                                  <span>{relatedArticle.view_count}</span>
-                                </span>
-                              </>
-                            )}
                           </div>
                           <h4 className="trending-headline">
                             {relatedArticle.title}
