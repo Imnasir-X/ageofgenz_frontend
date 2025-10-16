@@ -295,17 +295,17 @@ const ArticleDetail: React.FC = () => {
     {
       name: 'Facebook',
       href: `https://www.facebook.com/sharer/sharer.php?u=${encodedShareUrl}`,
-      icon: <Facebook size={24} />,
+      Icon: Facebook,
     },
     {
       name: 'X',
       href: `https://x.com/intent/tweet?url=${encodedShareUrl}&text=${encodedShareTitle}`,
-      icon: <XIcon />,
+      Icon: XIcon,
     },
     {
       name: 'Email',
       href: `mailto:?subject=${encodedShareTitle}&body=${encodedShareTitle}%0A%0A${encodedShareUrl}`,
-      icon: <Mail size={24} />,
+      Icon: Mail,
     },
   ];
 
@@ -484,30 +484,43 @@ const ArticleDetail: React.FC = () => {
               )}
 
               <div className="-mx-6 md:-mx-12 lg:-mx-14 border-t border-b border-orange-200 bg-white/90">
-                <div className="px-6 md:px-12 lg:px-14 py-4 flex items-center justify-between md:justify-around text-orange-500">
-                  {shareLinks.map((share) => (
-                    <a
-                      key={share.name}
-                      href={share.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex flex-col items-center gap-2 hover:text-orange-600 transition-colors"
+                <div className="article-share-wrap px-6 md:px-12 lg:px-14">
+                  <div className="article-share-heading">Share this article</div>
+                  <div className="article-share-grid">
+                    {shareLinks.map(({ name, href, Icon }) => (
+                      <a
+                        key={name}
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Share on ${name}`}
+                        className="article-share-button"
+                      >
+                        <span className="article-share-button__icon">
+                          <Icon className="article-share-icon" size={22} />
+                        </span>
+                        <span className="article-share-button__label">{name}</span>
+                      </a>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={handleCopyShare}
+                      aria-label="Copy article link"
+                      className="article-share-button"
                     >
-                      {share.icon}
-                      <span className="sr-only">Share on {share.name}</span>
-                    </a>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={handleCopyShare}
-                    className="flex flex-col items-center gap-2 hover:text-orange-600 transition-colors"
-                  >
-                    <Link2 size={24} />
-                    <span className="sr-only">Copy article link</span>
-                  </button>
+                      <span className="article-share-button__icon">
+                        <Link2 className="article-share-icon" size={22} />
+                      </span>
+                      <span className="article-share-button__label">
+                        {copySuccess ? 'Copied!' : 'Copy link'}
+                      </span>
+                    </button>
+                  </div>
                 </div>
                 {copySuccess && (
-                  <p className="px-6 md:px-12 lg:px-14 pb-3 text-center text-xs text-gray-500">Link copied</p>
+                  <p className="article-share-feedback px-6 md:px-12 lg:px-14 pb-3 text-center text-xs text-gray-500">
+                    Link copied to clipboard
+                  </p>
                 )}
               </div>
 
