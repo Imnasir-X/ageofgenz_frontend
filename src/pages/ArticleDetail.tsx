@@ -488,18 +488,27 @@ const ArticleDetail: React.FC = () => {
       </div>
 
       {/* Breadcrumb Navigation */}
-      <nav className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <Link to="/" className="hover:text-orange-500 transition-colors">Home</Link>
-            <span className="text-gray-400">›</span>
-            <Link to={`/${article.category?.slug}`} className="hover:text-orange-500 transition-colors">
-              {article.category?.name || 'Uncategorized'}
+      <nav className="article-breadcrumb">
+        <div className="article-breadcrumb__inner">
+          <div className="article-breadcrumb__trail" aria-label="Breadcrumb">
+            <Link
+              to={`/${article.category?.slug || ''}`}
+              className="article-breadcrumb__category"
+            >
+              {(article.category?.name || 'News').toUpperCase()}
             </Link>
-            <span className="text-gray-400">›</span>
-            <span className="text-gray-900 truncate max-w-xs font-medium">
-              {article.title}
+            <span className="article-breadcrumb__separator" aria-hidden="true">
+              &bull;
             </span>
+            <span className="article-breadcrumb__date">
+              {publishedDate}
+            </span>
+            <span className="article-breadcrumb__separator" aria-hidden="true">
+              &bull;
+            </span>
+            <Link to="/" className="article-breadcrumb__brand">
+              TheAgeOfGenZ.com
+            </Link>
           </div>
         </div>
       </nav>
@@ -518,9 +527,9 @@ const ArticleDetail: React.FC = () => {
                   >
                     {article.category?.name || 'News'}
                   </Link>
-                  <span className="text-gray-400" aria-hidden="true">{'·'}</span>
+                  <span className="text-gray-400" aria-hidden="true">&bull;</span>
                   <span className="text-gray-500">{publishedDate}</span>
-                  <span className="text-gray-400" aria-hidden="true">{'·'}</span>
+                  <span className="text-gray-400" aria-hidden="true">&bull;</span>
                   <span className="text-gray-500">The Age of GenZ</span>
                 </div>
                 
