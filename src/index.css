@@ -102,12 +102,12 @@
 
     .article-title {
       font-family: var(--font-serif);
-      font-size: clamp(2.2rem, 4.6vw, 3.6rem);
+      font-size: clamp(1.95rem, 4vw, 3rem);
       font-weight: 800;
-      letter-spacing: -0.012em;
+      letter-spacing: -0.01em;
       color: #111827;
-      line-height: 1.12;
-      margin-bottom: 1.5rem;
+      line-height: 1.15;
+      margin-bottom: 1.25rem;
       text-wrap: balance;
       text-rendering: optimizeLegibility;
     }

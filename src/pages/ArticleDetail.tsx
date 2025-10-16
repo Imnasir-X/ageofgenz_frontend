@@ -545,28 +545,6 @@ const ArticleDetail: React.FC = () => {
                   </p>
                 )}
 
-                {/* Article meta */}
-                <div className="flex flex-col gap-2 text-sm text-gray-600">
-                  <div>
-                    <span className="font-semibold text-gray-900">{article.author?.name || 'The Age of GenZ'}</span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-4">
-                    <div className="flex items-center gap-1.5">
-                      <Calendar size={16} className="text-gray-400" />
-                      <span>{publishedDate}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <BookOpen size={16} className="text-gray-400" />
-                      <span>{estimatedReadTime} min read</span>
-                    </div>
-                    {article.view_count !== undefined && (
-                      <div className="flex items-center gap-1.5">
-                        <Eye size={16} className="text-gray-400" />
-                        <span>{article.view_count} views</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
               </header>
 
               {/* Featured Image */}
