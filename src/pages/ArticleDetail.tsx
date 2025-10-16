@@ -461,7 +461,7 @@ const ArticleDetail: React.FC = () => {
 
               {/* Featured Image */}
               {(article.featured_image_url || article.featured_image) && (
-                <div className="mb-6 md:mb-10 -mx-6 md:-mx-12 lg:-mx-14">
+                <div className="mb-0 md:mb-2 -mx-6 md:-mx-12 lg:-mx-14">
                   <figure className="relative">
                     {!imageLoaded && (
                       <div className="absolute inset-0 bg-gray-200 animate-pulse aspect-[16/10]"></div>
@@ -483,7 +483,7 @@ const ArticleDetail: React.FC = () => {
                 </div>
               )}
 
-              <div className="-mx-6 md:-mx-12 lg:-mx-14 border-t border-b border-orange-200 bg-white/90">
+              <div className="-mx-6 md:-mx-12 lg:-mx-14 border-t border-b border-orange-200 bg-white/90 mt-0">
                 <div className="article-share-wrap px-6 md:px-12 lg:px-14">
                   <span className="sr-only">Share this article</span>
                   <div className="article-share-grid">

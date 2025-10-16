@@ -387,7 +387,7 @@
     .article-share-wrap {
       display: flex;
       justify-content: center;
-      padding: 0.05rem 0 0.25rem;
+      padding: 0;
     }
 
     .article-share-grid {
@@ -402,8 +402,8 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 2.4rem;
-      height: 2.4rem;
+      width: 2.35rem;
+      height: 2.35rem;
       border-radius: 9999px;
       border: 1.5px solid rgba(249, 115, 22, 0.6);
       background-color: #ffffff;
