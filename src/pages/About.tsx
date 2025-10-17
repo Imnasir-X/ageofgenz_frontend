@@ -34,7 +34,7 @@ const About: React.FC = () => {
               </h2>
               <div className="prose prose-lg max-w-none text-gray-700">
                 <p className="text-lg leading-relaxed mb-6">
-                  Founded in 2025 by <strong>Nasir Khan</strong>, a Computer Science graduate from East West University, and <strong>Imran Khan</strong>, an IT scholar at the IT University of ULab Lahti in Finland, 
+                  Founded in 2025 by <strong>Nasir Khan</strong>, a Computer Science graduate from East West University, and <strong>Imran Khan</strong>, an IT scholar at ULAB University in Finland, 
                   <strong> The Age Of GenZ</strong> emerged from a vision to bridge generational gaps in news consumption. 
                   We recognized that modern audiences&mdash;from Gen Z to Baby Boomers&mdash;deserve news that speaks their language 
                   while maintaining the highest standards of journalistic integrity.
@@ -198,7 +198,7 @@ const About: React.FC = () => {
                   <p className="text-sm text-gray-600 mb-2">Co-Founder</p>
                   <p className="text-xs text-gray-500">
                     IT Student<br/>
-                    IT University of ULab Lahti, Finland
+                    ULAB University, Lahti, Finland
                   </p>
                 </div>
               </div>
@@ -216,7 +216,7 @@ const About: React.FC = () => {
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link
               to="/contact"
-              className="bg-white text-orange-600 font-bold py-3 px-8 rounded-lg hover:bg-gray-100 transition-colors"
+              className="bg-transparent border border-white text-white font-bold py-3 px-8 rounded-lg hover:bg-white/10 transition-colors"
             >
               Contact Us
             </Link>
