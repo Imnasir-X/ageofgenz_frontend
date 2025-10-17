@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 
@@ -18,7 +18,7 @@ const About: React.FC = () => {
             About The Age Of GenZ
           </h1>
           <p className="text-xl text-gray-600 mb-6 max-w-3xl mx-auto">
-            <span className="text-orange-500 font-semibold">"NEWS YOU CAN VIBE WITH"</span> – 
+            <span className="text-orange-500 font-semibold">"NEWS YOU CAN VIBE WITH"</span> &mdash;
             A professional news organization delivering credible journalism for all generations
           </p>
           <div className="w-24 h-1 bg-orange-500 mx-auto rounded"></div>
@@ -34,9 +34,9 @@ const About: React.FC = () => {
               </h2>
               <div className="prose prose-lg max-w-none text-gray-700">
                 <p className="text-lg leading-relaxed mb-6">
-                  Founded in 2025 by <strong>Nasir Khan</strong>, a Computer Science graduate from East West University, 
+                  Founded in 2025 by <strong>Nasir Khan</strong>, a Computer Science graduate from East West University, and <strong>Imran Khan</strong>, an IT scholar at the IT University of ULab Lahti in Finland, 
                   <strong> The Age Of GenZ</strong> emerged from a vision to bridge generational gaps in news consumption. 
-                  We recognized that modern audiences—from Gen Z to Baby Boomers—deserve news that speaks their language 
+                  We recognized that modern audiences&mdash;from Gen Z to Baby Boomers&mdash;deserve news that speaks their language 
                   while maintaining the highest standards of journalistic integrity.
                 </p>
                 <p className="text-lg leading-relaxed mb-6">
@@ -47,7 +47,7 @@ const About: React.FC = () => {
                 </p>
                 <p className="text-lg leading-relaxed">
                   What started as an ambitious project has evolved into a trusted news platform that publishes 
-                  3-4 carefully curated articles regularly, each crafted to inform, engage, and inspire our diverse readership.
+                  3-4 carefully curated articles every day, each crafted to inform, engage, and inspire our diverse readership.
                 </p>
               </div>
             </section>
@@ -62,8 +62,8 @@ const About: React.FC = () => {
                   <h3 className="text-xl font-semibold mb-4 text-gray-900">Our Mission</h3>
                   <p className="text-gray-700 leading-relaxed">
                     To deliver professional, unbiased journalism that resonates across all generations. 
-                    We democratize access to quality news, ensuring every reader—regardless of age or 
-                    background—can stay informed about the issues that shape our world.
+                    We democratize access to quality news, ensuring every reader&mdash;regardless of age or 
+                    background&mdash;can stay informed about the issues that shape our world.
                   </p>
                 </div>
                 <div>
@@ -86,7 +86,7 @@ const About: React.FC = () => {
                 <div className="space-y-4">
                   <div className="flex items-start">
                     <div className="flex-shrink-0 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center mt-1">
-                      <span className="text-white text-sm font-bold">✓</span>
+                      <span className="text-white text-sm font-bold">&#10003;</span>
                     </div>
                     <div className="ml-4">
                       <h4 className="font-semibold text-gray-900">Neutrality Policy</h4>
@@ -95,7 +95,7 @@ const About: React.FC = () => {
                   </div>
                   <div className="flex items-start">
                     <div className="flex-shrink-0 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center mt-1">
-                      <span className="text-white text-sm font-bold">✓</span>
+                      <span className="text-white text-sm font-bold">&#10003;</span>
                     </div>
                     <div className="ml-4">
                       <h4 className="font-semibold text-gray-900">Fact-First Approach</h4>
@@ -106,7 +106,7 @@ const About: React.FC = () => {
                 <div className="space-y-4">
                   <div className="flex items-start">
                     <div className="flex-shrink-0 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center mt-1">
-                      <span className="text-white text-sm font-bold">✓</span>
+                      <span className="text-white text-sm font-bold">&#10003;</span>
                     </div>
                     <div className="ml-4">
                       <h4 className="font-semibold text-gray-900">Source Transparency</h4>
@@ -115,7 +115,7 @@ const About: React.FC = () => {
                   </div>
                   <div className="flex items-start">
                     <div className="flex-shrink-0 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center mt-1">
-                      <span className="text-white text-sm font-bold">✓</span>
+                      <span className="text-white text-sm font-bold">&#10003;</span>
                     </div>
                     <div className="ml-4">
                       <h4 className="font-semibold text-gray-900">Ethical Journalism</h4>
@@ -178,16 +178,29 @@ const About: React.FC = () => {
             {/* Leadership */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h3 className="text-xl font-bold mb-4 text-gray-900">Leadership</h3>
-              <div className="text-center">
-                <div className="w-20 h-20 bg-orange-100 rounded-full mx-auto mb-3 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-orange-600">NK</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="text-center">
+                  <div className="w-20 h-20 bg-orange-100 rounded-full mx-auto mb-3 flex items-center justify-center">
+                    <span className="text-2xl font-bold text-orange-600">NK</span>
+                  </div>
+                  <h4 className="font-semibold text-gray-900">Nasir Khan</h4>
+                  <p className="text-sm text-gray-600 mb-2">Founder & Editor-in-Chief</p>
+                  <p className="text-xs text-gray-500">
+                    Computer Science Graduate<br/>
+                    East West University, 2025
+                  </p>
                 </div>
-                <h4 className="font-semibold text-gray-900">Nasir Khan</h4>
-                <p className="text-sm text-gray-600 mb-2">Founder & Editor-in-Chief</p>
-                <p className="text-xs text-gray-500">
-                  Computer Science Graduate<br/>
-                  East West University, 2025
-                </p>
+                <div className="text-center">
+                  <div className="w-20 h-20 bg-orange-100 rounded-full mx-auto mb-3 flex items-center justify-center">
+                    <span className="text-2xl font-bold text-orange-600">IK</span>
+                  </div>
+                  <h4 className="font-semibold text-gray-900">Imran Khan</h4>
+                  <p className="text-sm text-gray-600 mb-2">Co-Founder</p>
+                  <p className="text-xs text-gray-500">
+                    IT Student<br/>
+                    IT University of ULab Lahti, Finland
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -220,7 +233,7 @@ const About: React.FC = () => {
         <div className="mt-12 text-center">
           <div className="flex flex-wrap justify-center gap-6 text-sm">
             <Link to="/" className="text-orange-500 hover:text-orange-600 transition-colors">
-              ← Return to Home
+              &larr; Return to Home
             </Link>
             <Link to="/contact" className="text-gray-600 hover:text-orange-600 transition-colors">
               Contact Us
