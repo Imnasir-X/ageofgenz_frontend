@@ -1,12 +1,17 @@
-// src/pages/ForgotPassword.tsx
+﻿// src/pages/ForgotPassword.tsx
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { requestPasswordReset } from '../utils/api';
 
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [submitted, setSubmitted] = useState<boolean>(false);
+  const [lastSubmittedEmail, setLastSubmittedEmail] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+
+  const trimmedEmail = email.trim();
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -14,8 +19,10 @@ const ForgotPassword: React.FC = () => {
     setLoading(true);
 
     try {
-      await requestPasswordReset(email);
+      await requestPasswordReset(trimmedEmail);
+      setLastSubmittedEmail(trimmedEmail);
       setSubmitted(true);
+      setEmail('');
     } catch (err) {
       setError('Failed to send reset link. Please try again.');
     } finally {
@@ -57,27 +64,33 @@ const ForgotPassword: React.FC = () => {
               
               <button
                 type="submit"
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded transition-colors"
-                disabled={loading}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                disabled={loading || !isEmailValid}
+                aria-disabled={loading || !isEmailValid}
               >
                 {loading ? 'Sending...' : 'Send Reset Link'}
               </button>
               
               <div className="mt-4 text-center">
-                <a href="/login" className="text-orange-500 hover:text-orange-600 transition-colors">
+                <Link to="/login" className="text-orange-500 hover:text-orange-600 transition-colors">
                   Return to Login
-                </a>
+                </Link>
               </div>
             </form>
           ) : (
-            <div className="text-center">
-              <div className="text-green-500 mb-4 text-5xl">✓</div>
+            <div className="text-center" role="status" aria-live="polite">
+              <div className="text-green-500 mb-4 text-5xl" aria-hidden="true">
+                &#10003;
+              </div>
               <h2 className="text-xl font-bold mb-2 text-white">Reset Email Sent</h2>
               <p className="mb-4 text-gray-300">
-                If an account exists with {email}, you will receive an email with instructions to reset your password.
+                If an account exists with {lastSubmittedEmail || 'the provided address'}, you will receive an email with instructions to reset your password.
               </p>
               <button
-                onClick={() => setSubmitted(false)}
+                onClick={() => {
+                  setSubmitted(false);
+                  setError('');
+                }}
                 className="text-orange-500 hover:text-orange-600 transition-colors"
                 aria-label="Try another email"
               >

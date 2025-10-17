@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+﻿import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 // Removed DonationPlaceholder per request
 import Newsletter from '../components/Newsletter';
