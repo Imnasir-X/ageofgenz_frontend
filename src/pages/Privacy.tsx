@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 
@@ -125,37 +125,37 @@ const Privacy: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">🎯 Content Delivery</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Content Delivery</h4>
                   <p className="text-gray-700 text-sm">Providing personalized news content and recommendations based on your interests</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">📧 Communications</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Communications</h4>
                   <p className="text-gray-700 text-sm">Sending newsletters, updates, and responding to your inquiries</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">🔧 Service Improvement</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Service Improvement</h4>
                   <p className="text-gray-700 text-sm">Analyzing usage patterns to enhance website functionality and user experience</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">🛡️ Security</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Security</h4>
                   <p className="text-gray-700 text-sm">Protecting against fraud, spam, and maintaining platform security</p>
                 </div>
               </div>
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">📊 Analytics</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Analytics</h4>
                   <p className="text-gray-700 text-sm">Understanding reader preferences and content performance</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">⚖️ Legal Compliance</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Legal Compliance</h4>
                   <p className="text-gray-700 text-sm">Meeting legal obligations and responding to legitimate requests</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">💰 Business Operations</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Business Operations</h4>
                   <p className="text-gray-700 text-sm">Supporting our advertising and subscription revenue models</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">🤝 Community Building</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Community Building</h4>
                   <p className="text-gray-700 text-sm">Facilitating user engagement and community interactions</p>
                 </div>
               </div>
@@ -236,37 +236,37 @@ const Privacy: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div className="p-4 border border-gray-200 rounded-lg">
-                  <h4 className="font-semibold text-gray-900 mb-2">🔍 Right to Access</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Right to Access</h4>
                   <p className="text-gray-700 text-sm">Request copies of your personal data</p>
                 </div>
                 <div className="p-4 border border-gray-200 rounded-lg">
-                  <h4 className="font-semibold text-gray-900 mb-2">✏️ Right to Rectification</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Right to Rectification</h4>
                   <p className="text-gray-700 text-sm">Correct inaccurate or incomplete data</p>
                 </div>
                 <div className="p-4 border border-gray-200 rounded-lg">
-                  <h4 className="font-semibold text-gray-900 mb-2">🗑️ Right to Erasure</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Right to Erasure</h4>
                   <p className="text-gray-700 text-sm">Request deletion of your personal data</p>
                 </div>
                 <div className="p-4 border border-gray-200 rounded-lg">
-                  <h4 className="font-semibold text-gray-900 mb-2">⛔ Right to Object</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Right to Object</h4>
                   <p className="text-gray-700 text-sm">Object to processing for specific purposes</p>
                 </div>
               </div>
               <div className="space-y-4">
                 <div className="p-4 border border-gray-200 rounded-lg">
-                  <h4 className="font-semibold text-gray-900 mb-2">⏸️ Right to Restrict</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Right to Restrict Processing</h4>
                   <p className="text-gray-700 text-sm">Limit how we process your data</p>
                 </div>
                 <div className="p-4 border border-gray-200 rounded-lg">
-                  <h4 className="font-semibold text-gray-900 mb-2">📦 Data Portability</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Right to Data Portability</h4>
                   <p className="text-gray-700 text-sm">Receive your data in a portable format</p>
                 </div>
                 <div className="p-4 border border-gray-200 rounded-lg">
-                  <h4 className="font-semibold text-gray-900 mb-2">❌ Withdraw Consent</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Right to Withdraw Consent</h4>
                   <p className="text-gray-700 text-sm">Withdraw consent for processing</p>
                 </div>
                 <div className="p-4 border border-gray-200 rounded-lg">
-                  <h4 className="font-semibold text-gray-900 mb-2">📋 Lodge Complaints</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Right to Lodge Complaints</h4>
                   <p className="text-gray-700 text-sm">File complaints with supervisory authorities</p>
                 </div>
               </div>
@@ -399,7 +399,7 @@ const Privacy: React.FC = () => {
         <div className="mt-12 text-center">
           <div className="flex flex-wrap justify-center gap-6 text-sm">
             <Link to="/" className="text-orange-500 hover:text-orange-600 transition-colors">
-              ← Return to Home
+              &larr; Return to Home
             </Link>
             <Link to="/terms" className="text-gray-600 hover:text-orange-600 transition-colors">
               Terms of Service
