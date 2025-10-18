@@ -1100,42 +1100,50 @@ const Home: React.FC = () => {
                   const img = a?.featured_image_url || a?.image || a?.featured_image || '/api/placeholder/1200/675';
                   const accent = getBreakingAccent(a?.category?.slug, a?.category?.name);
                   return (
-                    <div className="mx-auto max-w-[520px] sm:max-w-[560px]">
-                      <Link to={href} className="group inline-block mb-4">
-                        <h2 className="font-serif text-lg sm:text-2xl font-extrabold tracking-tight text-gray-900 leading-snug underline decoration-gray-900 decoration-1 underline-offset-4 transition-colors group-hover:text-orange-600">
-                          {a?.title || 'Untitled Article'}
-                        </h2>
-                      </Link>
+                    <article className="group mx-auto max-w-[640px] overflow-hidden rounded-[26px] border border-slate-900/60 bg-gradient-to-b from-[#141421] via-[#10101a] to-black shadow-[0_18px_48px_rgba(11,11,18,0.5)]">
+                      <div className="px-5 pt-5 sm:px-6">
+                        <Link to={href} className="group inline-block">
+                          <h2 className="font-serif text-2xl sm:text-3xl font-black leading-tight tracking-tight text-white drop-shadow-[0_10px_25px_rgba(0,0,0,0.55)] transition-colors group-hover:text-orange-300">
+                            {a?.title || 'Untitled Article'}
+                          </h2>
+                        </Link>
+                      </div>
 
-                      <Link to={href} className="block overflow-hidden rounded-xl bg-gray-100 shadow-sm mb-3">
+                      <Link
+                        to={href}
+                        className="relative mt-4 block overflow-hidden rounded-3xl border border-slate-800 bg-black mx-5"
+                      >
                         <div className="aspect-[16/9]">
                           <img
                             src={img}
                             alt={a?.title || 'Breaking image'}
-                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                             loading="lazy"
                             onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/api/placeholder/1200/675'; }}
                           />
                         </div>
+                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/15" />
                       </Link>
 
-                      <div className="flex items-center gap-1.5 text-xs sm:text-[13px] text-gray-700 mb-2">
-                        <span className={`${accent.badge} text-white font-semibold uppercase tracking-wide px-2.5 py-0.5 rounded-full text-[10px] shadow-sm`}>
-                          {categoryText}
-                        </span>
-                        <span className="text-gray-300" aria-hidden="true">&bull;</span>
-                        <span className="flex items-center text-gray-600">
-                          <Clock size={12} className={`${accent.text} mr-1`} /> {dateText}
-                        </span>
-                      </div>
-                      <div className={`w-10 h-0.5 ${accent.divider} mb-2`}></div>
+                      <div className="px-5 pb-5 sm:px-6 sm:pb-6">
+                        <div className="flex flex-wrap items-center gap-2 text-[11px] sm:text-xs text-white/80">
+                          <span className={`${accent.badge} text-white font-semibold uppercase tracking-wide px-3 py-0.5 rounded-full shadow-sm`}>
+                            {categoryText}
+                          </span>
+                          <span className="text-white/40" aria-hidden="true">&bull;</span>
+                          <span className="flex items-center gap-1">
+                            <Clock size={12} className={`${accent.text}`} />
+                            {dateText}
+                          </span>
+                        </div>
 
-                      {a?.excerpt && (
-                        <p className="text-gray-600 text-xs sm:text-sm leading-relaxed line-clamp-2">
-                          {a.excerpt}
-                        </p>
-                      )}
-                    </div>
+                        {a?.excerpt && (
+                          <p className="mt-3 text-sm sm:text-base leading-relaxed text-white/80">
+                            {a.excerpt}
+                          </p>
+                        )}
+                      </div>
+                    </article>
                   );
                 })()}
               </div>
@@ -1370,15 +1378,25 @@ const Home: React.FC = () => {
                   section="latest"
                 />
               ) : latestList.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {latestList.map((article) => (
-                    <ArticleCard 
-                      key={`latest-${article.id}`} 
-                      article={article} 
-                      imagePosition={getImagePosition(article)}
-                    />
-                  ))}
-                </div>
+                <>
+                  <div className="sr-only" aria-live="polite" role="status">
+                    {loadingMoreLatest ? 'Loading more stories' : 'Latest stories updated'}
+                  </div>
+                  <div
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+                    aria-live="polite"
+                    aria-busy={loadingMoreLatest}
+                  >
+                    {latestList.map((article, idx) => (
+                      <FadeReveal key={`latest-${article.id}`} delay={idx * 40} className="h-full">
+                        <ArticleCard 
+                          article={article} 
+                          imagePosition={getImagePosition(article)}
+                        />
+                      </FadeReveal>
+                    ))}
+                  </div>
+                </>
               ) : (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
                   <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -1392,25 +1410,32 @@ const Home: React.FC = () => {
               )}
 
               {/* Load More / Infinite Scroll Sentinel */}
-              <div className="mt-6 flex items-center justify-center">
-                {loadingMoreLatest ? (
-                  <div className="flex items-center gap-2 text-gray-500 text-sm">
-                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                    Loading more...
+              <div className="relative mt-8 h-16 sm:h-12">
+                <div className="pointer-events-none sticky bottom-6 flex justify-center">
+                  <div className="pointer-events-auto">
+                    {loadingMoreLatest ? (
+                      <div className="flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-gray-600 shadow-md backdrop-blur">
+                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                        Loading more stories...
+                      </div>
+                    ) : latestHasMore ? (
+                      <button
+                        type="button"
+                        onClick={() => loadLatestPage(latestPage + 1, activeCategory !== 'all' ? activeCategory : undefined)}
+                        className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2"
+                        disabled={isRefreshing}
+                        aria-label="Load more latest stories"
+                      >
+                        Load more stories
+                        <ChevronRight className="h-4 w-4 text-white/70" aria-hidden="true" />
+                      </button>
+                    ) : (
+                      <div className="rounded-full bg-white/90 px-4 py-2 text-sm text-gray-500 shadow-sm backdrop-blur">
+                        You reached the end
+                      </div>
+                    )}
                   </div>
-                ) : latestHasMore ? (
-                  <button
-                    type="button"
-                    onClick={() => loadLatestPage(latestPage + 1, activeCategory !== 'all' ? activeCategory : undefined)}
-                    className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 transition hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
-                    disabled={isRefreshing}
-                  >
-                    Load more
-                    <ChevronRight className="h-4 w-4 text-gray-500" aria-hidden="true" />
-                  </button>
-                ) : (
-                  <div className="text-gray-500 text-sm">You reached the end</div>
-                )}
+                </div>
               </div>
               <div ref={sentinelRef} className="h-1" />
             </section>
