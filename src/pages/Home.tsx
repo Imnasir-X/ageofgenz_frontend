@@ -475,6 +475,23 @@ const Home: React.FC = () => {
 
   const secondaryFeatured = useMemo(() => displayedFeatured.slice(1, 5), [displayedFeatured]);
 
+  const latestGridLayout = useMemo(() => {
+    const pattern = [
+      { variant: 'large', wrapper: 'sm:col-span-2 lg:col-span-2 lg:row-span-2 xl:col-span-2 xl:row-span-2' },
+      { variant: 'compact', wrapper: '' },
+      { variant: 'compact', wrapper: '' },
+      { variant: 'horizontal', wrapper: 'sm:col-span-2 lg:col-span-2' },
+      { variant: 'compact', wrapper: '' },
+      { variant: 'compact', wrapper: '' },
+    ];
+
+    return latestList.map((article, idx) => {
+      const config = pattern[idx % pattern.length];
+      return { article, variant: config.variant as 'compact' | 'horizontal' | 'large', wrapper: config.wrapper };
+    });
+  }, [latestList]);
+
+
   // Auto-rotate hero
   useEffect(() => {
     if (heroTimerRef.current) {
@@ -1387,11 +1404,12 @@ const Home: React.FC = () => {
                     aria-live="polite"
                     aria-busy={loadingMoreLatest}
                   >
-                    {latestList.map((article, idx) => (
-                      <FadeReveal key={`latest-${article.id}`} delay={idx * 40} className="h-full">
-                        <ArticleCard 
-                          article={article} 
+                    {latestGridLayout.map(({ article, variant, wrapper }, idx) => (
+                      <FadeReveal key={`latest-${article.id}`} delay={idx * 40} className={`h-full ${wrapper}`.trim()}>
+                        <ArticleCard
+                          article={article}
                           imagePosition={getImagePosition(article)}
+                          variant={variant}
                         />
                       </FadeReveal>
                     ))}
