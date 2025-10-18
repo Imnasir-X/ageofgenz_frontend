@@ -1079,7 +1079,7 @@ const Home: React.FC = () => {
         {breakingItems.length > 0 && (
           <div className="max-w-6xl mx-auto mb-5">
             <div
-              className="bg-white border border-gray-200 rounded-md shadow-sm p-3"
+              className="bg-white border border-gray-200 rounded-lg shadow-sm p-3 sm:p-4"
               role="region"
               aria-roledescription="carousel"
               aria-label="Breaking news headlines"
@@ -1100,41 +1100,42 @@ const Home: React.FC = () => {
                   const img = a?.featured_image_url || a?.image || a?.featured_image || '/api/placeholder/1200/675';
                   const accent = getBreakingAccent(a?.category?.slug, a?.category?.name);
                   return (
-                    <article className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-                      <Link
-                        to={href}
-                        className="block h-28 w-full flex-shrink-0 overflow-hidden rounded-md bg-gray-100 shadow-sm transition sm:h-28 sm:w-32 md:w-36"
-                      >
-                        <img
-                          src={img}
-                          alt={a?.title || 'Breaking image'}
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
-                          loading="lazy"
-                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/api/placeholder/1200/675'; }}
-                        />
+                    <div className="mx-auto max-w-[520px] sm:max-w-[560px]">
+                      <Link to={href} className="group inline-block mb-4">
+                        <h2 className="font-serif text-lg sm:text-2xl font-extrabold tracking-tight text-gray-900 leading-snug underline decoration-gray-900 decoration-1 underline-offset-4 transition-colors group-hover:text-orange-600">
+                          {a?.title || 'Untitled Article'}
+                        </h2>
                       </Link>
-                      <div className="flex flex-1 flex-col gap-1">
-                        <Link to={href} className="group">
-                          <h2 className="font-serif text-sm sm:text-base font-bold tracking-tight text-gray-900 leading-snug group-hover:text-orange-600 transition-colors">
-                            {a?.title || 'Untitled Article'}
-                          </h2>
-                        </Link>
-                        <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-gray-600">
-                          <span className={`${accent.badge} text-white font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full shadow-sm`}>
-                            {categoryText}
-                          </span>
-                          <span className="text-gray-300" aria-hidden="true">&bull;</span>
-                          <span className="flex items-center text-gray-500">
-                            <Clock size={10} className={`${accent.text} mr-1`} /> {dateText}
-                          </span>
+
+                      <Link to={href} className="block overflow-hidden rounded-xl bg-gray-100 shadow-sm mb-3">
+                        <div className="aspect-[16/9]">
+                          <img
+                            src={img}
+                            alt={a?.title || 'Breaking image'}
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                            loading="lazy"
+                            onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/api/placeholder/1200/675'; }}
+                          />
                         </div>
-                        {a?.excerpt && (
-                          <p className="text-gray-600 text-[11px] leading-snug line-clamp-2">
-                            {a.excerpt}
-                          </p>
-                        )}
+                      </Link>
+
+                      <div className="flex items-center gap-1.5 text-xs sm:text-[13px] text-gray-700 mb-2">
+                        <span className={`${accent.badge} text-white font-semibold uppercase tracking-wide px-2.5 py-0.5 rounded-full text-[10px] shadow-sm`}>
+                          {categoryText}
+                        </span>
+                        <span className="text-gray-300" aria-hidden="true">&bull;</span>
+                        <span className="flex items-center text-gray-600">
+                          <Clock size={12} className={`${accent.text} mr-1`} /> {dateText}
+                        </span>
                       </div>
-                    </article>
+                      <div className={`w-10 h-0.5 ${accent.divider} mb-2`}></div>
+
+                      {a?.excerpt && (
+                        <p className="text-gray-600 text-xs sm:text-sm leading-relaxed line-clamp-2">
+                          {a.excerpt}
+                        </p>
+                      )}
+                    </div>
                   );
                 })()}
               </div>
