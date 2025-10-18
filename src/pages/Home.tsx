@@ -46,6 +46,9 @@ const Home: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showNewsletterCard, setShowNewsletterCard] = useState<boolean>(false);
   const [breakingIndex, setBreakingIndex] = useState<number>(0);
+  const [breakingPlaying, setBreakingPlaying] = useState<boolean>(true);
+  const breakingTimerRef = useRef<number | null>(null);
+  const [breakingAnnouncement, setBreakingAnnouncement] = useState<string>('');
   const closeBtnRef = useRef<HTMLButtonElement | null>(null);
   const prevFocusRef = useRef<HTMLElement | null>(null);
   
@@ -73,12 +76,31 @@ const Home: React.FC = () => {
 
   // Auto-rotate breaking items every 6s
   useEffect(() => {
-    if (breakingItems.length <= 1) return;
-    const id = window.setInterval(() => {
+    if (breakingTimerRef.current) {
+      window.clearInterval(breakingTimerRef.current);
+      breakingTimerRef.current = null;
+    }
+
+    if (breakingItems.length <= 1 || !breakingPlaying) {
+      return () => {
+        if (breakingTimerRef.current) {
+          window.clearInterval(breakingTimerRef.current);
+          breakingTimerRef.current = null;
+        }
+      };
+    }
+
+    breakingTimerRef.current = window.setInterval(() => {
       setBreakingIndex((i) => (i + 1) % breakingItems.length);
     }, 6000);
-    return () => window.clearInterval(id);
-  }, [breakingItems.length]);
+
+    return () => {
+      if (breakingTimerRef.current) {
+        window.clearInterval(breakingTimerRef.current);
+        breakingTimerRef.current = null;
+      }
+    };
+  }, [breakingItems.length, breakingPlaying]);
 
   // Smart image position based on category or content type
   const getImagePosition = useCallback((article: Article): 'top' | 'center' | 'bottom' => {
@@ -91,6 +113,37 @@ const Home: React.FC = () => {
     
     return 'center';
   }, []);
+
+  const goToBreakingSlide = useCallback((index: number) => {
+    const total = breakingItems.length;
+    if (total === 0) return;
+    const normalized = ((index % total) + total) % total;
+    setBreakingIndex(normalized);
+  }, [breakingItems.length]);
+
+  const goToNextBreaking = useCallback(() => {
+    if (breakingItems.length === 0) return;
+    setBreakingIndex((i) => (i + 1) % breakingItems.length);
+  }, [breakingItems.length]);
+
+  const goToPrevBreaking = useCallback(() => {
+    if (breakingItems.length === 0) return;
+    setBreakingIndex((i) => (i - 1 + breakingItems.length) % breakingItems.length);
+  }, [breakingItems.length]);
+
+  const handleBreakingKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (breakingItems.length <= 1) return;
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      setBreakingPlaying(false);
+      goToNextBreaking();
+    } else if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      setBreakingPlaying(false);
+      goToPrevBreaking();
+    }
+  }, [breakingItems.length, goToNextBreaking, goToPrevBreaking]);
+
 
   // Progressive image component (simple LQ placeholder fade-in)
   const ProgressiveImage: React.FC<{ src: string | null | undefined; alt: string; className?: string; eager?: boolean }> = ({ src, alt, className, eager = false }) => {
@@ -155,6 +208,17 @@ const Home: React.FC = () => {
       </div>
     );
   };
+
+  useEffect(() => {
+    if (breakingItems.length === 0) {
+      setBreakingAnnouncement('');
+      return;
+    }
+    const current = breakingItems[breakingIndex];
+    if (!current) return;
+    const categoryName = formatCategoryName(current.category?.name || current.category_name || 'Breaking');
+    setBreakingAnnouncement(`${categoryName}: ${current.title || 'Breaking update available'}`);
+  }, [breakingItems, breakingIndex]);
 
   // Enhanced Skeleton Loader Component with Professional Styling
   const ArticleCardSkeleton = () => (
@@ -902,58 +966,116 @@ const Home: React.FC = () => {
           <div className="w-full h-20 bg-gray-100 border border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-500 text-sm">Ad Placement</div>
         </div>
 
-        {/* Breaking News - styled like reference (headline > image > meta + rule > excerpt) */}
+        {/* Breaking News - styled like reference (headline > image > meta + rule + excerpt) */}
         {breakingItems.length > 0 && (
           <div className="max-w-6xl mx-auto mb-5">
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-3 sm:p-4">
-              {(() => {
-                const a = breakingItems[breakingIndex];
-                const href = a?.slug ? `/article/${a.slug}` : '#';
-                const dateText = new Date(a?.date || a?.published_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                const categoryText = (a?.category?.name || a?.category_name || 'World').toUpperCase();
-                const img = a?.featured_image_url || a?.image || a?.featured_image || '/api/placeholder/1200/675';
-                return (
-                  <div className="block max-w-[640px] mx-auto">
-                    {/* Headline - large with underline like reference */}
-                    <Link to={href} className="group inline-block mb-4">
-                      <h2 className="font-serif font-extrabold tracking-tight text-gray-900 leading-snug text-xl sm:text-2xl underline decoration-gray-900 decoration-1 underline-offset-4">
-                        {a?.title || 'Untitled Article'}
-                      </h2>
-                    </Link>
+            <div
+              className="bg-white border border-gray-200 rounded-xl shadow-sm p-3 sm:p-4"
+              role="region"
+              aria-roledescription="carousel"
+              aria-label="Breaking news headlines"
+            >
+              <div className="sr-only" aria-live={breakingPlaying ? 'polite' : 'off'} role="status">
+                {breakingAnnouncement}
+              </div>
+              <div
+                tabIndex={0}
+                onKeyDown={handleBreakingKeyDown}
+                className="block max-w-[640px] mx-auto outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-lg"
+              >
+                {(() => {
+                  const a = breakingItems[breakingIndex];
+                  const href = a?.slug ? `/article/${a.slug}` : '#';
+                  const dateText = new Date(a?.date || a?.published_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                  const categoryText = (a?.category?.name || a?.category_name || 'World').toUpperCase();
+                  const img = a?.featured_image_url || a?.image || a?.featured_image || '/api/placeholder/1200/675';
+                  return (
+                    <div>
+                      {/* Headline */}
+                      <Link to={href} className="group inline-block mb-4">
+                        <h2 className="font-serif font-extrabold tracking-tight text-gray-900 leading-snug text-xl sm:text-2xl underline decoration-gray-900 decoration-1 underline-offset-4 group-hover:text-orange-600 transition-colors">
+                          {a?.title || 'Untitled Article'}
+                        </h2>
+                      </Link>
 
-                    {/* Large image with 16:10 ratio similar to screenshot */}
-                    <Link to={href} className="block rounded-lg overflow-hidden bg-gray-100 mb-2">
-                      <div className="aspect-[16/9]">
-                        <img
-                          src={img}
-                          alt={a?.title || 'Breaking image'}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/api/placeholder/1200/675'; }}
-                        />
+                      {/* Image */}
+                      <Link to={href} className="block rounded-lg overflow-hidden bg-gray-100 mb-2">
+                        <div className="aspect-[16/9]">
+                          <img
+                            src={img}
+                            alt={a?.title || 'Breaking image'}
+                            className="w-full h-full object-cover transition-transform duration-300 hover:scale-[1.02]"
+                            loading="lazy"
+                            onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/api/placeholder/1200/675'; }}
+                          />
+                        </div>
+                      </Link>
+
+                      {/* Meta */}
+                      <div className="flex items-center gap-1.5 text-xs sm:text-[13px] text-gray-700 mb-1">
+                        <span className="text-orange-500 font-semibold uppercase">{categoryText}</span>
+                        <span className="text-gray-300" aria-hidden="true">•</span>
+                        <span className="flex items-center">
+                          <Clock size={12} className="mr-1 text-orange-500" /> {dateText}
+                        </span>
                       </div>
-                    </Link>
+                      <div className="w-10 h-0.5 bg-orange-400 mb-2"></div>
 
-                    {/* Meta row */}
-                    <div className="flex items-center gap-1.5 text-xs sm:text-[13px] text-gray-700 mb-1">
-                      <span className="text-orange-500 font-semibold uppercase">{categoryText}</span>
-                      <span className="text-gray-300">•</span>
-                      <span className="flex items-center">
-                        <Clock size={12} className="mr-1" /> {dateText}
-                      </span>
+                      {/* Excerpt */}
+                      {a?.excerpt && (
+                        <p className="text-gray-700 text-xs sm:text-sm leading-relaxed line-clamp-2">
+                          {a.excerpt}
+                        </p>
+                      )}
                     </div>
-                    {/* Orange divider like the reference */}
-                    <div className="w-10 h-0.5 bg-orange-400 mb-2"></div>
-
-                    {/* Excerpt */}
-                    {a?.excerpt && (
-                      <p className="text-gray-700 text-xs sm:text-sm leading-relaxed line-clamp-1">
-                        {a.excerpt}
-                      </p>
-                    )}
+                  );
+                })()}
+              </div>
+              {breakingItems.length > 1 && (
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      aria-label="Previous breaking story"
+                      className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
+                      onClick={() => { setBreakingPlaying(false); goToPrevBreaking(); }}
+                    >
+                      <ChevronLeft size={16} aria-hidden="true" />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={breakingPlaying ? 'Pause breaking news rotation' : 'Play breaking news rotation'}
+                      aria-pressed={!breakingPlaying}
+                      className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
+                      onClick={() => setBreakingPlaying((playing) => !playing)}
+                    >
+                      {breakingPlaying ? <Pause size={16} aria-hidden="true" /> : <Play size={16} aria-hidden="true" />}
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Next breaking story"
+                      className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
+                      onClick={() => { setBreakingPlaying(false); goToNextBreaking(); }}
+                    >
+                      <ChevronRight size={16} aria-hidden="true" />
+                    </button>
                   </div>
-                );
-              })()}
+                  <div className="flex items-center gap-2 overflow-x-auto">
+                    {breakingItems.map((_, idx) => (
+                      <button
+                        key={`breaking-dot-${idx}`}
+                        type="button"
+                        aria-label={`Go to breaking story ${idx + 1}`}
+                        aria-pressed={idx === breakingIndex}
+                        onClick={() => { setBreakingPlaying(false); goToBreakingSlide(idx); }}
+                        className={`h-2 rounded-full transition-all ${idx === breakingIndex ? 'w-6 bg-orange-500' : 'w-2 bg-gray-300 hover:bg-orange-300'}`}
+                      >
+                        <span className="sr-only">Breaking story {idx + 1}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
