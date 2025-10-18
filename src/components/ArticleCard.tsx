@@ -58,6 +58,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
   const imgSrc = article.featured_image_url || article.image || article.featured_image || '/api/placeholder/400/250';
   const categoryKey = (article.category?.slug || article.category?.name || 'default').toLowerCase();
   const categoryAccent = CATEGORY_ACCENTS[categoryKey] || CATEGORY_ACCENTS.default;
+  const categoryTextAccent = categoryAccent.replace('bg-', 'text-');
 
   const onHoverPrefetch = async () => {
     if (!prefetchOnHover || !article.slug || prefetched.has(article.slug)) return;
@@ -93,28 +94,34 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
               loading="lazy"
               fetchPriority="high"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/25 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 lg:p-8">
-              <div className="flex flex-wrap items-center gap-2 mb-3 text-[11px] font-semibold uppercase tracking-wide text-white/90">
-                <span className={`${categoryAccent} px-3 py-1 rounded-full text-[11px] font-bold text-white shadow-sm`}>
-                  {article.category?.name || 'General'}
-                </span>
-                <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-white/50" aria-hidden="true" />
-                <span className="text-white/80">By {article.author?.name || 'Staff'}</span>
-                <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-white/50" aria-hidden="true" />
-                <span className="flex items-center text-white">
-                  <Clock size={14} className="mr-1" />
-                  {article.estimated_read_time || 3} min read
-                </span>
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-900/20 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-full">
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-slate-950/85 via-slate-900/45 to-transparent" />
+              <div className="relative z-10 p-4 sm:p-6 lg:p-8 space-y-3 sm:space-y-4">
+                <div className="inline-flex flex-wrap items-center gap-2 rounded-full bg-slate-950/55 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-white/95 shadow-[0_18px_40px_rgba(15,23,42,0.6)] backdrop-blur-sm">
+                  <span className={`${categoryAccent} px-3 py-1 rounded-full text-[11px] font-bold text-white shadow-sm`}>
+                    {article.category?.name || 'General'}
+                  </span>
+                  <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-white/40" aria-hidden="true" />
+                  <span className="text-white/85">By {article.author?.name || 'Staff'}</span>
+                  <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-white/40" aria-hidden="true" />
+                  <span className="flex items-center text-white">
+                    <Clock size={14} className={`mr-1 ${categoryTextAccent}`} />
+                    {article.estimated_read_time || 3} min read
+                  </span>
+                </div>
+                <h3
+                  className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight line-clamp-3 transition-colors group-hover:text-white/90"
+                  style={{ textShadow: '0 20px 45px rgba(0,0,0,0.65), 0 8px 24px rgba(15,23,42,0.65), 0 2px 8px rgba(0,0,0,0.75)' }}
+                >
+                  {article.title || 'Untitled Article'}
+                </h3>
+                {cleanDescription && (
+                  <p className="hidden sm:block text-white/90 text-sm sm:text-base mt-1 max-w-2xl line-clamp-3">
+                    {cleanDescription}
+                  </p>
+                )}
               </div>
-              <h3 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight drop-shadow-[0_10px_25px_rgba(0,0,0,0.35)] line-clamp-3 group-hover:text-white/90 transition-colors">
-                {article.title || 'Untitled Article'}
-              </h3>
-              {cleanDescription && (
-                <p className="hidden sm:block text-white/90 text-sm sm:text-base mt-3 max-w-2xl line-clamp-3">
-                  {cleanDescription}
-                </p>
-              )}
             </div>
           </div>
         </Link>
