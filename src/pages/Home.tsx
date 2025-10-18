@@ -1129,17 +1129,19 @@ const Home: React.FC = () => {
                     </div>
                   </Link>
 
-                  <div className="flex flex-wrap items-center gap-1.5 text-xs sm:text-[13px] text-gray-700 mb-2">
-                    <span className={`${accent.text} font-semibold uppercase`}>{categoryText}</span>
-                    <span className="text-gray-300">•</span>
+                  <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] sm:text-xs text-slate-500 mb-2">
+                    <span className={`${accent.badge} inline-flex items-center rounded-full px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white`}>
+                      {categoryText}
+                    </span>
+                    <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-gray-300" aria-hidden="true" />
                     <span className="flex items-center gap-1">
                       <Clock size={12} className={accent.text} />
                       {dateText}
                     </span>
-                    <span className="text-gray-300">•</span>
-                    <span className="text-gray-600">By {authorName}</span>
-                    <span className="text-gray-300">•</span>
-                    <span className="text-gray-500">{breakingIndex + 1} / {breakingItems.length}</span>
+                    <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-gray-300" aria-hidden="true" />
+                    <span>By {authorName}</span>
+                    <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-gray-300" aria-hidden="true" />
+                    <span>{breakingIndex + 1} of {breakingItems.length}</span>
                   </div>
                   <div className="w-10 h-0.5 bg-orange-400 mb-2"></div>
                   {current.excerpt && (
