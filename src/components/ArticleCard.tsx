@@ -1,8 +1,21 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Clock } from 'lucide-react';
 import type { Article } from '../types';
 import { getArticleBySlug } from '../utils/api';
+
+const CATEGORY_ACCENTS: Record<string, string> = {
+  politics: 'bg-blue-600',
+  world: 'bg-emerald-600',
+  culture: 'bg-rose-600',
+  sports: 'bg-red-600',
+  business: 'bg-amber-600',
+  technology: 'bg-indigo-600',
+  science: 'bg-cyan-600',
+  opinion: 'bg-purple-600',
+  insights: 'bg-sky-600',
+  default: 'bg-orange-500',
+};
 
 interface ArticleCardProps {
   article: Article;
@@ -43,6 +56,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
   });
 
   const imgSrc = article.featured_image_url || article.image || article.featured_image || '/api/placeholder/400/250';
+  const categoryKey = (article.category?.slug || article.category?.name || 'default').toLowerCase();
+  const categoryAccent = CATEGORY_ACCENTS[categoryKey] || CATEGORY_ACCENTS.default;
 
   const onHoverPrefetch = async () => {
     if (!prefetchOnHover || !article.slug || prefetched.has(article.slug)) return;
@@ -57,11 +72,11 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
   const wrapperClasses = useMemo(() => {
     switch (variant) {
       case 'large':
-        return 'bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden group';
+        return 'bg-white rounded-xl shadow-sm hover:shadow-lg transition-transform duration-500 ease-out transform-gpu hover:-translate-y-1 overflow-hidden group';
       case 'horizontal':
-        return 'bg-white rounded-md shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden group';
+        return 'bg-white rounded-md shadow-sm hover:shadow-md transition-transform duration-300 ease-out transform-gpu hover:-translate-y-1 overflow-hidden group';
       default:
-        return 'bg-white rounded-md shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden group';
+        return 'bg-white rounded-md shadow-sm hover:shadow-md transition-transform duration-300 ease-out transform-gpu hover:-translate-y-1 overflow-hidden group';
     }
   }, [variant]);
 
@@ -73,30 +88,32 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
             <img
               src={imgSrc}
               alt={article.title || 'Article image'}
-              className={`w-full h-full object-cover ${getObjectPosition()} transition-transform duration-300 group-hover:scale-105`}
+              className={`w-full h-full object-cover ${getObjectPosition()} transition-transform duration-500 group-hover:scale-[1.03]`}
               onError={(e) => { e.currentTarget.src = '/api/placeholder/800/450'; }}
               loading="lazy"
               fetchPriority="high"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/25 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-orange-500 text-white">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/25 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 lg:p-8">
+              <div className="flex flex-wrap items-center gap-2 mb-3 text-[11px] font-semibold uppercase tracking-wide text-white/90">
+                <span className={`${categoryAccent} px-3 py-1 rounded-full text-[11px] font-bold text-white shadow-sm`}>
                   {article.category?.name || 'General'}
                 </span>
-                <span className="text-white/80 text-[10px]">•</span>
-                <span className="text-white/90 text-[10px]">By {article.author?.name || 'Staff'}</span>
-                <span className="text-white/80 text-[10px]">•</span>
-                <span className="text-white/90 text-[10px] flex items-center">
-                  <Clock size={12} className="mr-1" />
-                  {article.estimated_read_time || 3} min
+                <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-white/50" aria-hidden="true" />
+                <span className="text-white/80">By {article.author?.name || 'Staff'}</span>
+                <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-white/50" aria-hidden="true" />
+                <span className="flex items-center text-white">
+                  <Clock size={14} className="mr-1" />
+                  {article.estimated_read_time || 3} min read
                 </span>
               </div>
-              <h3 className="text-xl sm:text-2xl font-extrabold text-white leading-tight drop-shadow line-clamp-3">
+              <h3 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight drop-shadow-[0_10px_25px_rgba(0,0,0,0.35)] line-clamp-3 group-hover:text-white/90 transition-colors">
                 {article.title || 'Untitled Article'}
               </h3>
               {cleanDescription && (
-                <p className="hidden sm:block text-white/90 text-xs mt-1 line-clamp-2">{cleanDescription}</p>
+                <p className="hidden sm:block text-white/90 text-sm sm:text-base mt-3 max-w-2xl line-clamp-3">
+                  {cleanDescription}
+                </p>
               )}
             </div>
           </div>
@@ -108,26 +125,33 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
   if (variant === 'horizontal') {
     return (
       <article className={wrapperClasses}>
-        <Link to={`/article/${article.slug}`} className="flex gap-3 p-2" onMouseEnter={onHoverPrefetch}>
-          <div className="w-36 sm:w-40 md:w-48 aspect-[16/10] bg-gray-100 overflow-hidden rounded">
+        <Link to={`/article/${article.slug}`} className="flex gap-3 p-3 sm:p-4" onMouseEnter={onHoverPrefetch}>
+          <div className="w-36 sm:w-40 md:w-48 aspect-[16/10] bg-gray-100 overflow-hidden rounded-md">
             <img
               src={imgSrc}
               alt={article.title || 'Article image'}
-              className={`w-full h-full object-cover ${getObjectPosition()}`}
+              className={`w-full h-full object-cover ${getObjectPosition()} transition-transform duration-300 group-hover:scale-105`}
               onError={(e) => { e.currentTarget.src = '/api/placeholder/320/200'; }}
               loading="lazy"
             />
           </div>
-          <div className="min-w-0 py-1">
-            <div className="flex items-center mb-1 text-xs text-gray-500">
-              <Clock size={10} className="mr-1" />
-              {formattedDate}
+          <div className="min-w-0 py-1 flex flex-col gap-1.5">
+            <div className="flex items-center flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wide">
+              <span className={`${categoryAccent} px-2 py-0.5 rounded-full text-white shadow-sm`}>
+                {article.category?.name || 'General'}
+              </span>
+              <span className="flex items-center text-gray-500">
+                <Clock size={11} className="mr-1" />
+                {formattedDate}
+              </span>
             </div>
-            <h3 className="text-base font-semibold text-gray-900 mb-1 line-clamp-2 group-hover:text-orange-500 transition-colors">
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 leading-snug line-clamp-2 group-hover:text-orange-500 transition-colors">
               {article.title || 'Untitled Article'}
             </h3>
             {cleanDescription && (
-              <p className="text-gray-600 text-xs line-clamp-2">{cleanDescription}</p>
+              <p className="text-gray-600 text-sm line-clamp-2">
+                {cleanDescription}
+              </p>
             )}
           </div>
         </Link>
@@ -158,13 +182,13 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
         {/* Compact Content */}
         <div className="p-2">
           {/* Meta row (date only) */}
-          <div className="flex items-center mb-1.5 text-xs text-gray-500">
-            <Clock size={10} className="mr-1" />
+          <div className="flex items-center mb-1.5 text-[11px] font-medium text-gray-500 uppercase tracking-wide">
+            <Clock size={10} className="mr-1 text-orange-500" />
             {formattedDate}
           </div>
 
           {/* Compact Title */}
-          <h3 className="text-sm font-semibold text-gray-900 mb-0.5 line-clamp-2 group-hover:text-orange-500 transition-colors leading-snug">
+          <h3 className="text-base font-semibold text-gray-900 mb-0.5 line-clamp-2 group-hover:text-orange-500 transition-colors leading-snug">
             {article.title || 'Untitled Article'}
           </h3>
 

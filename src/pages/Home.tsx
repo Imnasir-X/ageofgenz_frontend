@@ -112,6 +112,50 @@ const Home: React.FC = () => {
     );
   };
 
+  type FadeRevealProps = {
+    children: React.ReactNode;
+    delay?: number;
+    className?: string;
+  };
+
+  const FadeReveal: React.FC<FadeRevealProps> = ({ children, delay = 0, className }) => {
+    const ref = useRef<HTMLDivElement | null>(null);
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+      const node = ref.current;
+      if (!node) return;
+
+      if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
+        setIsVisible(true);
+        return;
+      }
+
+      const observer = new IntersectionObserver(([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(entry.target);
+        }
+      }, { threshold: 0.15, rootMargin: '0px 0px -10%' });
+
+      observer.observe(node);
+      return () => observer.disconnect();
+    }, []);
+
+    const baseClasses = 'transition-all duration-700 ease-out will-change-transform';
+    const visibilityClasses = isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6';
+
+    return (
+      <div
+        ref={ref}
+        className={`${baseClasses} ${visibilityClasses} ${className || ''}`}
+        style={{ transitionDelay: `${delay}ms` }}
+      >
+        {children}
+      </div>
+    );
+  };
+
   // Enhanced Skeleton Loader Component with Professional Styling
   const ArticleCardSkeleton = () => (
     <div className="article-card bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-shadow duration-300">
@@ -979,23 +1023,26 @@ const Home: React.FC = () => {
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
                     {/* Large lead story */}
                     <div className="lg:col-span-8">
-                      <ArticleCard
-                        key={`featured-${displayedFeatured[0].id}`}
-                        article={displayedFeatured[0]}
-                        imagePosition={getImagePosition(displayedFeatured[0])}
-                        variant="large"
-                      />
+                      <FadeReveal>
+                        <ArticleCard
+                          key={`featured-${displayedFeatured[0].id}`}
+                          article={displayedFeatured[0]}
+                          imagePosition={getImagePosition(displayedFeatured[0])}
+                          variant="large"
+                        />
+                      </FadeReveal>
                     </div>
                     {/* Secondary compact/horizontal list (desktop and up) */}
                     {secondaryFeatured.length > 0 && (
                       <div className="hidden lg:flex lg:col-span-4 lg:flex-col lg:space-y-4">
-                        {secondaryFeatured.map((a) => (
-                          <ArticleCard
-                            key={`featured-${a.id}`}
-                            article={a}
-                            imagePosition={getImagePosition(a)}
-                            variant="horizontal"
-                          />
+                        {secondaryFeatured.map((a, idx) => (
+                          <FadeReveal key={`featured-${a.id}`} delay={120 + idx * 60}>
+                            <ArticleCard
+                              article={a}
+                              imagePosition={getImagePosition(a)}
+                              variant="horizontal"
+                            />
+                          </FadeReveal>
                         ))}
                       </div>
                     )}
@@ -1003,13 +1050,15 @@ const Home: React.FC = () => {
                   {secondaryFeatured.length > 0 && (
                     <div className="mt-6 lg:hidden">
                       <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory">
-                        {secondaryFeatured.map((a) => (
+                        {secondaryFeatured.map((a, idx) => (
                           <div key={`featured-mobile-${a.id}`} className="snap-start shrink-0 w-64">
-                            <ArticleCard
-                              article={a}
-                              imagePosition={getImagePosition(a)}
-                              variant="compact"
-                            />
+                            <FadeReveal delay={idx * 80} className="h-full">
+                              <ArticleCard
+                                article={a}
+                                imagePosition={getImagePosition(a)}
+                                variant="compact"
+                              />
+                            </FadeReveal>
                           </div>
                         ))}
                       </div>
