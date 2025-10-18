@@ -475,22 +475,6 @@ const Home: React.FC = () => {
 
   const secondaryFeatured = useMemo(() => displayedFeatured.slice(1, 5), [displayedFeatured]);
 
-  const latestGridLayout = useMemo(() => {
-    const pattern = [
-      { variant: 'large', wrapper: 'sm:col-span-2 lg:col-span-2 lg:row-span-2 xl:col-span-2 xl:row-span-2' },
-      { variant: 'compact', wrapper: '' },
-      { variant: 'compact', wrapper: '' },
-      { variant: 'horizontal', wrapper: 'sm:col-span-2 lg:col-span-2' },
-      { variant: 'compact', wrapper: '' },
-      { variant: 'compact', wrapper: '' },
-    ];
-
-    return latestList.map((article, idx) => {
-      const config = pattern[idx % pattern.length];
-      return { article, variant: config.variant as 'compact' | 'horizontal' | 'large', wrapper: config.wrapper };
-    });
-  }, [latestList]);
-
 
   // Auto-rotate hero
   useEffect(() => {
@@ -569,7 +553,7 @@ const Home: React.FC = () => {
     } else {
       goToPrevHero();
     }
-  }, [goToNextHero, goToPrevHero]);
+  }, [goToNextHero, goToPrevHero, resetHeroSwipeTracking]);
 
   const handleHeroPointerCancel = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     if (heroSwipePointerRef.current !== event.pointerId) return;
@@ -791,6 +775,7 @@ const Home: React.FC = () => {
 
   const refreshLatest = useCallback(async () => {
     await loadLatestPage(1, activeCategory !== 'all' ? activeCategory : undefined);
+    setLatestPage(1);
     setLiveUpdatesCount(0);
   }, [activeCategory, loadLatestPage]);
 
@@ -822,6 +807,9 @@ const Home: React.FC = () => {
       const currentY = event.touches[0]?.clientY ?? 0;
       const distance = Math.max(0, currentY - startY);
       if (distance > 0) {
+        if (event.cancelable) {
+          event.preventDefault();
+        }
         updatePullDistance(distance);
       } else {
         updatePullDistance(0);
@@ -847,8 +835,8 @@ const Home: React.FC = () => {
       resetPull();
     };
 
-    window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('touchstart', handleTouchStart, { passive: false });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
     window.addEventListener('touchend', handleTouchEnd);
     window.addEventListener('touchcancel', handleTouchCancel);
 
@@ -1353,6 +1341,8 @@ const Home: React.FC = () => {
                     className="flex w-full items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-2 text-green-800 transition hover:bg-green-100 disabled:cursor-not-allowed disabled:opacity-70"
                     onClick={() => { void triggerRefresh(); }}
                     disabled={isRefreshing}
+                    aria-live="polite"
+                    aria-busy={isRefreshing}
                   >
                     {isRefreshing ? (
                       <>
@@ -1395,26 +1385,15 @@ const Home: React.FC = () => {
                   section="latest"
                 />
               ) : latestList.length > 0 ? (
-                <>
-                  <div className="sr-only" aria-live="polite" role="status">
-                    {loadingMoreLatest ? 'Loading more stories' : 'Latest stories updated'}
-                  </div>
-                  <div
-                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
-                    aria-live="polite"
-                    aria-busy={loadingMoreLatest}
-                  >
-                    {latestGridLayout.map(({ article, variant, wrapper }, idx) => (
-                      <FadeReveal key={`latest-${article.id}`} delay={idx * 40} className={`h-full ${wrapper}`.trim()}>
-                        <ArticleCard
-                          article={article}
-                          imagePosition={getImagePosition(article)}
-                          variant={variant}
-                        />
-                      </FadeReveal>
-                    ))}
-                  </div>
-                </>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {latestList.map((article) => (
+                    <ArticleCard
+                      key={`latest-${article.id}`}
+                      article={article}
+                      imagePosition={getImagePosition(article)}
+                    />
+                  ))}
+                </div>
               ) : (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
                   <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
