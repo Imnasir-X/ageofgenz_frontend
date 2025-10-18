@@ -83,12 +83,12 @@ const Home: React.FC = () => {
   // Smart image position based on category or content type
   const getImagePosition = useCallback((article: Article): 'top' | 'center' | 'bottom' => {
     const category = article.category?.name?.toLowerCase() || '';
-
+    
     if (category.includes('sport')) return 'center';
     if (category.includes('politic') || category.includes('opinion')) return 'top';
     if (category.includes('meme') || category.includes('culture')) return 'center';
     if (category.includes('world')) return 'center';
-
+    
     return 'center';
   }, []);
 
@@ -404,7 +404,7 @@ const Home: React.FC = () => {
     } else {
       goToPrevHero();
     }
-  }, [goToNextHero, goToPrevHero, HERO_SWIPE_THRESHOLD, resetHeroSwipeTracking]);
+  }, [goToNextHero, goToPrevHero]);
 
   const handleHeroPointerCancel = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     if (heroSwipePointerRef.current !== event.pointerId) return;
@@ -486,7 +486,7 @@ const Home: React.FC = () => {
         } else {
           setLatestArticles(articles);
           // Seed infinite list with first batch if empty
-          setLatestList((prev) => (prev.length === 0 ? articles : prev));
+          if (latestList.length === 0) setLatestList(articles);
         }
       } catch (err: any) {
         console.error('Latest Articles Error:', err);
@@ -496,8 +496,6 @@ const Home: React.FC = () => {
       }
     };
 
-    
-
     // Load all in parallel for better perceived performance
     void Promise.allSettled([
       fetchCategories(),
@@ -505,7 +503,6 @@ const Home: React.FC = () => {
       fetchLatestArticles(),
     ]);
   }, []);
-
 
   // Retry functions (same as before)
   const retryFeatured = useCallback(async () => {
@@ -525,7 +522,6 @@ const Home: React.FC = () => {
       setLoadingFeatured(false);
     }
   }, []);
-
 
   // Show newsletter card when user reaches ~middle of the page
   useEffect(() => {
@@ -552,7 +548,6 @@ const Home: React.FC = () => {
     window.addEventListener('scroll', onScroll, { passive: true } as AddEventListenerOptions);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
-
 
   // When the newsletter modal opens, lock scroll and manage focus; restore on close
   useEffect(() => {
@@ -607,7 +602,6 @@ const Home: React.FC = () => {
     }
   }, []);
 
-
   // Load a page for infinite scroll (all or by category)
   const loadLatestPage = useCallback(async (page: number, categorySlug?: string) => {
     setLoadingMoreLatest(true);
@@ -629,7 +623,6 @@ const Home: React.FC = () => {
       setLoadingMoreLatest(false);
     }
   }, []);
-
 
   // Observe sentinel for infinite scroll
   useEffect(() => {
@@ -1149,11 +1142,3 @@ const Home: React.FC = () => {
 };
 
 export default Home;
-
-
-
-
-
-
-
-
