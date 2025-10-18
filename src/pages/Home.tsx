@@ -1106,47 +1106,44 @@ const Home: React.FC = () => {
                 <div
                   tabIndex={0}
                   onKeyDown={handleBreakingKeyDown}
-                  className={`flex flex-col gap-4 sm:gap-5 transition-all duration-500 ${breakingVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
+                  className={`group block max-w-[640px] mx-auto outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-lg transition-all duration-500 will-change-transform ${breakingVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
                 >
-                  <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                    <span className={`${accent.badge} inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold tracking-wide text-white`}>
-                      {categoryText}
-                    </span>
-                    <span className="hidden h-1 w-1 rounded-full bg-gray-300 sm:inline-flex" aria-hidden="true" />
-                    <span className="flex items-center gap-2 text-slate-500">
-                      <Clock size={14} className={accent.text} />
-                      {dateText}
-                    </span>
-                    <span className="hidden h-1 w-1 rounded-full bg-gray-300 sm:inline-flex" aria-hidden="true" />
-                    <span className="text-slate-500">By {authorName}</span>
-                    <span className="hidden h-1 w-1 rounded-full bg-gray-300 sm:inline-flex" aria-hidden="true" />
-                    <span className="text-slate-400">{breakingIndex + 1} of {breakingItems.length}</span>
-                  </div>
-                  <Link
-                    to={href}
-                    className="block rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-                  >
-                    <h2 className="font-serif text-center text-2xl sm:text-3xl md:text-4xl font-black leading-tight tracking-tight text-slate-900 transition-colors hover:text-orange-500">
+                  <Link to={href} className="group inline-block mb-4">
+                    <h2 className="font-serif font-extrabold tracking-tight text-gray-900 leading-snug text-xl sm:text-2xl md:text-3xl underline decoration-gray-900 decoration-1 underline-offset-4 transition-colors group-hover:text-orange-500">
                       {current.title || 'Untitled Article'}
                     </h2>
                   </Link>
+
                   <Link
                     to={href}
-                    className="relative mx-auto block w-full max-w-2xl overflow-hidden rounded-3xl border border-gray-200 shadow-inner"
+                    className="block rounded-lg overflow-hidden bg-gray-100 border border-gray-100 mb-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                   >
                     <div className="aspect-[16/9]">
                       <img
                         src={img}
                         alt={current.title || 'Breaking image'}
-                        className="h-full w-full object-cover transition duration-500 hover:scale-[1.02]"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                         loading="lazy"
                         onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/api/placeholder/1200/675'; }}
                       />
                     </div>
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
                   </Link>
+
+                  <div className="flex flex-wrap items-center gap-1.5 text-xs sm:text-[13px] text-gray-700 mb-2">
+                    <span className={`${accent.text} font-semibold uppercase`}>{categoryText}</span>
+                    <span className="text-gray-300">•</span>
+                    <span className="flex items-center gap-1">
+                      <Clock size={12} className={accent.text} />
+                      {dateText}
+                    </span>
+                    <span className="text-gray-300">•</span>
+                    <span className="text-gray-600">By {authorName}</span>
+                    <span className="text-gray-300">•</span>
+                    <span className="text-gray-500">{breakingIndex + 1} / {breakingItems.length}</span>
+                  </div>
+                  <div className="w-10 h-0.5 bg-orange-400 mb-2"></div>
                   {current.excerpt && (
-                    <p className="mx-auto max-w-2xl text-center text-sm leading-relaxed text-slate-600 sm:text-base">
+                    <p className="text-gray-700 text-xs sm:text-sm leading-relaxed line-clamp-1">
                       {current.excerpt}
                     </p>
                   )}
