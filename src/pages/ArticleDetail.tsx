@@ -520,10 +520,10 @@ const ArticleDetail: React.FC = () => {
             <div className="bg-white rounded-2xl shadow-sm px-6 py-8 md:px-12 md:py-12 lg:px-14 lg:py-16">
               {/* Article Header */}
               <header className="mb-12">
-                <div className="mb-5 text-xs md:text-sm uppercase tracking-[0.28em] text-orange-600 font-semibold flex flex-wrap items-center gap-3">
+                <div className="mb-5 text-xs sm:text-sm uppercase tracking-[0.28em] text-orange-600 font-semibold flex flex-wrap items-center gap-3">
                   <Link
                     to={`/${article.category?.slug}`}
-                    className="hover:text-orange-500 transition-colors"
+                    className="hover:text-orange-500 hover:underline transition-colors"
                   >
                     {article.category?.name || 'News'}
                   </Link>
@@ -534,7 +534,7 @@ const ArticleDetail: React.FC = () => {
                 </div>
                 
                 {/* Article Title */}
-                <h1 className="article-title text-gray-900">
+                <h1 className="article-title text-gray-900 text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
                   {article.title}
                 </h1>
                 
@@ -567,6 +567,11 @@ const ArticleDetail: React.FC = () => {
                       }}
                       loading="eager"
                     />
+                    {(article.featured_image_caption || article.caption) && (
+                      <figcaption className="px-6 md:px-12 lg:px-14 mt-2 text-sm text-gray-500 italic">
+                        {article.featured_image_caption || article.caption}
+                      </figcaption>
+                    )}
                   </figure>
                 </div>
               )}
@@ -574,7 +579,7 @@ const ArticleDetail: React.FC = () => {
               <div className="-mx-6 md:-mx-12 lg:-mx-14 border-t border-b border-orange-200 bg-white/90 mt-0">
                 <div className="article-share-wrap px-6 md:px-12 lg:px-14">
                   <span className="sr-only">Share this article</span>
-                  <div className="article-share-grid">
+                  <div className="article-share-grid flex flex-col items-stretch gap-3 md:flex-row md:items-center md:gap-4">
                     {shareLinks.map(({ name, href, Icon }) => (
                       <a
                         key={name}
@@ -584,7 +589,7 @@ const ArticleDetail: React.FC = () => {
                         aria-label={`Share on ${name}`}
                         className="article-share-button"
                       >
-                        <Icon className="article-share-icon" size={12} />
+                        <Icon className="article-share-icon" />
                         <span className="sr-only">Share on {name}</span>
                       </a>
                     ))}
@@ -595,7 +600,7 @@ const ArticleDetail: React.FC = () => {
                         aria-label="Copy article link"
                         className={`article-share-button article-share-button--copy ${copySuccess ? 'is-success' : ''}`}
                       >
-                        <Link2 className="article-share-icon" size={12} />
+                        <Link2 className="article-share-icon" />
                         <span className="sr-only">{copySuccess ? 'Link copied' : 'Copy link'}</span>
                       </button>
                       <span
@@ -611,8 +616,8 @@ const ArticleDetail: React.FC = () => {
               </div>
 
               {/* Article body */}
-              <div
-                className="article-content-container article-content"
+                <div
+                className="article-content-container article-content leading-[1.75] hyphens-auto"
                 dangerouslySetInnerHTML={formattedContent}
               />
 
@@ -643,7 +648,7 @@ const ArticleDetail: React.FC = () => {
 
           {/* Enhanced Sidebar */}
           <aside className="xl:w-1/3 xl:mt-0">
-            <div className="sticky top-24 space-y-8">
+            <div className="sticky top-24 space-y-8 lg:rounded-2xl lg:bg-white/80 lg:shadow-[0_18px_40px_rgba(15,23,42,0.08)] lg:backdrop-blur-lg lg:p-6 transition-shadow duration-300">
               <DonationPlaceholder />
               
               {relatedArticles.length > 0 && (
@@ -652,28 +657,29 @@ const ArticleDetail: React.FC = () => {
                   <div className="trending-list">
                     {relatedArticles.map((relatedArticle) => (
                       <article key={relatedArticle.id} className="trending-item">
-                        <Link to={`/article/${relatedArticle.slug}`} className="trending-link">
-                          <div className="trending-image-wrap">
+                        <Link to={`/article/${relatedArticle.slug}`} className="trending-link group block rounded-2xl border border-gray-100 bg-white/80 p-4 transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
+                          <div className="trending-image-wrap relative overflow-hidden rounded-xl">
                             <img
                               src={relatedArticle.featured_image_url || relatedArticle.featured_image || '/api/placeholder/420/240'}
                               alt={relatedArticle.title}
-                              className="trending-image"
+                              className="trending-image h-44 w-full object-cover transition duration-300 group-hover:opacity-80"
                               loading="lazy"
                               onError={(e) => {
                                 e.currentTarget.src = '/api/placeholder/420/240';
                               }}
                             />
+                            <div className="pointer-events-none absolute inset-0 bg-slate-900/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
                           </div>
-                          <div className="trending-meta">
-                            <span className="trending-meta-pill">
+                          <div className="trending-meta mt-3 flex items-center gap-2 text-xs text-gray-500">
+                            <span className="trending-meta-pill font-semibold text-orange-600">
                               {relatedArticle.category?.name?.toUpperCase() || 'TRENDING'}
                             </span>
-                            <span className="trending-meta-separator" aria-hidden="true">•</span>
-                            <span className="trending-meta-date">
+                            <span className="trending-meta-separator hidden sm:inline-flex" aria-hidden="true">•</span>
+                            <span className="trending-meta-date uppercase tracking-wide text-gray-400">
                               {formatDate(relatedArticle.published_at || relatedArticle.created_at)}
                             </span>
                           </div>
-                          <h4 className="trending-headline">
+                          <h4 className="trending-headline mt-2 text-base font-semibold text-gray-900 leading-snug group-hover:text-orange-600 transition-colors">
                             {relatedArticle.title}
                           </h4>
                         </Link>

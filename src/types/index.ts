@@ -57,6 +57,8 @@ export interface Article {
   created_at: string;
   updated_at: string;
   estimated_read_time: number;
+  caption?: string | null;
+  featured_image_caption?: string | null;
   
   // Backward compatibility fields
   image: string | null;
@@ -83,6 +85,8 @@ export interface BackendArticle {
   published_at: string | null;
   meta_title: string;
   meta_description: string;
+  caption?: string | null;
+  featured_image_caption?: string | null;
 }
 
 // Comment type (future use)
