@@ -11,10 +11,34 @@ import {
   getArticles,
   getArticlesByCategory
 } from '../utils/api';
-import { RefreshCw, Search, X, TrendingUp, Clock, BookOpen, Pause, Play, ChevronLeft, ChevronRight } from 'lucide-react';
+import { RefreshCw, Search, X, TrendingUp, Clock, BookOpen, Pause, Play, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import type { Article, Category } from '../types';
 
 const HERO_ROTATE_INTERVAL = 7000;
+
+type AccentTheme = {
+  badge: string;
+  divider: string;
+  text: string;
+};
+
+const BREAKING_ACCENTS: Record<string, AccentTheme> = {
+  politics: { badge: 'bg-blue-600', divider: 'bg-blue-600', text: 'text-blue-600' },
+  world: { badge: 'bg-emerald-600', divider: 'bg-emerald-600', text: 'text-emerald-600' },
+  culture: { badge: 'bg-rose-600', divider: 'bg-rose-600', text: 'text-rose-600' },
+  sports: { badge: 'bg-red-600', divider: 'bg-red-600', text: 'text-red-600' },
+  business: { badge: 'bg-amber-600', divider: 'bg-amber-600', text: 'text-amber-600' },
+  technology: { badge: 'bg-indigo-600', divider: 'bg-indigo-600', text: 'text-indigo-600' },
+  science: { badge: 'bg-cyan-600', divider: 'bg-cyan-600', text: 'text-cyan-600' },
+  opinion: { badge: 'bg-purple-600', divider: 'bg-purple-600', text: 'text-purple-600' },
+  insights: { badge: 'bg-sky-600', divider: 'bg-sky-600', text: 'text-sky-600' },
+  default: { badge: 'bg-orange-500', divider: 'bg-orange-400', text: 'text-orange-500' },
+};
+
+const getBreakingAccent = (slug?: string | null, name?: string | null): AccentTheme => {
+  const key = (slug || name || 'default').toLowerCase();
+  return BREAKING_ACCENTS[key] || BREAKING_ACCENTS.default;
+};
 
 const Home: React.FC = () => {
   const [featuredArticles, setFeaturedArticles] = useState<Article[]>([]);
@@ -31,6 +55,13 @@ const Home: React.FC = () => {
   const [loadingMoreLatest, setLoadingMoreLatest] = useState<boolean>(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const [liveUpdatesCount, setLiveUpdatesCount] = useState<number>(0);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [pullDistance, setPullDistance] = useState<number>(0);
+  const pullDistanceRef = useRef<number>(0);
+  const updatePullDistance = useCallback((value: number) => {
+    pullDistanceRef.current = value;
+    setPullDistance(value);
+  }, []);
   
   const [loadingFeatured, setLoadingFeatured] = useState<boolean>(true);
   const [loadingLatest, setLoadingLatest] = useState<boolean>(true);
@@ -49,6 +80,7 @@ const Home: React.FC = () => {
   const [breakingPlaying, setBreakingPlaying] = useState<boolean>(true);
   const breakingTimerRef = useRef<number | null>(null);
   const [breakingAnnouncement, setBreakingAnnouncement] = useState<string>('');
+  const [breakingVisible, setBreakingVisible] = useState<boolean>(true);
   const closeBtnRef = useRef<HTMLButtonElement | null>(null);
   const prevFocusRef = useRef<HTMLElement | null>(null);
   
@@ -101,6 +133,12 @@ const Home: React.FC = () => {
       }
     };
   }, [breakingItems.length, breakingPlaying]);
+
+  useEffect(() => {
+    setBreakingVisible(false);
+    const id = window.setTimeout(() => setBreakingVisible(true), 40);
+    return () => window.clearTimeout(id);
+  }, [breakingIndex]);
 
   // Smart image position based on category or content type
   const getImagePosition = useCallback((article: Article): 'top' | 'center' | 'bottom' => {
@@ -734,19 +772,90 @@ const Home: React.FC = () => {
     }
   }, []);
 
+  const refreshLatest = useCallback(async () => {
+    await loadLatestPage(1, activeCategory !== 'all' ? activeCategory : undefined);
+    setLiveUpdatesCount(0);
+  }, [activeCategory, loadLatestPage]);
+
+  const triggerRefresh = useCallback(async () => {
+    if (isRefreshing) return;
+    updatePullDistance(0);
+    setIsRefreshing(true);
+    try {
+      await refreshLatest();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [isRefreshing, refreshLatest, updatePullDistance]);
+
+  useEffect(() => {
+    let startY = 0;
+
+    const handleTouchStart = (event: TouchEvent) => {
+      if (window.scrollY > 0 || loadingLatest || isRefreshing || showSearch) {
+        startY = 0;
+        return;
+      }
+      startY = event.touches[0]?.clientY ?? 0;
+      updatePullDistance(0);
+    };
+
+    const handleTouchMove = (event: TouchEvent) => {
+      if (startY === 0) return;
+      const currentY = event.touches[0]?.clientY ?? 0;
+      const distance = Math.max(0, currentY - startY);
+      if (distance > 0) {
+        updatePullDistance(distance);
+      } else {
+        updatePullDistance(0);
+      }
+    };
+
+    const resetPull = () => {
+      startY = 0;
+      updatePullDistance(0);
+    };
+
+    const handleTouchEnd = () => {
+      if (startY === 0) return;
+      const finalDistance = pullDistanceRef.current;
+      resetPull();
+      if (finalDistance >= 90) {
+        void triggerRefresh();
+      }
+    };
+
+    const handleTouchCancel = () => {
+      if (startY === 0) return;
+      resetPull();
+    };
+
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd);
+    window.addEventListener('touchcancel', handleTouchCancel);
+
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('touchcancel', handleTouchCancel);
+    };
+  }, [loadingLatest, isRefreshing, showSearch, triggerRefresh, updatePullDistance]);
+
   // Observe sentinel for infinite scroll
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
     const observer = new IntersectionObserver((entries) => {
       const [entry] = entries;
-      if (entry.isIntersecting && latestHasMore && !loadingMoreLatest) {
+      if (entry.isIntersecting && latestHasMore && !loadingMoreLatest && !isRefreshing) {
         loadLatestPage(latestPage + 1, activeCategory !== 'all' ? activeCategory : undefined);
       }
     }, { rootMargin: '200px' });
     observer.observe(el);
     return () => observer.disconnect();
-  }, [latestHasMore, loadingMoreLatest, latestPage, activeCategory, loadLatestPage]);
+  }, [latestHasMore, loadingMoreLatest, latestPage, activeCategory, loadLatestPage, isRefreshing]);
 
   // Initialize infinite list
   useEffect(() => {
@@ -981,7 +1090,7 @@ const Home: React.FC = () => {
               <div
                 tabIndex={0}
                 onKeyDown={handleBreakingKeyDown}
-                className="block max-w-[640px] mx-auto outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-lg"
+                className={`group block max-w-[640px] mx-auto outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-lg transition-all duration-500 will-change-transform ${breakingVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
               >
                 {(() => {
                   const a = breakingItems[breakingIndex];
@@ -989,22 +1098,23 @@ const Home: React.FC = () => {
                   const dateText = new Date(a?.date || a?.published_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                   const categoryText = (a?.category?.name || a?.category_name || 'World').toUpperCase();
                   const img = a?.featured_image_url || a?.image || a?.featured_image || '/api/placeholder/1200/675';
+                  const accent = getBreakingAccent(a?.category?.slug, a?.category?.name);
                   return (
                     <div>
                       {/* Headline */}
                       <Link to={href} className="group inline-block mb-4">
-                        <h2 className="font-serif font-extrabold tracking-tight text-gray-900 leading-snug text-xl sm:text-2xl underline decoration-gray-900 decoration-1 underline-offset-4 group-hover:text-orange-600 transition-colors">
+                        <h2 className="font-serif font-extrabold tracking-tight text-gray-900 leading-snug text-lg sm:text-2xl underline decoration-gray-900 decoration-1 underline-offset-4 group-hover:text-orange-600 transition-colors">
                           {a?.title || 'Untitled Article'}
                         </h2>
                       </Link>
 
                       {/* Image */}
-                      <Link to={href} className="block rounded-lg overflow-hidden bg-gray-100 mb-2">
-                        <div className="aspect-[16/9]">
+                      <Link to={href} className="block rounded-xl overflow-hidden bg-gray-100 mb-2 shadow-sm">
+                        <div className="aspect-[4/3] sm:aspect-[16/9]">
                           <img
                             src={img}
                             alt={a?.title || 'Breaking image'}
-                            className="w-full h-full object-cover transition-transform duration-300 hover:scale-[1.02]"
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03] sm:group-hover:scale-[1.05]"
                             loading="lazy"
                             onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/api/placeholder/1200/675'; }}
                           />
@@ -1013,13 +1123,13 @@ const Home: React.FC = () => {
 
                       {/* Meta */}
                       <div className="flex items-center gap-1.5 text-xs sm:text-[13px] text-gray-700 mb-1">
-                        <span className="text-orange-500 font-semibold uppercase">{categoryText}</span>
-                        <span className="text-gray-300" aria-hidden="true">•</span>
-                        <span className="flex items-center">
-                          <Clock size={12} className="mr-1 text-orange-500" /> {dateText}
+                        <span className={`${accent.badge} text-white font-semibold uppercase tracking-wide px-2.5 py-0.5 rounded-full text-[10px] shadow-sm`}>{categoryText}</span>
+                        <span className="text-gray-300" aria-hidden="true">&bull;</span>
+                        <span className="flex items-center text-gray-600">
+                          <Clock size={12} className={`${accent.text} mr-1`} /> {dateText}
                         </span>
                       </div>
-                      <div className="w-10 h-0.5 bg-orange-400 mb-2"></div>
+                      <div className={`w-10 h-0.5 ${accent.divider} mb-2`}></div>
 
                       {/* Excerpt */}
                       {a?.excerpt && (
@@ -1217,16 +1327,36 @@ const Home: React.FC = () => {
                 <div className="mb-4">
                   <button
                     type="button"
-                    className="w-full px-4 py-2 rounded-xl bg-green-50 text-green-800 border border-green-200 hover:bg-green-100"
-                    onClick={async () => {
-                      try {
-                        await loadLatestPage(1, activeCategory !== 'all' ? activeCategory : undefined);
-                        setLiveUpdatesCount(0);
-                      } catch {}
-                    }}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-2 text-green-800 transition hover:bg-green-100 disabled:cursor-not-allowed disabled:opacity-70"
+                    onClick={() => { void triggerRefresh(); }}
+                    disabled={isRefreshing}
                   >
-                    {liveUpdatesCount} new article{liveUpdatesCount>1?'s':''} — tap to load
+                    {isRefreshing ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                        Refreshing latest stories...
+                      </>
+                    ) : (
+                      <>
+                        {liveUpdatesCount} new article{liveUpdatesCount>1?'s':''} - tap to load
+                      </>
+                    )}
                   </button>
+                </div>
+              )}
+              {(isRefreshing || pullDistance > 0) && (
+                <div className="mb-4 flex items-center justify-center text-xs text-gray-500 sm:hidden">
+                  <Loader2
+                    className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin text-blue-500' : pullDistance > 90 ? 'text-blue-500' : 'text-gray-300'} transition-colors`}
+                    aria-hidden="true"
+                  />
+                  <span>
+                    {isRefreshing
+                      ? 'Refreshing latest stories...'
+                      : pullDistance > 90
+                        ? 'Release to refresh'
+                        : 'Pull down to refresh'}
+                  </span>
                 </div>
               )}
               {loadingLatest && latestList.length === 0 ? (
@@ -1264,20 +1394,29 @@ const Home: React.FC = () => {
               )}
 
               {/* Load More / Infinite Scroll Sentinel */}
-              <div className="mt-6 flex items-center justify-center">
-                {loadingMoreLatest ? (
-                  <div className="text-gray-500 text-sm">Loading more…</div>
-                ) : latestHasMore ? (
-                  <button
-                    type="button"
-                    onClick={() => loadLatestPage(latestPage + 1, activeCategory !== 'all' ? activeCategory : undefined)}
-                    className="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-800 hover:bg-gray-50"
-                  >
-                    Load More
-                  </button>
-                ) : (
-                  <div className="text-gray-500 text-sm">You reached the end</div>
-                )}
+              <div className="relative mt-6 h-16">
+                <div className="sticky bottom-4 flex justify-center">
+                  {loadingMoreLatest ? (
+                    <div className="flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-gray-600 shadow-sm backdrop-blur">
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                      <span className="text-sm font-medium">Loading more stories...</span>
+                    </div>
+                  ) : latestHasMore ? (
+                    <button
+                      type="button"
+                      onClick={() => loadLatestPage(latestPage + 1, activeCategory !== 'all' ? activeCategory : undefined)}
+                      className="flex items-center gap-2 rounded-full bg-gray-900 px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2"
+                      disabled={isRefreshing}
+                    >
+                      <ChevronRight className="h-4 w-4 text-white/70" aria-hidden="true" />
+                      Load more stories
+                    </button>
+                  ) : (
+                    <div className="rounded-full bg-white/90 px-4 py-2 text-sm text-gray-500 shadow-sm backdrop-blur">
+                      You reached the end
+                    </div>
+                  )}
+                </div>
               </div>
               <div ref={sentinelRef} className="h-1" />
             </section>
