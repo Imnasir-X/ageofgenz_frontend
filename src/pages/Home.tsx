@@ -106,6 +106,15 @@ const Home: React.FC = () => {
     return pool.slice(0, 10);
   }, [latestArticles, featuredArticles]);
 
+  const activeBreaking = breakingItems[breakingIndex] || null;
+
+  const secondaryBreakingItems = useMemo(() => {
+    return breakingItems
+      .map((article, idx) => ({ article, idx }))
+      .filter(({ idx }) => idx !== breakingIndex)
+      .slice(0, 3);
+  }, [breakingItems, breakingIndex]);
+
   // Auto-rotate breaking items every 6s
   useEffect(() => {
     if (breakingTimerRef.current) {
@@ -1081,125 +1090,189 @@ const Home: React.FC = () => {
         </div>
 
         {/* Breaking News - styled like reference (headline > image > meta + rule + excerpt) */}
-        {breakingItems.length > 0 && (
-          <div className="max-w-6xl mx-auto mb-5">
-            <div
-              className="bg-white border border-gray-200 rounded-lg shadow-sm p-3 sm:p-4"
-              role="region"
-              aria-roledescription="carousel"
-              aria-label="Breaking news headlines"
-            >
-              <div className="sr-only" aria-live={breakingPlaying ? 'polite' : 'off'} role="status">
-                {breakingAnnouncement}
-              </div>
-              <div
-                tabIndex={0}
-                onKeyDown={handleBreakingKeyDown}
-                className={`group block max-w-[640px] mx-auto outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-lg transition-all duration-500 will-change-transform ${breakingVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
-              >
-                {(() => {
-                  const a = breakingItems[breakingIndex];
-                  const href = a?.slug ? `/article/${a.slug}` : '#';
-                  const dateText = new Date(a?.date || a?.published_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                  const categoryText = (a?.category?.name || a?.category_name || 'World').toUpperCase();
-                  const img = a?.featured_image_url || a?.image || a?.featured_image || '/api/placeholder/1200/675';
-                  const accent = getBreakingAccent(a?.category?.slug, a?.category?.name);
-                  return (
-                    <article className="group mx-auto max-w-[640px] overflow-hidden rounded-[26px] border border-slate-900/60 bg-gradient-to-b from-[#141421] via-[#10101a] to-black shadow-[0_18px_48px_rgba(11,11,18,0.5)]">
-                      <div className="px-5 pt-5 sm:px-6">
-                        <Link to={href} className="group inline-block">
-                          <h2 className="font-serif text-2xl sm:text-3xl font-black leading-tight tracking-tight text-white drop-shadow-[0_10px_25px_rgba(0,0,0,0.55)] transition-colors group-hover:text-orange-300">
-                            {a?.title || 'Untitled Article'}
-                          </h2>
-                        </Link>
-                      </div>
+        {breakingItems.length > 0 && (() => {
+          const current = activeBreaking;
+          if (!current) return null;
 
+          const href = current.slug ? `/article/${current.slug}` : '#';
+          const dateText = new Date(current.date || current.published_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          const categoryText = (current.category?.name || current.category_name || 'World').toUpperCase();
+          const img = current.featured_image_url || current.image || current.featured_image || '/api/placeholder/1200/675';
+          const accent = getBreakingAccent(current.category?.slug, current.category?.name);
+          const authorName = current.author?.name || 'Staff';
+
+          const renderPreviewCard = (preview: { article: Article; idx: number }, variant: 'vertical' | 'horizontal') => {
+            const { article, idx } = preview;
+            const previewAccent = getBreakingAccent(article?.category?.slug, article?.category?.name);
+            const previewCategory = (article?.category?.name || article?.category_name || 'World').toUpperCase();
+            const previewDate = new Date(article?.date || article?.published_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            const previewImg = article?.featured_image_url || article?.image || article?.featured_image || '/api/placeholder/200/160';
+            const isActive = idx === breakingIndex;
+            const sharedButtonClasses = 'group flex items-center gap-3 rounded-2xl border bg-white/85 p-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-100';
+            const variantClasses = variant === 'vertical' ? 'w-full' : 'w-64 shrink-0';
+
+            return (
+              <button
+                key={`breaking-preview-${article?.id ?? idx}-${variant}`}
+                type="button"
+                onClick={() => { setBreakingPlaying(false); goToBreakingSlide(idx); }}
+                onMouseEnter={() => variant === 'vertical' && goToBreakingSlide(idx)}
+                onFocus={() => goToBreakingSlide(idx)}
+                className={`${sharedButtonClasses} ${variantClasses} ${isActive ? 'border-orange-300 bg-orange-50/80' : 'border-gray-200 hover:border-gray-300'}`}
+                aria-pressed={isActive}
+                aria-label={`Show breaking story: ${article?.title || 'Untitled Article'}`}
+              >
+                <div className="relative h-16 w-16 overflow-hidden rounded-xl bg-gray-100">
+                  <img
+                    src={previewImg}
+                    alt={article?.title || 'Breaking thumbnail'}
+                    className="h-full w-full object-cover transition duration-300 group-hover:scale-110"
+                    loading="lazy"
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/api/placeholder/200/160'; }}
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className={`text-[11px] font-semibold uppercase tracking-wide ${previewAccent.text}`}>
+                    {previewCategory}
+                  </span>
+                  <p className="mt-1 line-clamp-2 text-sm font-semibold text-gray-800">
+                    {article?.title || 'Untitled Article'}
+                  </p>
+                  <span className="mt-1 block text-xs text-gray-500">{previewDate}</span>
+                </div>
+              </button>
+            );
+          };
+
+          return (
+            <div className="max-w-6xl mx-auto mb-8">
+              <div
+                className="rounded-3xl border border-gray-200 bg-gradient-to-br from-white via-white to-orange-50/40 p-5 sm:p-7 shadow-[0_20px_45px_rgba(15,23,42,0.08)]"
+                role="region"
+                aria-roledescription="carousel"
+                aria-label="Breaking news headlines"
+              >
+                <div className="sr-only" aria-live={breakingPlaying ? 'polite' : 'off'} role="status">
+                  {breakingAnnouncement}
+                </div>
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+                  <div
+                    tabIndex={0}
+                    onKeyDown={handleBreakingKeyDown}
+                    className={`group relative flex h-full flex-col gap-5 rounded-3xl border border-gray-200 bg-white/95 p-5 sm:p-6 shadow-lg transition-all duration-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-100 ${breakingVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
+                  >
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className={`${accent.badge} inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white shadow-sm`}>
+                          {categoryText}
+                        </span>
+                        <span className="text-xs font-medium text-gray-400">
+                          {breakingIndex + 1} / {breakingItems.length}
+                        </span>
+                      </div>
                       <Link
                         to={href}
-                        className="relative mt-4 block overflow-hidden rounded-3xl border border-slate-800 bg-black mx-5"
+                        className="group/link block focus:outline-none focus-visible:ring-0"
                       >
-                        <div className="aspect-[16/9]">
-                          <img
-                            src={img}
-                            alt={a?.title || 'Breaking image'}
-                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                            loading="lazy"
-                            onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/api/placeholder/1200/675'; }}
-                          />
-                        </div>
-                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/15" />
+                        <h2 className="font-serif text-2xl sm:text-3xl font-bold leading-tight text-slate-900 transition-colors group-hover/link:text-orange-600">
+                          {current.title || 'Untitled Article'}
+                        </h2>
                       </Link>
-
-                      <div className="px-5 pb-5 sm:px-6 sm:pb-6">
-                        <div className="flex flex-wrap items-center gap-2 text-[11px] sm:text-xs text-white/80">
-                          <span className={`${accent.badge} text-white font-semibold uppercase tracking-wide px-3 py-0.5 rounded-full shadow-sm`}>
-                            {categoryText}
-                          </span>
-                          <span className="text-white/40" aria-hidden="true">&bull;</span>
-                          <span className="flex items-center gap-1">
-                            <Clock size={12} className={`${accent.text}`} />
-                            {dateText}
-                          </span>
-                        </div>
-
-                        {a?.excerpt && (
-                          <p className="mt-3 text-sm sm:text-base leading-relaxed text-white/80">
-                            {a.excerpt}
-                          </p>
-                        )}
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                        <span className="inline-flex items-center gap-1 text-gray-600">
+                          <Clock size={14} className={`${accent.text}`} />
+                          {dateText}
+                        </span>
+                        <span className="hidden h-1 w-1 rounded-full bg-gray-300 sm:inline-flex" aria-hidden="true" />
+                        <span className="text-gray-500">
+                          By {authorName}
+                        </span>
                       </div>
-                    </article>
-                  );
-                })()}
-              </div>
-              {breakingItems.length > 1 && (
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      aria-label="Previous breaking story"
-                      className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
-                      onClick={() => { setBreakingPlaying(false); goToPrevBreaking(); }}
+                    </div>
+                    <Link
+                      to={href}
+                      className="relative block overflow-hidden rounded-2xl border border-gray-200"
                     >
-                      <ChevronLeft size={16} aria-hidden="true" />
-                    </button>
-                    <button
-                      type="button"
-                      aria-label={breakingPlaying ? 'Pause breaking news rotation' : 'Play breaking news rotation'}
-                      aria-pressed={!breakingPlaying}
-                      className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
-                      onClick={() => setBreakingPlaying((playing) => !playing)}
-                    >
-                      {breakingPlaying ? <Pause size={16} aria-hidden="true" /> : <Play size={16} aria-hidden="true" />}
-                    </button>
-                    <button
-                      type="button"
-                      aria-label="Next breaking story"
-                      className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
-                      onClick={() => { setBreakingPlaying(false); goToNextBreaking(); }}
-                    >
-                      <ChevronRight size={16} aria-hidden="true" />
-                    </button>
+                      <div className="aspect-[16/9]">
+                        <img
+                          src={img}
+                          alt={current.title || 'Breaking image'}
+                          className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
+                          loading="lazy"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/api/placeholder/1200/675'; }}
+                        />
+                      </div>
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+                    </Link>
+                    {current.excerpt && (
+                      <p className="text-sm leading-relaxed text-gray-600 sm:text-base">
+                        {current.excerpt}
+                      </p>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2 overflow-x-auto">
-                    {breakingItems.map((_, idx) => (
-                      <button
-                        key={`breaking-dot-${idx}`}
-                        type="button"
-                        aria-label={`Go to breaking story ${idx + 1}`}
-                        aria-pressed={idx === breakingIndex}
-                        onClick={() => { setBreakingPlaying(false); goToBreakingSlide(idx); }}
-                        className={`h-2 rounded-full transition-all ${idx === breakingIndex ? 'w-6 bg-orange-500' : 'w-2 bg-gray-300 hover:bg-orange-300'}`}
-                      >
-                        <span className="sr-only">Breaking story {idx + 1}</span>
-                      </button>
-                    ))}
-                  </div>
+                  {secondaryBreakingItems.length > 0 && (
+                    <div className="hidden flex-col gap-3 lg:flex">
+                      {secondaryBreakingItems.map((preview) => renderPreviewCard(preview, 'vertical'))}
+                    </div>
+                  )}
                 </div>
-              )}
+                {secondaryBreakingItems.length > 0 && (
+                  <div className="-mx-2 mt-5 flex gap-4 overflow-x-auto px-2 lg:hidden">
+                    {secondaryBreakingItems.map((preview) => renderPreviewCard(preview, 'horizontal'))}
+                  </div>
+                )}
+                {breakingItems.length > 1 && (
+                  <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        aria-label="Previous breaking story"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-100"
+                        onClick={() => { setBreakingPlaying(false); goToPrevBreaking(); }}
+                      >
+                        <ChevronLeft size={18} aria-hidden="true" />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={breakingPlaying ? 'Pause breaking news rotation' : 'Play breaking news rotation'}
+                        aria-pressed={!breakingPlaying}
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-100"
+                        onClick={() => setBreakingPlaying((playing) => !playing)}
+                      >
+                        {breakingPlaying ? <Pause size={18} aria-hidden="true" /> : <Play size={18} aria-hidden="true" />}
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Next breaking story"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-100"
+                        onClick={() => { setBreakingPlaying(false); goToNextBreaking(); }}
+                      >
+                        <ChevronRight size={18} aria-hidden="true" />
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2 overflow-x-auto">
+                      {breakingItems.map((_, idx) => {
+                        const isActive = idx === breakingIndex;
+                        return (
+                          <button
+                            key={`breaking-dot-${idx}`}
+                            type="button"
+                            aria-label={`Go to breaking story ${idx + 1}`}
+                            aria-pressed={isActive}
+                            onClick={() => { setBreakingPlaying(false); goToBreakingSlide(idx); }}
+                            className={`h-2 rounded-full transition-all ${isActive ? 'w-8 bg-orange-500' : 'w-2 bg-gray-300 hover:bg-orange-300'}`}
+                          >
+                            <span className="sr-only">Breaking story {idx + 1}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Enhanced Search Results Section */}
         <SearchResultsSection />
