@@ -1392,29 +1392,25 @@ const Home: React.FC = () => {
               )}
 
               {/* Load More / Infinite Scroll Sentinel */}
-              <div className="relative mt-6 h-16">
-                <div className="sticky bottom-4 flex justify-center">
-                  {loadingMoreLatest ? (
-                    <div className="flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-gray-600 shadow-sm backdrop-blur">
-                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                      <span className="text-sm font-medium">Loading more stories...</span>
-                    </div>
-                  ) : latestHasMore ? (
-                    <button
-                      type="button"
-                      onClick={() => loadLatestPage(latestPage + 1, activeCategory !== 'all' ? activeCategory : undefined)}
-                      className="flex items-center gap-2 rounded-full bg-gray-900 px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2"
-                      disabled={isRefreshing}
-                    >
-                      <ChevronRight className="h-4 w-4 text-white/70" aria-hidden="true" />
-                      Load more stories
-                    </button>
-                  ) : (
-                    <div className="rounded-full bg-white/90 px-4 py-2 text-sm text-gray-500 shadow-sm backdrop-blur">
-                      You reached the end
-                    </div>
-                  )}
-                </div>
+              <div className="mt-6 flex items-center justify-center">
+                {loadingMoreLatest ? (
+                  <div className="flex items-center gap-2 text-gray-500 text-sm">
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    Loading more...
+                  </div>
+                ) : latestHasMore ? (
+                  <button
+                    type="button"
+                    onClick={() => loadLatestPage(latestPage + 1, activeCategory !== 'all' ? activeCategory : undefined)}
+                    className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 transition hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+                    disabled={isRefreshing}
+                  >
+                    Load more
+                    <ChevronRight className="h-4 w-4 text-gray-500" aria-hidden="true" />
+                  </button>
+                ) : (
+                  <div className="text-gray-500 text-sm">You reached the end</div>
+                )}
               </div>
               <div ref={sentinelRef} className="h-1" />
             </section>
