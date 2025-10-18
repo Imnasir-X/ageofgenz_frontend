@@ -1079,7 +1079,7 @@ const Home: React.FC = () => {
         {breakingItems.length > 0 && (
           <div className="max-w-6xl mx-auto mb-5">
             <div
-              className="bg-white border border-gray-200 rounded-xl shadow-sm p-3 sm:p-4"
+              className="bg-white border border-gray-200 rounded-lg shadow-sm p-3 sm:p-4"
               role="region"
               aria-roledescription="carousel"
               aria-label="Breaking news headlines"
@@ -1103,13 +1103,13 @@ const Home: React.FC = () => {
                     <div>
                       {/* Headline */}
                       <Link to={href} className="group inline-block mb-4">
-                        <h2 className="font-serif font-extrabold tracking-tight text-gray-900 leading-snug text-lg sm:text-2xl underline decoration-gray-900 decoration-1 underline-offset-4 group-hover:text-orange-600 transition-colors">
+                        <h2 className="font-serif font-extrabold tracking-tight text-gray-900 leading-snug text-base sm:text-xl underline decoration-gray-900 decoration-1 underline-offset-4 group-hover:text-orange-600 transition-colors">
                           {a?.title || 'Untitled Article'}
                         </h2>
                       </Link>
 
                       {/* Image */}
-                      <Link to={href} className="block rounded-xl overflow-hidden bg-gray-100 mb-2 shadow-sm">
+                      <Link to={href} className="block rounded-lg overflow-hidden bg-gray-100 mb-2 shadow-sm">
                         <div className="aspect-[4/3] sm:aspect-[16/9]">
                           <img
                             src={img}
@@ -1133,7 +1133,7 @@ const Home: React.FC = () => {
 
                       {/* Excerpt */}
                       {a?.excerpt && (
-                        <p className="text-gray-700 text-xs sm:text-sm leading-relaxed line-clamp-2">
+                        <p className="text-gray-600 text-xs sm:text-sm leading-relaxed line-clamp-2">
                           {a.excerpt}
                         </p>
                       )}
