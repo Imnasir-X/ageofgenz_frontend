@@ -1095,7 +1095,7 @@ const Home: React.FC = () => {
           return (
             <div className="mx-auto mb-10 max-w-4xl px-2 sm:px-4">
               <div
-                className="overflow-hidden rounded-[32px] border border-slate-900/70 bg-gradient-to-b from-[#171727] via-[#111122] to-black text-white shadow-[0_28px_60px_rgba(10,12,22,0.55)]"
+                className="overflow-hidden rounded-[26px] border border-orange-100 bg-gradient-to-b from-white via-white to-orange-50/50 shadow-[0_18px_46px_rgba(15,23,42,0.1)]"
                 role="region"
                 aria-roledescription="carousel"
                 aria-label="Breaking news headlines"
@@ -1108,31 +1108,31 @@ const Home: React.FC = () => {
                   onKeyDown={handleBreakingKeyDown}
                   className={`flex flex-col gap-5 px-6 py-7 sm:px-8 transition-all duration-500 ${breakingVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
                 >
-                  <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
+                  <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
                     <span className={`${accent.badge} inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold tracking-wide text-white`}>
                       {categoryText}
                     </span>
-                    <span className="hidden h-1 w-1 rounded-full bg-white/40 sm:inline-flex" aria-hidden="true" />
-                    <span className="flex items-center gap-2 text-white/60">
+                    <span className="hidden h-1 w-1 rounded-full bg-gray-300 sm:inline-flex" aria-hidden="true" />
+                    <span className="flex items-center gap-2 text-slate-500">
                       <Clock size={14} className={accent.text} />
                       {dateText}
                     </span>
-                    <span className="hidden h-1 w-1 rounded-full bg-white/40 sm:inline-flex" aria-hidden="true" />
-                    <span className="text-white/60">By {authorName}</span>
-                    <span className="hidden h-1 w-1 rounded-full bg-white/40 sm:inline-flex" aria-hidden="true" />
-                    <span className="text-white/50">{breakingIndex + 1} of {breakingItems.length}</span>
+                    <span className="hidden h-1 w-1 rounded-full bg-gray-300 sm:inline-flex" aria-hidden="true" />
+                    <span className="text-slate-500">By {authorName}</span>
+                    <span className="hidden h-1 w-1 rounded-full bg-gray-300 sm:inline-flex" aria-hidden="true" />
+                    <span className="text-slate-400">{breakingIndex + 1} of {breakingItems.length}</span>
                   </div>
                   <Link
                     to={href}
-                    className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-2xl"
+                    className="block rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                   >
-                    <h2 className="font-serif text-center text-2xl sm:text-3xl md:text-4xl font-black leading-tight tracking-tight text-white transition-colors hover:text-orange-300">
+                    <h2 className="font-serif text-center text-2xl sm:text-3xl md:text-4xl font-black leading-tight tracking-tight text-slate-900 transition-colors hover:text-orange-500">
                       {current.title || 'Untitled Article'}
                     </h2>
                   </Link>
                   <Link
                     to={href}
-                    className="relative mx-auto block w-full max-w-2xl overflow-hidden rounded-3xl border border-white/10 shadow-inner"
+                    className="relative mx-auto block w-full max-w-2xl overflow-hidden rounded-3xl border border-orange-100 shadow-inner"
                   >
                     <div className="aspect-[16/9]">
                       <img
@@ -1143,21 +1143,21 @@ const Home: React.FC = () => {
                         onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/api/placeholder/1200/675'; }}
                       />
                     </div>
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
                   </Link>
                   {current.excerpt && (
-                    <p className="mx-auto max-w-2xl text-center text-sm leading-relaxed text-white/75 sm:text-base">
+                    <p className="mx-auto max-w-2xl text-center text-sm leading-relaxed text-slate-600 sm:text-base">
                       {current.excerpt}
                     </p>
                   )}
                 </div>
                 {breakingItems.length > 1 && (
-                  <div className="flex flex-col items-center gap-4 border-t border-white/10 px-6 py-5 sm:flex-row sm:justify-between sm:px-8">
+                  <div className="flex flex-col items-center gap-4 border-t border-orange-100 px-6 py-5 sm:flex-row sm:justify-between sm:px-8">
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         aria-label="Previous breaking story"
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 transition hover:-translate-y-0.5 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-50"
                         onClick={() => { setBreakingPlaying(false); goToPrevBreaking(); }}
                       >
                         <ChevronLeft size={18} aria-hidden="true" />
@@ -1166,7 +1166,7 @@ const Home: React.FC = () => {
                         type="button"
                         aria-label={breakingPlaying ? 'Pause breaking news rotation' : 'Play breaking news rotation'}
                         aria-pressed={!breakingPlaying}
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 transition hover:-translate-y-0.5 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-50"
                         onClick={() => setBreakingPlaying((playing) => !playing)}
                       >
                         {breakingPlaying ? <Pause size={18} aria-hidden="true" /> : <Play size={18} aria-hidden="true" />}
@@ -1174,7 +1174,7 @@ const Home: React.FC = () => {
                       <button
                         type="button"
                         aria-label="Next breaking story"
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 transition hover:-translate-y-0.5 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-50"
                         onClick={() => { setBreakingPlaying(false); goToNextBreaking(); }}
                       >
                         <ChevronRight size={18} aria-hidden="true" />
@@ -1190,7 +1190,7 @@ const Home: React.FC = () => {
                             aria-label={`Go to breaking story ${idx + 1}`}
                             aria-pressed={isActive}
                             onClick={() => { setBreakingPlaying(false); goToBreakingSlide(idx); }}
-                            className={`h-2 rounded-full transition-all ${isActive ? 'w-8 bg-orange-400' : 'w-2 bg-white/30 hover:bg-orange-300'}`}
+                            className={`h-2 rounded-full transition-all ${isActive ? 'w-8 bg-orange-400' : 'w-2 bg-gray-300 hover:bg-orange-300'}`}
                           >
                             <span className="sr-only">Breaking story {idx + 1}</span>
                           </button>
