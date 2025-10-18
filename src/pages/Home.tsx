@@ -327,6 +327,8 @@ const Home: React.FC = () => {
     return featuredArticles.filter(a => (a.category?.slug || a.category?.name?.toLowerCase()) === activeCategory);
   }, [featuredArticles, activeCategory]);
 
+  const secondaryFeatured = useMemo(() => displayedFeatured.slice(1, 5), [displayedFeatured]);
+
   // Auto-rotate hero
   useEffect(() => {
     if (heroTimerRef.current) {
@@ -953,7 +955,7 @@ const Home: React.FC = () => {
               )}
             </section>
             {/* Enhanced Featured Stories Section */}
-            <section className="mb-12">
+            <section className="mb-10 sm:mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <TrendingUp size={28} className="text-orange-500" aria-hidden="true" />
                 <h2 className="text-3xl font-bold text-gray-900">
@@ -973,28 +975,47 @@ const Home: React.FC = () => {
                   section="featured"
                 />
               ) : displayedFeatured.length > 0 ? (
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                  {/* Large lead story */}
-                  <div className="lg:col-span-8">
-                    <ArticleCard
-                      key={`featured-${displayedFeatured[0].id}`}
-                      article={displayedFeatured[0]}
-                      imagePosition={getImagePosition(displayedFeatured[0])}
-                      variant="large"
-                    />
-                  </div>
-                  {/* Secondary compact/horizontal list */}
-                  <div className="lg:col-span-4 space-y-4">
-                    {displayedFeatured.slice(1, 5).map((a) => (
+                <>
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                    {/* Large lead story */}
+                    <div className="lg:col-span-8">
                       <ArticleCard
-                        key={`featured-${a.id}`}
-                        article={a}
-                        imagePosition={getImagePosition(a)}
-                        variant="horizontal"
+                        key={`featured-${displayedFeatured[0].id}`}
+                        article={displayedFeatured[0]}
+                        imagePosition={getImagePosition(displayedFeatured[0])}
+                        variant="large"
                       />
-                    ))}
+                    </div>
+                    {/* Secondary compact/horizontal list (desktop and up) */}
+                    {secondaryFeatured.length > 0 && (
+                      <div className="hidden lg:flex lg:col-span-4 lg:flex-col lg:space-y-4">
+                        {secondaryFeatured.map((a) => (
+                          <ArticleCard
+                            key={`featured-${a.id}`}
+                            article={a}
+                            imagePosition={getImagePosition(a)}
+                            variant="horizontal"
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
+                  {secondaryFeatured.length > 0 && (
+                    <div className="mt-6 lg:hidden">
+                      <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory">
+                        {secondaryFeatured.map((a) => (
+                          <div key={`featured-mobile-${a.id}`} className="snap-start shrink-0 w-64">
+                            <ArticleCard
+                              article={a}
+                              imagePosition={getImagePosition(a)}
+                              variant="compact"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
                   <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
