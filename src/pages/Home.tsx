@@ -1100,44 +1100,44 @@ const Home: React.FC = () => {
                   const img = a?.featured_image_url || a?.image || a?.featured_image || '/api/placeholder/1200/675';
                   const accent = getBreakingAccent(a?.category?.slug, a?.category?.name);
                   return (
-                    <div>
-                      {/* Headline */}
-                      <Link to={href} className="group inline-block mb-4">
-                        <h2 className="font-serif font-extrabold tracking-tight text-gray-900 leading-snug text-base sm:text-xl underline decoration-gray-900 decoration-1 underline-offset-4 group-hover:text-orange-600 transition-colors">
-                          {a?.title || 'Untitled Article'}
-                        </h2>
-                      </Link>
-
-                      {/* Image */}
-                      <Link to={href} className="block rounded-lg overflow-hidden bg-gray-100 mb-2 shadow-sm">
-                        <div className="aspect-[4/3] sm:aspect-[16/9]">
+                    <article className="sm:flex sm:items-stretch sm:gap-4">
+                      <Link
+                        to={href}
+                        className="block overflow-hidden rounded-lg bg-gray-100 shadow-sm mb-3 sm:mb-0 sm:w-44 md:w-48 flex-shrink-0"
+                      >
+                        <div className="aspect-[4/3] sm:aspect-[3/4]">
                           <img
                             src={img}
                             alt={a?.title || 'Breaking image'}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03] sm:group-hover:scale-[1.05]"
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                             loading="lazy"
                             onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/api/placeholder/1200/675'; }}
                           />
                         </div>
                       </Link>
-
-                      {/* Meta */}
-                      <div className="flex items-center gap-1.5 text-xs sm:text-[13px] text-gray-700 mb-1">
-                        <span className={`${accent.badge} text-white font-semibold uppercase tracking-wide px-2.5 py-0.5 rounded-full text-[10px] shadow-sm`}>{categoryText}</span>
-                        <span className="text-gray-300" aria-hidden="true">&bull;</span>
-                        <span className="flex items-center text-gray-600">
-                          <Clock size={12} className={`${accent.text} mr-1`} /> {dateText}
-                        </span>
+                      <div className="flex-1">
+                        <Link to={href} className="group inline-block mb-2">
+                          <h2 className="font-serif text-base sm:text-lg font-bold tracking-tight text-gray-900 leading-snug group-hover:text-orange-600 transition-colors">
+                            {a?.title || 'Untitled Article'}
+                          </h2>
+                        </Link>
+                        <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-gray-600 mb-2">
+                          <span className={`${accent.badge} text-white font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full text-[10px] shadow-sm`}>
+                            {categoryText}
+                          </span>
+                          <span className="text-gray-300" aria-hidden="true">&bull;</span>
+                          <span className="flex items-center text-gray-500">
+                            <Clock size={11} className={`${accent.text} mr-1`} /> {dateText}
+                          </span>
+                        </div>
+                        {a?.excerpt && (
+                          <p className="text-gray-600 text-xs leading-relaxed line-clamp-3">
+                            {a.excerpt}
+                          </p>
+                        )}
+                        <div className={`mt-2 w-8 h-0.5 ${accent.divider}`}></div>
                       </div>
-                      <div className={`w-10 h-0.5 ${accent.divider} mb-2`}></div>
-
-                      {/* Excerpt */}
-                      {a?.excerpt && (
-                        <p className="text-gray-600 text-xs sm:text-sm leading-relaxed line-clamp-2">
-                          {a.excerpt}
-                        </p>
-                      )}
-                    </div>
+                    </article>
                   );
                 })()}
               </div>
