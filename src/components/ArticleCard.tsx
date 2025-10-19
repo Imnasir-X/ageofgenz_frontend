@@ -95,31 +95,31 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
               fetchPriority="high"
             />
             <div className="absolute inset-0">
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/45 to-transparent" aria-hidden="true" />
-              <div className="relative z-10 flex h-full flex-col justify-end p-4 sm:p-6 lg:p-8">
-                <div className="space-y-2.5 sm:space-y-3.5">
-                  <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-white/15 bg-white/8 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white backdrop-blur-md shadow-[0_16px_28px_rgba(15,23,42,0.35)]">
-                    <span className={`${categoryAccent} px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white shadow-sm shadow-black/20`}>
-                      {article.category?.name || 'General'}
-                    </span>
-                    <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-white/40" aria-hidden="true" />
-                    <span className="text-white/85">By {article.author?.name || 'Staff'}</span>
-                    <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-white/40" aria-hidden="true" />
-                    <span className="flex items-center text-white">
-                      <Clock size={12} className={`mr-1 ${categoryTextAccent}`} />
-                      {article.estimated_read_time || 3} min read
-                    </span>
-                  </div>
-                  <div className="w-full max-w-[640px] rounded-2xl bg-slate-950/25 px-4 py-2.5 sm:px-4 sm:py-3 backdrop-blur-md backdrop-saturate-150 shadow-[0_20px_42px_rgba(15,23,42,0.4)] ring-1 ring-white/10">
-                    <h3 className="text-2xl sm:text-[2.4rem] lg:text-[2.6rem] font-black text-white leading-tight tracking-tight line-clamp-2 sm:line-clamp-3">
-                      {article.title || 'Untitled Article'}
-                    </h3>
-                    {cleanDescription && (
-                      <p className="mt-1.5 hidden text-sm text-white/80 sm:block sm:text-[0.95rem] sm:leading-relaxed line-clamp-2 sm:line-clamp-3">
-                        {cleanDescription}
-                      </p>
-                    )}
-                  </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/35 to-transparent" aria-hidden="true" />
+              <div className="absolute left-4 top-4 z-10 sm:left-6 sm:top-6">
+                <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-white/15 bg-white/8 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white backdrop-blur-md shadow-[0_14px_26px_rgba(15,23,42,0.35)]">
+                  <span className={`${categoryAccent} px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white shadow-sm shadow-black/20`}>
+                    {article.category?.name || 'General'}
+                  </span>
+                  <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-white/40" aria-hidden="true" />
+                  <span className="text-white/80">By {article.author?.name || 'Staff'}</span>
+                  <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-white/40" aria-hidden="true" />
+                  <span className="flex items-center text-white">
+                    <Clock size={12} className={`mr-1 ${categoryTextAccent}`} />
+                    {article.estimated_read_time || 3} min read
+                  </span>
+                </div>
+              </div>
+              <div className="relative z-10 flex h-full flex-col justify-end p-3 sm:p-5 lg:p-6">
+                <div className="w-full max-w-3xl rounded-2xl bg-slate-950/20 px-3 py-2 sm:px-4 sm:py-2.5 backdrop-blur-md backdrop-saturate-150 shadow-[0_16px_32px_rgba(15,23,42,0.35)] ring-1 ring-white/10">
+                  <h3 className="text-[1.85rem] sm:text-[2.2rem] lg:text-[2.45rem] font-black text-white leading-tight tracking-tight line-clamp-2 lg:line-clamp-3">
+                    {article.title || 'Untitled Article'}
+                  </h3>
+                  {cleanDescription && (
+                    <p className="mt-1 hidden text-sm text-white/75 sm:block sm:text-[0.95rem] sm:leading-snug line-clamp-2">
+                      {cleanDescription}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
