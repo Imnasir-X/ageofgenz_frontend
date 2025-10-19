@@ -314,33 +314,51 @@ const CategoryPage: React.FC<Props> = ({
           </main>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setShowQuickFilters((prev) => !prev)}
-          className="fixed bottom-20 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow-[0_18px_35px_rgba(255,115,55,0.4)] transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 sm:hidden"
-          aria-label="Toggle filters"
-        >
-          <Filter className="h-6 w-6" aria-hidden="true" />
-        </button>
-
-        {showBackToTop && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-end gap-3 px-5 pb-[calc(env(safe-area-inset-bottom,0px)+16px)]">
           <button
             type="button"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="fixed bottom-36 right-5 z-40 hidden h-12 w-12 items-center justify-center rounded-full border border-white/40 bg-white/70 text-slate-700 shadow-lg shadow-slate-900/20 transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white sm:flex"
-            aria-label="Back to top"
+            onClick={() => setShowQuickFilters((prev) => !prev)}
+            className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full bg-orange-500 text-white shadow-lg shadow-orange-500/30 transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+            aria-label="Toggle filters"
           >
-            <ArrowUp className="h-5 w-5" aria-hidden="true" />
+            <Filter className="h-6 w-6" aria-hidden="true" />
           </button>
-        )}
+
+          {showBackToTop && (
+            <button
+              type="button"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/40 bg-white text-slate-700 shadow-lg shadow-slate-900/15 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+              aria-label="Back to top"
+            >
+              <ArrowUp className="h-5 w-5" aria-hidden="true" />
+            </button>
+          )}
+        </div>
 
         {showQuickFilters && (
           <div
-            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm sm:hidden"
+            className="fixed inset-0 z-50 touch-pan-y bg-black/40 backdrop-blur-sm sm:hidden"
             role="dialog"
             aria-modal="true"
+            onTouchStart={(event) => {
+              const startY = event.touches[0].clientY;
+              const onMove = (moveEvent: TouchEvent) => {
+                const delta = moveEvent.touches[0].clientY - startY;
+                if (delta > 80) {
+                  setShowQuickFilters(false);
+                  window.removeEventListener('touchmove', onMove);
+                }
+              };
+              window.addEventListener('touchmove', onMove, { passive: true });
+              window.addEventListener(
+                'touchend',
+                () => window.removeEventListener('touchmove', onMove),
+                { once: true },
+              );
+            }}
           >
-            <div className="absolute bottom-0 left-0 right-0 rounded-t-3xl border border-white/10 bg-white p-6 shadow-2xl">
+            <div className="absolute bottom-0 left-0 right-0 rounded-t-3xl border border-white/10 bg-white p-6 pb-[calc(env(safe-area-inset-bottom,0px)+20px)] shadow-2xl">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-base font-semibold text-slate-900">Filter feed</h3>
                 <button
