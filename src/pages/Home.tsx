@@ -1102,7 +1102,7 @@ const Home: React.FC = () => {
                 <div
                   tabIndex={0}
                   onKeyDown={handleBreakingKeyDown}
-                  className={`group mx-auto block w-full max-w-[560px] rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white transition-all duration-500 will-change-transform ${breakingVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
+                  className={`group mx-auto block w-full max-w-[540px] rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white transition-all duration-500 will-change-transform ${breakingVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
                 >
                   <Link to={href} className="group inline-block mb-3">
                     <h2 className="font-serif font-extrabold tracking-tight text-gray-900 leading-snug text-xl sm:text-2xl md:text-[28px] underline decoration-gray-900 decoration-1 underline-offset-4 transition-colors group-hover:text-orange-500">
@@ -1114,7 +1114,7 @@ const Home: React.FC = () => {
                     to={href}
                     className="block overflow-hidden rounded-xl border border-gray-100 bg-gray-100 mb-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                   >
-                    <div className="aspect-[18/9] sm:aspect-[20/9]">
+                    <div className="aspect-[18/10] sm:aspect-[20/10]">
                       <img
                         src={img}
                         alt={current.title || 'Breaking image'}
