@@ -77,7 +77,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
       case 'horizontal':
         return 'bg-white rounded-md shadow-sm hover:shadow-md transition-transform duration-300 ease-out transform-gpu hover:-translate-y-1 overflow-hidden group';
       case 'sidebarLarge':
-        return 'flex flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-100 transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg h-[230px]';
+        return 'flex w-full max-w-[320px] flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-100 transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg';
       default:
         return 'bg-white rounded-md shadow-sm hover:shadow-md transition-transform duration-300 ease-out transform-gpu hover:-translate-y-1 overflow-hidden group';
     }
@@ -181,7 +181,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
               loading="lazy"
             />
           </div>
-          <div className="flex h-full flex-col gap-1.5 px-3 py-2.5">
+          <div className="flex h-full flex-col gap-1.5 px-3 py-3">
             <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
               <span className={`${categoryAccent} inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold text-white`}>
                 {article.category?.name || 'General'}

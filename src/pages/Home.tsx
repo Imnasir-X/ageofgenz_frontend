@@ -479,7 +479,7 @@ const Home: React.FC = () => {
     return featuredArticles.filter(a => (a.category?.slug || a.category?.name?.toLowerCase()) === activeCategory);
   }, [featuredArticles, activeCategory]);
 
-  const secondaryFeatured = useMemo(() => displayedFeatured.slice(1, 5), [displayedFeatured]);
+  const secondaryFeatured = useMemo(() => displayedFeatured.slice(1, 4), [displayedFeatured]);
 
 
   // Auto-rotate hero
