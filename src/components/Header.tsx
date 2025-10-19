@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { ChevronDown, ChevronRight, Search as SearchIcon, X } from 'lucide-react';
 import { getArticlesBySearch, getLatestArticles } from '../utils/api';
@@ -17,6 +17,7 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   const [showSearch, setShowSearch] = useState(false);
   const [query, setQuery] = useState('');
+  const [mobileQuery, setMobileQuery] = useState('');
   const [suggestions, setSuggestions] = useState<Array<{ id: number; title: string; slug: string; image?: string; date?: string; category?: string }>>([]);
   const [loadingSuggest, setLoadingSuggest] = useState(false);
   const [showSuggest, setShowSuggest] = useState(false);
@@ -37,6 +38,34 @@ const Header: React.FC = () => {
     }
   }, [showSearch]);
   const trendingSearches = ['AI', 'Elections', 'World', 'Sports', 'Opinion'];
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = localStorage.getItem(recentKey);
+      setRecentSearches(raw ? JSON.parse(raw) : []);
+    } catch {
+      setRecentSearches([]);
+    }
+  }, []);
+
+  const saveRecentSearch = useCallback((value: string) => {
+    const term = value.trim();
+    if (!term) return;
+    const next = [term, ...recentSearches.filter((entry) => entry.toLowerCase() !== term.toLowerCase())].slice(0, 6);
+    localStorage.setItem(recentKey, JSON.stringify(next));
+    setRecentSearches(next);
+  }, [recentKey, recentSearches]);
+
+  const handleMobileSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const term = mobileQuery.trim();
+    if (!term) return;
+    saveRecentSearch(term);
+    navigate(`/search?q=${encodeURIComponent(term)}`);
+    setMobileQuery('');
+    setIsMenuOpen(false);
+  };
 
   // Breaking news banner
   const [breakingNews, setBreakingNews] = useState<{ title: string; slug: string } | null>(null);
@@ -235,9 +264,9 @@ const Header: React.FC = () => {
   return (
     <>
       {breakingNews && !breakingDismissed && (
-        <div className="sticky top-0 z-[60] relative bg-gradient-to-r from-red-600 via-red-700 to-red-600 text-white px-4 py-2 text-sm font-medium overflow-hidden">
+        <div className={`${isDesktop ? 'sticky top-0' : 'relative'} z-[60] bg-gradient-to-r from-red-600 via-red-700 to-red-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium overflow-hidden`}>
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
-          <div className="relative flex items-center justify-between">
+          <div className="relative flex flex-wrap items-center gap-2 sm:gap-3 sm:justify-between">
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <span className="inline-flex items-center gap-1 bg-white text-red-600 px-2 py-0.5 rounded-full text-xs font-bold">
                 <span className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse" />
@@ -245,8 +274,8 @@ const Header: React.FC = () => {
               </span>
               <span className="line-clamp-1 animate-text-slide">{breakingNews.title}</span>
             </div>
-            <div className="flex items-center gap-3 flex-shrink-0">
-              <Link to={`/article/${breakingNews.slug}`} className="text-white underline hover:text-gray-200 text-xs whitespace-nowrap">
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+              <Link to={`/article/${breakingNews.slug}`} className="text-white underline hover:text-gray-200 whitespace-nowrap">
                 Read more →
               </Link>
               <button
@@ -454,8 +483,7 @@ const Header: React.FC = () => {
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && query.trim()) {
                             const q = query.trim();
-                            const next = [q, ...recentSearches.filter(x => x.toLowerCase() !== q.toLowerCase())].slice(0, 6);
-                            localStorage.setItem(recentKey, JSON.stringify(next));
+                            saveRecentSearch(q);
                             navigate(`/search?q=${encodeURIComponent(q)}`);
                             setShowSuggest(false);
                             setShowSearch(false);
@@ -478,8 +506,7 @@ const Header: React.FC = () => {
                         onClick={() => {
                           if (!query.trim()) return;
                           const q = query.trim();
-                          const next = [q, ...recentSearches.filter(x => x.toLowerCase() !== q.toLowerCase())].slice(0, 6);
-                          localStorage.setItem(recentKey, JSON.stringify(next));
+                          saveRecentSearch(q);
                           navigate(`/search?q=${encodeURIComponent(q)}`);
                           setShowSuggest(false);
                           setShowSearch(false);
@@ -587,7 +614,24 @@ const Header: React.FC = () => {
         {/* Mobile Menu - Force black background and white text */}
         {isMenuOpen && (
           <nav ref={mobileNavRef} className="lg:hidden pt-3 pb-3 border-t border-gray-800 bg-black text-white header-mobile-nav" aria-label="Mobile menu">
-            <div className="px-2 space-y-1">
+            <div className="px-2 space-y-3">
+              <form onSubmit={handleMobileSearchSubmit} className="flex items-center gap-2 rounded-lg border border-gray-800 bg-gray-900 px-3 py-2 shadow-sm">
+                <SearchIcon size={18} className="text-gray-400" />
+                <input
+                  type="search"
+                  value={mobileQuery}
+                  onChange={(e) => setMobileQuery(e.target.value)}
+                  placeholder="Search articles..."
+                  aria-label="Search articles"
+                  className="flex-1 bg-transparent text-sm text-white placeholder:text-gray-500 focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  className="rounded-md bg-orange-500 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                >
+                  Search
+                </button>
+              </form>
               {/* Main Navigation */}
               <div className="space-y-1">
                 <NavLink to="/home" className={mobileNavLinkClasses} onClick={() => setIsMenuOpen(false)}>
