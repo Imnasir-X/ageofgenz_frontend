@@ -91,15 +91,23 @@ const ArticleDetail: React.FC = () => {
     const createHeading = (tag: 'h2' | 'h3', attrs: string, body: string) => {
       const clean = body.replace(/<[^>]+>/g, '').trim();
       const attrString = attrs?.trim();
+      const existingIdMatch = attrString?.match(/id\s*=\s*["']([^"']+)["']/i);
+      const existingId = existingIdMatch?.[1];
       const attributes = attrString ? ` ${attrString}` : '';
       if (!clean) return `<${tag}${attributes}>${body}</${tag}>`;
+
+      if (existingId) {
+        tocEntries.push({ id: existingId, text: clean, level: tag === 'h2' ? 2 : 3 });
+        return `<${tag}${attributes}>${body}</${tag}>`;
+      }
+
       let baseId = slugify(clean);
       if (!baseId) baseId = `${tag}-${tocEntries.length}`;
       const count = seenIds.get(baseId) ?? 0;
-      const id = count === 0 ? baseId : `${baseId}-${count + 1}`;
+      const generatedId = count === 0 ? baseId : `${baseId}-${count + 1}`;
       seenIds.set(baseId, count + 1);
-      tocEntries.push({ id, text: clean, level: tag === 'h2' ? 2 : 3 });
-      return `<${tag}${attributes} id="${id}">${body}</${tag}>`;
+      tocEntries.push({ id: generatedId, text: clean, level: tag === 'h2' ? 2 : 3 });
+      return `<${tag}${attributes} id="${generatedId}">${body}</${tag}>`;
     };
 
     const createInfoboxMarkup = (variant: 'info' | 'alert', body: string) => {
@@ -257,14 +265,18 @@ const ArticleDetail: React.FC = () => {
 
   useEffect(() => {
     if (!tableOfContents.length) {
-      activeTocRef.current = '';
-      setActiveTocId('');
+      if (activeTocRef.current !== '') {
+        activeTocRef.current = '';
+        setActiveTocId('');
+      }
       return;
     }
-    const firstId = tableOfContents[0].id;
-    activeTocRef.current = firstId;
-    setActiveTocId(firstId);
-  }, [processedContent.html]);
+    const firstId = tableOfContents[0]?.id;
+    if (firstId && activeTocRef.current !== firstId) {
+      activeTocRef.current = firstId;
+      setActiveTocId(firstId);
+    }
+  }, [processedContent.html, tableOfContents.length]);
 
   // Reading progress tracking + active TOC highlight
   useEffect(() => {
@@ -320,10 +332,17 @@ const ArticleDetail: React.FC = () => {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+
+    if (!('IntersectionObserver' in window)) {
+      setSidebarReady(true);
+      return;
+    }
+
     if (window.innerWidth >= 1024) {
       setSidebarReady(true);
       return;
     }
+
     const trigger = sidebarTriggerRef.current;
     if (!trigger) return;
 
