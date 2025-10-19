@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { subscribeToPlan } from '../utils/api';
 import { loadStripe } from '@stripe/stripe-js';
-import { Heart, Coffee, Sparkles, Zap, Shield } from 'lucide-react';
+import { Heart, Coffee, Sparkles, Zap, Shield, RefreshCcw } from 'lucide-react';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_...');
 
@@ -147,17 +147,21 @@ const DonationPlaceholder: React.FC = () => {
   // Component styles
   const containerStyle: React.CSSProperties = {
     position: 'relative',
-    background: 'linear-gradient(to bottom right, #ea580c, #f97316, #8b5cf6)',
-    borderRadius: '0.5rem',
-    padding: '1rem',
+    background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+    borderRadius: '0.85rem',
+    padding: 'clamp(1.25rem, 3vw, 2rem)',
     color: 'white',
     overflow: 'hidden',
+    maxWidth: '24rem',
+    width: '100%',
+    margin: '0 auto',
+    boxShadow: '0 12px 30px rgba(234, 88, 12, 0.25)',
   };
 
   const glassStyle: React.CSSProperties = {
-    background: 'rgba(255, 255, 255, 0.1)',
-    backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(255, 255, 255, 0.2)',
+    background: 'rgba(255, 255, 255, 0.14)',
+    backdropFilter: 'blur(12px)',
+    border: '1px solid rgba(255, 255, 255, 0.25)',
   };
 
   return (
@@ -223,14 +227,14 @@ const DonationPlaceholder: React.FC = () => {
             <Heart className="w-5 h-5" />
           </div>
           <h3 className="font-bold text-lg mb-1">Support Us</h3>
-          <p className="text-orange-100 text-xs">Help deliver fearless journalism</p>
+          <p className="text-sm text-white/80">Help deliver fearless journalism</p>
         </div>
 
         {/* Optional login hint */}
         {!isAuthenticated && (
           <div className="mb-3 p-2 rounded text-center" style={glassStyle}>
-            <p className="text-xs text-orange-100">
-              <Link to="/login" className="text-white hover:underline font-medium">Login</Link> for supporter perks
+            <p className="text-sm text-white/80">
+              <Link to="/login" className="text-white hover:underline font-semibold">Login</Link> for supporter perks
             </p>
           </div>
         )}
@@ -239,23 +243,29 @@ const DonationPlaceholder: React.FC = () => {
         <div className="flex rounded-lg p-0.5 mb-3" style={glassStyle}>
           <button
             onClick={() => setDonationType('once')}
-            className={`flex-1 py-2 px-3 rounded text-xs font-medium transition-all ${
+            className={`flex-1 py-2.5 px-3 rounded-md text-sm font-medium transition-all ${
               donationType === 'once' 
                 ? 'bg-white text-orange-600 shadow-lg' 
-                : 'text-orange-100 hover:text-white'
+                : 'text-white/80 hover:text-white'
             }`}
           >
-            One-time
+            <span className="inline-flex items-center justify-center gap-1.5">
+              <Heart size={14} />
+              <span>One-time</span>
+            </span>
           </button>
           <button
             onClick={() => setDonationType('monthly')}
-            className={`flex-1 py-2 px-3 rounded text-xs font-medium transition-all ${
+            className={`flex-1 py-2.5 px-3 rounded-md text-sm font-medium transition-all ${
               donationType === 'monthly' 
                 ? 'bg-white text-orange-600 shadow-lg' 
-                : 'text-orange-100 hover:text-white'
+                : 'text-white/80 hover:text-white'
             }`}
           >
-            Monthly ⭐
+            <span className="inline-flex items-center justify-center gap-1.5">
+              <RefreshCcw size={14} />
+              <span>Monthly</span>
+            </span>
           </button>
         </div>
 
@@ -274,17 +284,17 @@ const DonationPlaceholder: React.FC = () => {
                   setCustomAmount('');
                   setError('');
                 }}
-                className={`amount-card relative p-3 rounded-lg text-xs ${
+                className={`amount-card relative p-3 rounded-xl text-sm ${
                   isSelected ? 'selected' : ''
                 }`}
                 style={isSelected ? { background: 'white', color: '#ea580c' } : glassStyle}
               >
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Icon size={12} />
+                <div className="flex items-center gap-2 mb-1 text-base">
+                  <Icon size={14} />
                   <span className="font-semibold">${amount.value}</span>
                 </div>
                 <div className={`text-xs ${
-                  isSelected ? 'text-orange-500' : 'text-orange-200'
+                  isSelected ? 'text-orange-600' : 'text-white/80'
                 }`}>
                   {amount.label}
                 </div>
@@ -306,7 +316,7 @@ const DonationPlaceholder: React.FC = () => {
               setSelectedAmount(0);
               setError('');
             }}
-            className={`amount-card w-full p-3 rounded-lg text-xs ${
+            className={`amount-card w-full p-3 rounded-xl text-sm ${
               isCustom ? 'selected' : ''
             }`}
             style={isCustom ? { background: 'white', color: '#ea580c' } : glassStyle}
@@ -324,7 +334,7 @@ const DonationPlaceholder: React.FC = () => {
                 placeholder="Enter amount"
                 min="1"
                 step="0.01"
-                className="w-full pl-7 pr-3 py-2 bg-white text-orange-600 placeholder-orange-300 rounded-lg text-sm focus:ring-2 focus:ring-white focus:ring-opacity-50"
+                className="w-full pl-7 pr-3 py-2 bg-orange-50 text-orange-700 placeholder-orange-500 rounded-lg text-sm border border-orange-200 focus:border-orange-300 focus:ring-2 focus:ring-orange-200"
               />
             </div>
           )}
@@ -392,3 +402,4 @@ const DonationPlaceholder: React.FC = () => {
 };
 
 export default DonationPlaceholder;
+
