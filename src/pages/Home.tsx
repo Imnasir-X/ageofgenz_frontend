@@ -76,13 +76,12 @@ const Home: React.FC = () => {
   const [showSearch, setShowSearch] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showNewsletterCard, setShowNewsletterCard] = useState<boolean>(false);
+  const [newsletterBannerVisible, setNewsletterBannerVisible] = useState<boolean>(false);
   const [breakingIndex, setBreakingIndex] = useState<number>(0);
   const [breakingPlaying, setBreakingPlaying] = useState<boolean>(true);
   const breakingTimerRef = useRef<number | null>(null);
   const [breakingAnnouncement, setBreakingAnnouncement] = useState<string>('');
   const [breakingVisible, setBreakingVisible] = useState<boolean>(true);
-  const closeBtnRef = useRef<HTMLButtonElement | null>(null);
-  const prevFocusRef = useRef<HTMLElement | null>(null);
   
   // Hero carousel state
   const [heroIndex, setHeroIndex] = useState<number>(0);
@@ -99,6 +98,13 @@ const Home: React.FC = () => {
     const formatted = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
     return formatted;
   };
+
+  const getCategoryButtonClasses = (isActive: boolean) =>
+    `inline-flex items-center whitespace-nowrap rounded-full border border-transparent px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 ${
+      isActive
+        ? 'bg-orange-600 text-white shadow-lg shadow-orange-200/60'
+        : 'bg-white text-gray-700 hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600'
+    }`;
 
   // Breaking items: prefer latest, fallback to featured
   const breakingItems = useMemo(() => {
@@ -672,11 +678,18 @@ const Home: React.FC = () => {
     }
   }, []);
 
-  // Show newsletter card when user reaches ~middle of the page
+  // Show newsletter card when user reaches 70% scroll or after 30 seconds
   useEffect(() => {
     const dismissed = typeof window !== 'undefined' && localStorage.getItem('newsletterDismissed') === '1';
     const subscribed = typeof window !== 'undefined' && localStorage.getItem('newsletterSubscribed') === '1';
     if (dismissed || subscribed) return;
+
+    let triggered = false;
+    const triggerNewsletter = () => {
+      if (triggered) return;
+      triggered = true;
+      setShowNewsletterCard(true);
+    };
 
     const onScroll = () => {
       const doc = document.documentElement;
@@ -686,8 +699,8 @@ const Home: React.FC = () => {
       const maxScroll = Math.max(1, scrollHeight - clientHeight);
       const progress = scrollTop / maxScroll; // 0.0 -> 1.0
 
-      if (progress >= 0.5) {
-        setShowNewsletterCard(true);
+      if (progress >= 0.7) {
+        triggerNewsletter();
         window.removeEventListener('scroll', onScroll);
       }
     };
@@ -695,42 +708,25 @@ const Home: React.FC = () => {
     // Initial check in case the user has already scrolled enough
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true } as AddEventListenerOptions);
-    return () => window.removeEventListener('scroll', onScroll);
+    const timer = window.setTimeout(() => {
+      triggerNewsletter();
+      window.removeEventListener('scroll', onScroll);
+    }, 30000);
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.clearTimeout(timer);
+    };
   }, []);
 
-  // When the newsletter modal opens, lock scroll and manage focus; restore on close
   useEffect(() => {
-    if (!showNewsletterCard) return;
+    if (!showNewsletterCard) {
+      setNewsletterBannerVisible(false);
+      return;
+    }
 
-    // lock scroll
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    // store previous focus
-    prevFocusRef.current = (document.activeElement as HTMLElement) || null;
-
-    // focus the close button once rendered
-    const t = window.setTimeout(() => {
-      closeBtnRef.current?.focus();
-    }, 0);
-
-    // esc handler
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setShowNewsletterCard(false);
-        localStorage.setItem('newsletterDismissed', '1');
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-
-    // cleanup
-    return () => {
-      window.clearTimeout(t);
-      window.removeEventListener('keydown', onKeyDown);
-      document.body.style.overflow = previousOverflow;
-      // restore focus
-      prevFocusRef.current?.focus?.();
-    };
+    const t = window.setTimeout(() => setNewsletterBannerVisible(true), 40);
+    return () => window.clearTimeout(t);
   }, [showNewsletterCard]);
 
   const retryLatest = useCallback(async () => {
@@ -1106,49 +1102,49 @@ const Home: React.FC = () => {
                 <div
                   tabIndex={0}
                   onKeyDown={handleBreakingKeyDown}
-                  className={`group block max-w-[640px] mx-auto outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-lg transition-all duration-500 will-change-transform ${breakingVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
+                  className={`group mx-auto flex w-full flex-col gap-4 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white transition-all duration-500 will-change-transform md:flex-row md:items-center md:gap-6 ${breakingVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
                 >
-                  <Link to={href} className="group inline-block mb-4">
-                    <h2 className="font-serif font-extrabold tracking-tight text-gray-900 leading-snug text-xl sm:text-2xl md:text-3xl underline decoration-gray-900 decoration-1 underline-offset-4 transition-colors group-hover:text-orange-500">
-                      {current.title || 'Untitled Article'}
-                    </h2>
-                  </Link>
-
                   <Link
                     to={href}
-                    className="block rounded-lg overflow-hidden bg-gray-100 border border-gray-100 mb-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                    className="relative block w-full overflow-hidden rounded-lg border border-gray-100 bg-gray-50 shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white md:w-72 lg:w-80"
                   >
-                    <div className="aspect-[16/9]">
+                    <div className="aspect-[4/3] md:aspect-[16/11]">
                       <img
                         src={img}
                         alt={current.title || 'Breaking image'}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                         loading="lazy"
                         onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/api/placeholder/1200/675'; }}
                       />
                     </div>
                   </Link>
 
-                  <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] sm:text-xs text-slate-500 mb-2">
-                    <span className={`${accent.badge} inline-flex items-center rounded-full px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white`}>
-                      {categoryText}
-                    </span>
-                    <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-gray-300" aria-hidden="true" />
-                    <span className="flex items-center gap-1">
-                      <Clock size={12} className={accent.text} />
-                      {dateText}
-                    </span>
-                    <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-gray-300" aria-hidden="true" />
-                    <span>By {authorName}</span>
-                    <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-gray-300" aria-hidden="true" />
-                    <span>{breakingIndex + 1} of {breakingItems.length}</span>
+                  <div className="flex flex-1 flex-col gap-3">
+                    <Link to={href} className="group inline-block">
+                      <h2 className="font-serif text-lg font-bold leading-tight text-gray-900 transition-colors sm:text-xl md:text-2xl group-hover:text-orange-500">
+                        {current.title || 'Untitled Article'}
+                      </h2>
+                    </Link>
+                    {current.excerpt && (
+                      <p className="text-sm leading-relaxed text-gray-600 sm:text-base line-clamp-2">
+                        {current.excerpt}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 sm:text-sm">
+                      <span className={`${accent.badge} inline-flex items-center rounded-full px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white`}>
+                        {categoryText}
+                      </span>
+                      <span className="hidden h-1 w-1 rounded-full bg-gray-300 sm:inline-flex" aria-hidden="true" />
+                      <span className="flex items-center gap-1">
+                        <Clock size={12} className={accent.text} />
+                        {dateText}
+                      </span>
+                      <span className="hidden h-1 w-1 rounded-full bg-gray-300 sm:inline-flex" aria-hidden="true" />
+                      <span>By {authorName}</span>
+                      <span className="hidden h-1 w-1 rounded-full bg-gray-300 sm:inline-flex" aria-hidden="true" />
+                      <span>{breakingIndex + 1} of {breakingItems.length}</span>
+                    </div>
                   </div>
-                  <div className="w-10 h-0.5 bg-orange-400 mb-2"></div>
-                  {current.excerpt && (
-                    <p className="text-gray-700 text-xs sm:text-sm leading-relaxed line-clamp-1">
-                      {current.excerpt}
-                    </p>
-                  )}
                 </div>
                 {breakingItems.length > 1 && (
                   <div className="flex flex-col items-center gap-4 border-t border-gray-200 pt-4 sm:flex-row sm:justify-between">
@@ -1210,36 +1206,46 @@ const Home: React.FC = () => {
           {/* Main Content */}
           <div className="w-full">
             {/* Category Tabs */}
-            <section className="mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-gray-700">Browse by Category</h3>
-                <div className="text-xs text-gray-500">Tap to filter</div>
+            <section className="mb-8">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex h-2 w-2 rounded-full bg-orange-500" aria-hidden="true" />
+                  <h3 className="text-base font-semibold text-gray-800">Browse by Category</h3>
+                </div>
+                <div className="text-xs uppercase tracking-wide text-gray-500">Tap to filter</div>
               </div>
               {loadingCategories ? (
-                <div className="flex flex-wrap gap-2">
-                  {[1,2,3,4,5,6].map(i => (
-                    <span key={`cat-skel-${i}`} className="h-8 w-20 bg-gray-200 rounded-full animate-pulse" />
+                <div className="flex flex-wrap gap-3">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <span key={`cat-skel-${i}`} className="h-10 w-24 rounded-full bg-gray-200 animate-pulse" />
                   ))}
                 </div>
               ) : (
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setActiveCategory('all')}
-                    className={`px-3 py-1.5 rounded-full text-sm border ${activeCategory==='all' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-50'}`}
-                  >
-                    All
-                  </button>
-                  {popularCategories.map((cat) => (
+                <div className="relative -mx-2 overflow-hidden rounded-full bg-orange-50/60 px-2 py-2 shadow-inner">
+                  <div className="flex gap-2 overflow-x-auto pb-1 pl-1 pr-4 md:justify-center" role="tablist" aria-label="Article categories">
                     <button
-                      key={cat.slug}
                       type="button"
-                      onClick={() => setActiveCategory(cat.slug)}
-                      className={`px-3 py-1.5 rounded-full text-sm border ${activeCategory===cat.slug ? 'bg-orange-600 text-white border-orange-600' : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-50'}`}
+                      onClick={() => setActiveCategory('all')}
+                      aria-pressed={activeCategory === 'all'}
+                      className={getCategoryButtonClasses(activeCategory === 'all')}
                     >
-                      {formatCategoryName(cat.name)}
+                      All
                     </button>
-                  ))}
+                    {popularCategories.map((cat) => {
+                      const isActive = activeCategory === cat.slug;
+                      return (
+                        <button
+                          key={cat.slug}
+                          type="button"
+                          onClick={() => setActiveCategory(cat.slug)}
+                          aria-pressed={isActive}
+                          className={getCategoryButtonClasses(isActive)}
+                        >
+                          {formatCategoryName(cat.name)}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </section>
@@ -1445,36 +1451,33 @@ const Home: React.FC = () => {
       </div>
 
       {showNewsletterCard && !showSearch && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 relative">
+        <div className="pointer-events-none fixed inset-x-0 bottom-4 z-[60] px-3 sm:px-4">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            aria-hidden="true"
-            onClick={() => {
-              setShowNewsletterCard(false);
-              localStorage.setItem('newsletterDismissed', '1');
-            }}
-          />
-          <div
-            className="relative rounded-xl shadow-2xl overflow-hidden border border-gray-200 bg-white aspect-[3/2] w-full max-w-[640px]"
-            role="dialog"
-            aria-modal="true"
+            className={`pointer-events-auto relative mx-auto max-w-4xl rounded-2xl border border-orange-100 bg-white/95 p-4 shadow-2xl backdrop-blur transition-all duration-500 ease-out ${newsletterBannerVisible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'}`}
+            role="region"
             aria-label="Newsletter signup"
           >
             <button
               type="button"
-              aria-label="Dismiss newsletter"
-              className="absolute top-2 right-2 z-10 p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full"
+              aria-label="Dismiss newsletter prompt"
+              className="absolute -top-2 -right-2 flex h-9 w-9 items-center justify-center rounded-full border border-orange-200 bg-white text-gray-500 shadow-sm transition hover:-translate-y-0.5 hover:text-gray-800"
               onClick={() => {
-                setShowNewsletterCard(false);
                 localStorage.setItem('newsletterDismissed', '1');
+                setShowNewsletterCard(false);
               }}
-              ref={closeBtnRef}
             >
               <X size={18} aria-hidden="true" />
             </button>
-            <div className="absolute inset-0 p-4 sm:p-6 flex">
-              <div className="w-full h-full overflow-auto">
-                <Newsletter 
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+              <div className="flex-1">
+                <p className="text-sm font-semibold uppercase tracking-wide text-orange-500">Newsletter</p>
+                <h3 className="text-lg font-semibold text-gray-900 sm:text-xl">Stay a step ahead of the headlines</h3>
+                <p className="mt-1 text-sm text-gray-600">
+                  Get the latest stories, breaking alerts, and weekend reads delivered straight to your inbox.
+                </p>
+              </div>
+              <div className="w-full sm:w-auto [&>div]:border-none [&>div]:bg-transparent [&>div]:p-0 [&>div]:shadow-none">
+                <Newsletter
                   variant="compact"
                   onSubscribed={() => {
                     localStorage.setItem('newsletterSubscribed', '1');
