@@ -97,8 +97,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
             <div className="absolute inset-0">
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/45 to-transparent" aria-hidden="true" />
               <div className="relative z-10 flex h-full flex-col justify-end p-4 sm:p-6 lg:p-8">
-                <div className="max-w-3xl space-y-3 sm:space-y-4">
-                  <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur-lg shadow-[0_20px_40px_rgba(15,23,42,0.45)]">
+                <div className="max-w-xl space-y-3 sm:space-y-4">
+                  <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur-lg shadow-[0_20px_35px_rgba(15,23,42,0.4)]">
                     <span className={`${categoryAccent} px-3 py-1 rounded-full text-[11px] font-bold text-white shadow-sm shadow-black/20`}>
                       {article.category?.name || 'General'}
                     </span>
@@ -110,12 +110,12 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
                       {article.estimated_read_time || 3} min read
                     </span>
                   </div>
-                  <div className="rounded-2xl bg-slate-950/45 p-4 sm:p-5 backdrop-blur-md shadow-[0_30px_60px_rgba(15,23,42,0.5)] ring-1 ring-white/10">
-                    <h3 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight line-clamp-3">
+                  <div className="w-full max-w-lg rounded-2xl bg-slate-950/30 p-3 sm:p-4 backdrop-blur-md backdrop-saturate-150 shadow-[0_24px_50px_rgba(15,23,42,0.45)] ring-1 ring-white/10">
+                    <h3 className="text-3xl sm:text-4xl lg:text-[2.75rem] font-black text-white leading-tight tracking-tight line-clamp-3">
                       {article.title || 'Untitled Article'}
                     </h3>
                     {cleanDescription && (
-                      <p className="mt-3 hidden text-sm text-white/85 sm:block sm:text-base sm:leading-relaxed line-clamp-3">
+                      <p className="mt-2 hidden text-sm text-white/85 sm:block sm:text-base sm:leading-relaxed line-clamp-3">
                         {cleanDescription}
                       </p>
                     )}
