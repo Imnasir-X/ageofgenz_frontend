@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useLayoutEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async'; 
 import { getArticleBySlug, getArticles } from '../utils/api';
@@ -26,7 +26,7 @@ const ArticleDetail: React.FC = () => {
   const [readingProgress, setReadingProgress] = useState<number>(0);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
   const [showProgressBar, setShowProgressBar] = useState<boolean>(true);
-  const [sidebarReady, setSidebarReady] = useState<boolean>(typeof window === 'undefined' ? true : window.innerWidth >= 1024);
+  const [sidebarReady, setSidebarReady] = useState<boolean>(false);
   const [activeTocId, setActiveTocId] = useState<string>('');
   const activeTocRef = React.useRef<string>('');
 
@@ -330,8 +330,10 @@ const ArticleDetail: React.FC = () => {
     };
   }, [processedContent.html]);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
 
     if (!('IntersectionObserver' in window)) {
       setSidebarReady(true);
@@ -344,7 +346,10 @@ const ArticleDetail: React.FC = () => {
     }
 
     const trigger = sidebarTriggerRef.current;
-    if (!trigger) return;
+    if (!trigger) {
+      setSidebarReady(true);
+      return;
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
