@@ -1114,7 +1114,7 @@ const Home: React.FC = () => {
                     to={href}
                     className="block overflow-hidden rounded-xl border border-gray-100 bg-gray-100 mb-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                   >
-                    <div className="aspect-[18/10] sm:aspect-[20/10]">
+                    <div className="aspect-[18/11] sm:aspect-[20/11]">
                       <img
                         src={img}
                         alt={current.title || 'Breaking image'}
