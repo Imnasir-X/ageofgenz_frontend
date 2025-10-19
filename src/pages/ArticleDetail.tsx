@@ -25,6 +25,14 @@ const ArticleDetail: React.FC = () => {
   const [imageLoaded, setImageLoaded] = useState<boolean>(false);
   const [readingProgress, setReadingProgress] = useState<number>(0);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
+  const [showProgressBar, setShowProgressBar] = useState<boolean>(true);
+  const [sidebarReady, setSidebarReady] = useState<boolean>(typeof window === 'undefined' ? true : window.innerWidth >= 1024);
+  const [activeTocId, setActiveTocId] = useState<string>('');
+  const activeTocRef = React.useRef<string>('');
+
+  const sidebarTriggerRef = React.useRef<HTMLDivElement | null>(null);
+  const copyTimeoutRef = React.useRef<number | null>(null);
+  const sidebarObserverRef = React.useRef<IntersectionObserver | null>(null);
 
   // Memoized date formatter
   const formatDate = useCallback((dateString: string) => {
@@ -56,10 +64,21 @@ const ArticleDetail: React.FC = () => {
   }, [article?.content]);
 
   // Article content formatter tuned for editorial styling
-  const formattedContent = useMemo(() => {
+  const processedContent = useMemo(() => {
     if (!article?.content) {
-      return { __html: '<p class="text-gray-600">No content available.</p>' };
+      return { html: '<p class="text-gray-600">No content available.</p>', toc: [] as Array<{ id: string; text: string; level: number }> };
     }
+
+    const slugify = (text: string) =>
+      text
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
+
+    const seenIds = new Map<string, number>();
+    const tocEntries: Array<{ id: string; text: string; level: number }> = [];
 
     const applyTextHighlights = (markup: string) =>
       markup.replace(/==([\s\S]+?)==/g, (_match, text) => `<mark>${text.trim()}</mark>`);
@@ -68,6 +87,20 @@ const ArticleDetail: React.FC = () => {
       markup.replace(/%%([\s\S]+?)%%/g, (_match, text) => `<span class="article-stat-highlight">${text.trim()}</span>`);
 
     const enhanceInlineMarkup = (markup: string) => applyTextHighlights(applyStatHighlights(markup));
+
+    const createHeading = (tag: 'h2' | 'h3', attrs: string, body: string) => {
+      const clean = body.replace(/<[^>]+>/g, '').trim();
+      const attrString = attrs?.trim();
+      const attributes = attrString ? ` ${attrString}` : '';
+      if (!clean) return `<${tag}${attributes}>${body}</${tag}>`;
+      let baseId = slugify(clean);
+      if (!baseId) baseId = `${tag}-${tocEntries.length}`;
+      const count = seenIds.get(baseId) ?? 0;
+      const id = count === 0 ? baseId : `${baseId}-${count + 1}`;
+      seenIds.set(baseId, count + 1);
+      tocEntries.push({ id, text: clean, level: tag === 'h2' ? 2 : 3 });
+      return `<${tag}${attributes} id="${id}">${body}</${tag}>`;
+    };
 
     const createInfoboxMarkup = (variant: 'info' | 'alert', body: string) => {
       const icon = variant === 'alert' ? '&#9888;' : '&#9432;';
@@ -101,7 +134,7 @@ const ArticleDetail: React.FC = () => {
         if (/class\s*=/.test(attrs || '') && /article-pullquote/.test(attrs || '')) {
           return _match;
         }
-        return `<div class="article-pullquote">${quote}</div>`;
+        return `<div class="article-pullquote">${enhanceInlineMarkup(quote)}</div>`;
       });
 
     const ensureLazyImages = (markup: string) =>
@@ -111,6 +144,11 @@ const ArticleDetail: React.FC = () => {
         }
         return `<img${attrs} loading="lazy">`;
       });
+
+    const attachHeadingIds = (markup: string) =>
+      markup
+        .replace(/<h2([^>]*)>([\s\S]*?)<\/h2>/gi, (_match, attrs, body) => createHeading('h2', attrs, body))
+        .replace(/<h3([^>]*)>([\s\S]*?)<\/h3>/gi, (_match, attrs, body) => createHeading('h3', attrs, body));
 
     const htmlPattern = /<(p|br|h[1-6]|ul|ol|blockquote|figure|pre|code|img)/i;
 
@@ -122,7 +160,8 @@ const ArticleDetail: React.FC = () => {
       content = transformInfoBoxes(content);
       content = transformKeyTakeaways(content);
       content = enhanceInlineMarkup(content);
-      return { __html: content };
+      content = attachHeadingIds(content);
+      return { html: content, toc: tocEntries };
     }
 
     const paragraphs = article.content
@@ -197,7 +236,8 @@ const ArticleDetail: React.FC = () => {
       }
 
       if (normalised.startsWith('**') && normalised.endsWith('**')) {
-        htmlPieces.push(`<h3>${enhanceInlineMarkup(normalised.slice(2, -2))}</h3>`);
+        const body = enhanceInlineMarkup(normalised.slice(2, -2));
+        htmlPieces.push(createHeading('h3', '', body));
         return;
       }
 
@@ -208,24 +248,111 @@ const ArticleDetail: React.FC = () => {
       pushTakeawaySection();
     }
 
-    return { __html: htmlPieces.join('') };
+    const html = attachHeadingIds(htmlPieces.join(''));
+    return { html, toc: tocEntries };
   }, [article?.content]);
 
-  // Reading progress tracking
+  const formattedContent = useMemo(() => ({ __html: processedContent.html }), [processedContent.html]);
+  const tableOfContents = processedContent.toc;
+
   useEffect(() => {
+    if (!tableOfContents.length) {
+      activeTocRef.current = '';
+      setActiveTocId('');
+      return;
+    }
+    const firstId = tableOfContents[0].id;
+    activeTocRef.current = firstId;
+    setActiveTocId(firstId);
+  }, [processedContent.html]);
+
+  // Reading progress tracking + active TOC highlight
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const getHeadings = () =>
+      Array.from(document.querySelectorAll<HTMLElement>('h2[id], h3[id]'));
+    let headingElements = getHeadings();
+
     const handleScroll = () => {
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
       const windowHeight = window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
-      
-      const scrollableHeight = documentHeight - windowHeight;
+      const scrollableHeight = Math.max(documentHeight - windowHeight, 0);
       const progress = scrollableHeight > 0 ? (scrollTop / scrollableHeight) * 100 : 0;
-      
       setReadingProgress(Math.min(100, Math.max(0, progress)));
+
+      const shouldShow = scrollableHeight > 160;
+      setShowProgressBar(prev => (prev !== shouldShow ? shouldShow : prev));
+
+      // Update active heading
+      if (!headingElements.length) {
+        headingElements = getHeadings();
+      }
+      const offset = 140;
+      let currentId = '';
+      for (const heading of headingElements) {
+        if (heading.offsetTop - offset <= scrollTop) {
+          currentId = heading.id;
+        } else {
+          break;
+        }
+      }
+      if (currentId && currentId !== activeTocRef.current) {
+        activeTocRef.current = currentId;
+        setActiveTocId(currentId);
+      }
     };
 
+    const handleResize = () => {
+      headingElements = getHeadings();
+      handleScroll();
+    };
+
+    handleResize();
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [processedContent.html]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.innerWidth >= 1024) {
+      setSidebarReady(true);
+      return;
+    }
+    const trigger = sidebarTriggerRef.current;
+    if (!trigger) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting) {
+          setSidebarReady(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px' }
+    );
+
+    observer.observe(trigger);
+    sidebarObserverRef.current = observer;
+
+    return () => observer.disconnect();
+  }, [processedContent.html]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setSidebarReady(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Optimized fetch function with caching
@@ -372,6 +499,13 @@ const ArticleDetail: React.FC = () => {
           >
             Back to Home
           </Link>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-4 inline-flex items-center justify-center rounded-lg border border-orange-300 px-8 py-3 text-orange-600 transition hover:bg-orange-50"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
@@ -380,6 +514,7 @@ const ArticleDetail: React.FC = () => {
   const articleUrl = `https://theageofgenz.com/article/${article.slug}`;
   const publishedDate = formatDate(article.published_at || article.created_at);
   const imageUrl = article.featured_image_url || article.featured_image || 'https://theageofgenz.com/og-image.jpg';
+  const viewCount = article.view_count ?? article.views ?? null;
   const encodedShareUrl = encodeURIComponent(articleUrl);
   const encodedShareTitle = encodeURIComponent(article.title);
   const shareLinks = [
@@ -414,11 +549,22 @@ const ArticleDetail: React.FC = () => {
     try {
       await navigator.clipboard.writeText(articleUrl);
       setCopySuccess(true);
-      window.setTimeout(() => setCopySuccess(false), 2000);
+      if (copyTimeoutRef.current) {
+        window.clearTimeout(copyTimeoutRef.current);
+      }
+      copyTimeoutRef.current = window.setTimeout(() => setCopySuccess(false), 3000);
     } catch (err) {
       console.error('Failed to copy link', err);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        window.clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -431,6 +577,7 @@ const ArticleDetail: React.FC = () => {
         <meta property="og:title" content={article.title} />
         <meta property="og:description" content={article.excerpt || article.title} />
         <meta property="og:image" content={imageUrl} />
+        <link rel="preload" as="image" href={imageUrl} />
         <meta property="og:url" content={articleUrl} />
         <meta property="og:type" content="article" />
         <meta property="og:site_name" content="The Age of GenZ" />
@@ -480,12 +627,14 @@ const ArticleDetail: React.FC = () => {
       </Helmet>
 
       {/* Reading progress bar */}
-      <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 z-50">
-        <div 
-          className="h-full bg-orange-500 transition-all duration-300" 
-          style={{ width: `${readingProgress}%` }}
-        ></div>
-      </div>
+      {showProgressBar && (
+        <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 z-50">
+          <div 
+            className="h-full bg-orange-500 transition-all duration-300" 
+            style={{ width: `${readingProgress}%` }}
+          ></div>
+        </div>
+      )}
 
       {/* Breadcrumb Navigation */}
       <nav className="article-breadcrumb">
@@ -545,6 +694,19 @@ const ArticleDetail: React.FC = () => {
                   </p>
                 )}
 
+                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-6">
+                  <span className="inline-flex items-center gap-2">
+                    <BookOpen size={16} className="text-orange-500" aria-hidden="true" />
+                    <span>{estimatedReadTime} min read</span>
+                  </span>
+                  {viewCount !== null && (
+                    <span className="inline-flex items-center gap-1">
+                      <Eye size={16} className="text-orange-400" aria-hidden="true" />
+                      <span>{viewCount.toLocaleString()} views</span>
+                    </span>
+                  )}
+                </div>
+
               </header>
 
               {/* Featured Image */}
@@ -587,7 +749,8 @@ const ArticleDetail: React.FC = () => {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={`Share on ${name}`}
-                        className="article-share-button"
+                        className="article-share-button focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-400"
+                        tabIndex={0}
                       >
                         <Icon className="article-share-icon" />
                         <span className="sr-only">Share on {name}</span>
@@ -598,7 +761,7 @@ const ArticleDetail: React.FC = () => {
                         type="button"
                         onClick={handleCopyShare}
                         aria-label="Copy article link"
-                        className={`article-share-button article-share-button--copy ${copySuccess ? 'is-success' : ''}`}
+                        className={`article-share-button article-share-button--copy ${copySuccess ? 'is-success' : ''} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-400`}
                       >
                         <Link2 className="article-share-icon" />
                         <span className="sr-only">{copySuccess ? 'Link copied' : 'Copy link'}</span>
@@ -643,49 +806,105 @@ const ArticleDetail: React.FC = () => {
                 </div>
               )}
 
+              <div className="mt-12">
+                <Link
+                  to={`/${article.category?.slug || ''}`}
+                  className="inline-flex items-center gap-2 rounded-full border border-orange-300 bg-orange-50 px-5 py-2 text-sm font-semibold text-orange-600 transition hover:bg-orange-100 hover:text-orange-700"
+                >
+                  <span aria-hidden="true">←</span>
+                  <span>More in {article.category?.name || 'News'}</span>
+                </Link>
+              </div>
+
             </div>
           </article>
+
+          <div ref={sidebarTriggerRef} className="xl:hidden h-1 w-full" aria-hidden="true" />
 
           {/* Enhanced Sidebar */}
           <aside className="xl:w-1/3 xl:mt-0">
             <div className="sticky top-24 space-y-8 lg:rounded-2xl lg:bg-white/80 lg:shadow-[0_18px_40px_rgba(15,23,42,0.08)] lg:backdrop-blur-lg lg:p-6 transition-shadow duration-300">
+              {tableOfContents.length > 0 && (
+                <nav aria-label="Table of contents" className="rounded-2xl border border-gray-200 bg-white/90 p-5 shadow-sm">
+                  <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-gray-500">
+                    On this page
+                  </h3>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    {tableOfContents.map((entry) => (
+                      <li key={entry.id} className={entry.level === 3 ? 'ml-3' : ''}>
+                        <a
+                          href={`#${entry.id}`}
+                          onClick={() => {
+                            activeTocRef.current = entry.id;
+                            setActiveTocId(entry.id);
+                          }}
+                          className={`group inline-flex items-center gap-2 rounded-md px-2 py-1 transition-colors ${
+                            activeTocId === entry.id ? 'text-orange-600 font-semibold' : 'hover:text-orange-600'
+                          }`}
+                          aria-current={activeTocId === entry.id ? 'true' : undefined}
+                        >
+                          <span
+                            className={`h-1.5 w-1.5 rounded-full transition-colors ${
+                              activeTocId === entry.id ? 'bg-orange-500' : 'bg-gray-300 group-hover:bg-orange-300'
+                            }`}
+                            aria-hidden="true"
+                          />
+                          <span className="leading-snug">{entry.text}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+              )}
+
               <DonationPlaceholder />
               
               {relatedArticles.length > 0 && (
                 <div className="trending-widget">
                   <h3 className="trending-title">Trending Articles</h3>
-                  <div className="trending-list">
-                    {relatedArticles.map((relatedArticle) => (
-                      <article key={relatedArticle.id} className="trending-item">
-                        <Link to={`/article/${relatedArticle.slug}`} className="trending-link group block rounded-2xl border border-gray-100 bg-white/80 p-4 transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
-                          <div className="trending-image-wrap relative overflow-hidden rounded-xl">
-                            <img
-                              src={relatedArticle.featured_image_url || relatedArticle.featured_image || '/api/placeholder/420/240'}
-                              alt={relatedArticle.title}
-                              className="trending-image h-44 w-full object-cover transition duration-300 group-hover:opacity-80"
-                              loading="lazy"
-                              onError={(e) => {
-                                e.currentTarget.src = '/api/placeholder/420/240';
-                              }}
-                            />
-                            <div className="pointer-events-none absolute inset-0 bg-slate-900/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
-                          </div>
-                          <div className="trending-meta mt-3 flex items-center gap-2 text-xs text-gray-500">
-                            <span className="trending-meta-pill font-semibold text-orange-600">
-                              {relatedArticle.category?.name?.toUpperCase() || 'TRENDING'}
-                            </span>
-                            <span className="trending-meta-separator hidden sm:inline-flex" aria-hidden="true">•</span>
-                            <span className="trending-meta-date uppercase tracking-wide text-gray-400">
-                              {formatDate(relatedArticle.published_at || relatedArticle.created_at)}
-                            </span>
-                          </div>
-                          <h4 className="trending-headline mt-2 text-base font-semibold text-gray-900 leading-snug group-hover:text-orange-600 transition-colors">
-                            {relatedArticle.title}
-                          </h4>
-                        </Link>
-                      </article>
-                    ))}
-                  </div>
+                  {sidebarReady ? (
+                    <div className="trending-list">
+                      {relatedArticles.map((relatedArticle) => (
+                        <article key={relatedArticle.id} className="trending-item">
+                          <Link to={`/article/${relatedArticle.slug}`} className="trending-link group block rounded-2xl border border-gray-100 bg-white/80 p-4 transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
+                            <div className="trending-image-wrap relative overflow-hidden rounded-xl">
+                              <img
+                                src={relatedArticle.featured_image_url || relatedArticle.featured_image || '/api/placeholder/420/240'}
+                                alt={relatedArticle.title}
+                                className="trending-image h-44 w-full object-cover transition duration-300 group-hover:opacity-80"
+                                loading="lazy"
+                                onError={(e) => {
+                                  e.currentTarget.src = '/api/placeholder/420/240';
+                                }}
+                              />
+                              <div className="pointer-events-none absolute inset-0 bg-slate-900/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                            </div>
+                            <div className="trending-meta mt-3 flex items-center gap-2 text-xs text-gray-500">
+                              <span className="trending-meta-pill font-semibold text-orange-600">
+                                {relatedArticle.category?.name?.toUpperCase() || 'TRENDING'}
+                              </span>
+                              <span className="trending-meta-separator hidden sm:inline-flex" aria-hidden="true">•</span>
+                              <span className="trending-meta-date uppercase tracking-wide text-gray-400">
+                                {formatDate(relatedArticle.published_at || relatedArticle.created_at)}
+                              </span>
+                            </div>
+                            <h4 className="trending-headline mt-2 text-base font-semibold text-gray-900 leading-snug group-hover:text-orange-600 transition-colors">
+                              {relatedArticle.title}
+                            </h4>
+                          </Link>
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-4 rounded-2xl border border-dashed border-gray-200 bg-white/70 p-4 text-sm text-gray-500">
+                      <p>Loading recommendations…</p>
+                      <div className="space-y-2">
+                        <div className="h-3 w-3/4 rounded bg-gray-200 animate-pulse" />
+                        <div className="h-3 w-2/4 rounded bg-gray-200 animate-pulse" />
+                        <div className="h-3 w-4/5 rounded bg-gray-200 animate-pulse" />
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
