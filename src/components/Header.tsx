@@ -47,41 +47,76 @@ const Header: React.FC = () => {
     return 'idle';
   }, [loadingSuggest, showSearch, query]);
 
-  const {
-    buttonIconClass,
-    buttonHaloClass,
-    inlineIconClass,
-    inlineHaloClass,
-  } = useMemo(() => {
-    const buttonIconBase = 'relative z-10 flex h-5 w-5 items-center justify-center transition-transform duration-300 group-hover:scale-110 group-focus-visible:scale-110 group-active:scale-105 group-hover:-translate-y-0.5 group-hover:translate-x-0.5';
-    const buttonHaloBase = 'pointer-events-none absolute -inset-2 rounded-full transition-all duration-500 group-hover:scale-110 group-focus-visible:scale-110';
-    const inlineIconBase = 'relative z-10 flex h-4 w-4 items-center justify-center transition-transform duration-300 group-hover:scale-105 group-focus-within:scale-105 group-hover:-translate-y-0.5 group-hover:translate-x-0.5';
-    const inlineHaloBase = 'pointer-events-none absolute -inset-2 rounded-full transition duration-500';
+  const mobileSearchVisualState: SearchVisualState = useMemo(
+    () => (mobileQuery.trim().length > 0 ? 'typing' : 'idle'),
+    [mobileQuery],
+  );
 
-    switch (searchVisualState) {
-      case 'loading':
-        return {
-          buttonIconClass: `${buttonIconBase} text-orange-300`,
-          buttonHaloClass: `${buttonHaloBase} bg-orange-500/45 blur-xl opacity-95 animate-pulse`,
-          inlineIconClass: `${inlineIconBase} text-orange-300`,
-          inlineHaloClass: `${inlineHaloBase} bg-orange-500/35 blur-lg opacity-90 animate-pulse`,
-        };
-      case 'typing':
-        return {
-          buttonIconClass: `${buttonIconBase} text-orange-400 rotate-[8deg]`,
-          buttonHaloClass: `${buttonHaloBase} bg-orange-500/35 blur-lg opacity-85`,
-          inlineIconClass: `${inlineIconBase} text-orange-400 rotate-[6deg]`,
-          inlineHaloClass: `${inlineHaloBase} bg-orange-500/30 blur-lg opacity-80`,
-        };
-      default:
-        return {
-          buttonIconClass: `${buttonIconBase} text-white`,
-          buttonHaloClass: `${buttonHaloBase} bg-orange-500/20 blur-md opacity-55 animate-[pulse_3s_ease-in-out_infinite] group-hover:opacity-80 group-focus-visible:opacity-80`,
-          inlineIconClass: `${inlineIconBase} text-white/75`,
-          inlineHaloClass: `${inlineHaloBase} bg-orange-500/15 blur-md opacity-35`,
-        };
-    }
-  }, [searchVisualState]);
+  const getIconVisuals = useCallback(
+    (state: SearchVisualState, variant: 'button' | 'inline') => {
+      const buttonIconBase =
+        'relative z-10 flex h-5 w-5 items-center justify-center transition-transform duration-300 group-hover:scale-110 group-focus-visible:scale-110 group-active:scale-105 group-hover:-translate-y-0.5 group-hover:translate-x-0.5';
+      const buttonHaloBase =
+        'pointer-events-none absolute -inset-2 rounded-full transition-all duration-500 group-hover:scale-110 group-focus-visible:scale-110';
+      const inlineIconBase =
+        'relative z-10 flex h-4 w-4 items-center justify-center transition-transform duration-300 group-hover:scale-105 group-focus-within:scale-105 group-hover:-translate-y-0.5 group-hover:translate-x-0.5';
+      const inlineHaloBase = 'pointer-events-none absolute -inset-2 rounded-full transition duration-500';
+
+      const bases =
+        variant === 'button'
+          ? { iconBase: buttonIconBase, haloBase: buttonHaloBase, size: 20 }
+          : { iconBase: inlineIconBase, haloBase: inlineHaloBase, size: 16 };
+
+      switch (state) {
+        case 'loading':
+          return {
+            iconClass: `${bases.iconBase} text-orange-300`,
+            haloClass: `${bases.haloBase} bg-orange-500/45 blur-xl opacity-95 animate-pulse`,
+            size: bases.size,
+          };
+        case 'typing':
+          return {
+            iconClass: `${bases.iconBase} text-orange-400 ${
+              variant === 'button' ? 'rotate-[8deg]' : 'rotate-[6deg]'
+            }`,
+            haloClass: `${bases.haloBase} bg-orange-500/35 blur-lg opacity-85`,
+            size: bases.size,
+          };
+        default:
+          return {
+            iconClass:
+              variant === 'button'
+                ? `${bases.iconBase} text-white`
+                : `${bases.iconBase} text-white/75`,
+            haloClass:
+              variant === 'button'
+                ? `${bases.haloBase} bg-orange-500/20 blur-md opacity-55 animate-[pulse_3s_ease-in-out_infinite] group-hover:opacity-80 group-focus-visible:opacity-80`
+                : `${bases.haloBase} bg-orange-500/15 blur-md opacity-35`,
+            size: bases.size,
+          };
+      }
+    },
+    [],
+  );
+
+  const renderSearchGlyph = useCallback(
+    (state: SearchVisualState, variant: 'button' | 'inline') => {
+      const { iconClass, haloClass, size } = getIconVisuals(state, variant);
+      return (
+        <span className="relative flex items-center justify-center">
+          <span className={haloClass} />
+          <span className={iconClass}>
+            {state === 'loading' ? (
+              <Loader2 className="animate-spin" style={{ width: size, height: size }} />
+            ) : (
+              <SearchIcon style={{ width: size, height: size }} />
+            )}
+          </span>
+        </span>
+      );
+    },
+    [getIconVisuals],
+  );
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -546,34 +581,12 @@ const Header: React.FC = () => {
                   aria-label={showSearch ? 'Close search' : 'Search'}
                   onClick={() => { setShowSearch((s) => !s); setShowSuggest(true); }}
                 >
-                  {showSearch ? (
-                    <X size={18} />
-                  ) : (
-                    <span className="relative flex items-center justify-center">
-                      <span className={buttonHaloClass} />
-                      <span className={buttonIconClass}>
-                        {searchVisualState === 'loading' ? (
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                        ) : (
-                          <SearchIcon className="h-5 w-5" />
-                        )}
-                      </span>
-                    </span>
-                  )}
+                  {showSearch ? <X size={18} /> : renderSearchGlyph(searchVisualState, 'button')}
                 </button>
                 {showSearch && (
                     <div className="absolute right-0 mt-2 w-[480px] overflow-hidden rounded-2xl border border-white/10 bg-black/50 text-gray-100 shadow-[0_30px_70px_rgba(15,23,42,0.6)] backdrop-blur-xl p-4 z-50">
                     <div className="group flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2 transition duration-300 focus-within:border-orange-500/60 focus-within:bg-white/10 focus-within:shadow-[0_0_30px_rgba(249,115,22,0.25)]">
-                      <span className="relative flex h-9 w-9 items-center justify-center">
-                        <span className={inlineHaloClass} />
-                        <span className={inlineIconClass}>
-                          {searchVisualState === 'loading' ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <SearchIcon className="h-4 w-4" />
-                          )}
-                        </span>
-                      </span>
+                      {renderSearchGlyph(searchVisualState, 'inline')}
                         <input
                           autoFocus
                           type="text"
@@ -715,8 +728,8 @@ const Header: React.FC = () => {
         {isMenuOpen && (
           <nav ref={mobileNavRef} className="lg:hidden pt-3 pb-3 border-t border-gray-800 bg-black text-white header-mobile-nav" aria-label="Mobile menu">
             <div className="px-2 space-y-3">
-              <form onSubmit={handleMobileSearchSubmit} className="flex items-center gap-2 rounded-lg border border-gray-800 bg-gray-900 px-3 py-2 shadow-sm">
-                <SearchIcon size={18} className="text-gray-400" />
+              <form onSubmit={handleMobileSearchSubmit} className="group flex items-center gap-2 rounded-lg border border-gray-800 bg-gray-900 px-3 py-2 shadow-sm">
+                {renderSearchGlyph(mobileSearchVisualState, 'inline')}
                 <input
                   type="search"
                   value={mobileQuery}
