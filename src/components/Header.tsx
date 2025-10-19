@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronRight, Search as SearchIcon, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Search as SearchIcon, X, Loader2 } from 'lucide-react';
 import { getArticlesBySearch, getLatestArticles } from '../utils/api';
 // ✅ REMOVED: import Logo from '../assets/images/logo.png';
+
+type SearchVisualState = 'idle' | 'typing' | 'loading';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
@@ -38,6 +40,48 @@ const Header: React.FC = () => {
     }
   }, [showSearch]);
   const trendingSearches = ['AI', 'Elections', 'World', 'Sports', 'Opinion'];
+
+  const searchVisualState: SearchVisualState = useMemo(() => {
+    if (loadingSuggest) return 'loading';
+    if (showSearch && query.trim().length > 0) return 'typing';
+    return 'idle';
+  }, [loadingSuggest, showSearch, query]);
+
+  const {
+    buttonIconClass,
+    buttonHaloClass,
+    inlineIconClass,
+    inlineHaloClass,
+  } = useMemo(() => {
+    const buttonIconBase = 'relative z-10 flex h-5 w-5 items-center justify-center transition-transform duration-300 group-hover:scale-110 group-focus-visible:scale-110 group-active:scale-105 group-hover:-translate-y-0.5 group-hover:translate-x-0.5';
+    const buttonHaloBase = 'pointer-events-none absolute -inset-2 rounded-full transition-all duration-500 group-hover:scale-110 group-focus-visible:scale-110';
+    const inlineIconBase = 'relative z-10 flex h-4 w-4 items-center justify-center transition-transform duration-300 group-hover:scale-105 group-focus-within:scale-105 group-hover:-translate-y-0.5 group-hover:translate-x-0.5';
+    const inlineHaloBase = 'pointer-events-none absolute -inset-2 rounded-full transition duration-500';
+
+    switch (searchVisualState) {
+      case 'loading':
+        return {
+          buttonIconClass: `${buttonIconBase} text-orange-300`,
+          buttonHaloClass: `${buttonHaloBase} bg-orange-500/45 blur-xl opacity-95 animate-pulse`,
+          inlineIconClass: `${inlineIconBase} text-orange-300`,
+          inlineHaloClass: `${inlineHaloBase} bg-orange-500/35 blur-lg opacity-90 animate-pulse`,
+        };
+      case 'typing':
+        return {
+          buttonIconClass: `${buttonIconBase} text-orange-400 rotate-[8deg]`,
+          buttonHaloClass: `${buttonHaloBase} bg-orange-500/35 blur-lg opacity-85`,
+          inlineIconClass: `${inlineIconBase} text-orange-400 rotate-[6deg]`,
+          inlineHaloClass: `${inlineHaloBase} bg-orange-500/30 blur-lg opacity-80`,
+        };
+      default:
+        return {
+          buttonIconClass: `${buttonIconBase} text-white`,
+          buttonHaloClass: `${buttonHaloBase} bg-orange-500/20 blur-md opacity-55 animate-[pulse_3s_ease-in-out_infinite] group-hover:opacity-80 group-focus-visible:opacity-80`,
+          inlineIconClass: `${inlineIconBase} text-white/75`,
+          inlineHaloClass: `${inlineHaloBase} bg-orange-500/15 blur-md opacity-35`,
+        };
+    }
+  }, [searchVisualState]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -496,16 +540,40 @@ const Header: React.FC = () => {
               <li className="relative" ref={searchBoxRef}>
                 <button
                   type="button"
-                  className="ml-2 p-2 rounded-md text-white hover:text-orange-500 hover:bg-gray-800 transition-colors"
-                  aria-label="Search"
+                  className={`group relative ml-2 flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 ${
+                    showSearch ? 'text-orange-400' : 'text-white hover:text-orange-400'
+                  } hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black`}
+                  aria-label={showSearch ? 'Close search' : 'Search'}
                   onClick={() => { setShowSearch((s) => !s); setShowSuggest(true); }}
                 >
-                  {showSearch ? <X size={18} /> : <SearchIcon size={18} />}
+                  {showSearch ? (
+                    <X size={18} />
+                  ) : (
+                    <span className="relative flex items-center justify-center">
+                      <span className={buttonHaloClass} />
+                      <span className={buttonIconClass}>
+                        {searchVisualState === 'loading' ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <SearchIcon className="h-5 w-5" />
+                        )}
+                      </span>
+                    </span>
+                  )}
                 </button>
                 {showSearch && (
                     <div className="absolute right-0 mt-2 w-[480px] overflow-hidden rounded-2xl border border-white/10 bg-black/50 text-gray-100 shadow-[0_30px_70px_rgba(15,23,42,0.6)] backdrop-blur-xl p-4 z-50">
-                    <div className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2 transition duration-300 focus-within:border-orange-500/60 focus-within:bg-white/10 focus-within:shadow-[0_0_30px_rgba(249,115,22,0.25)]">
-                      <SearchIcon size={16} className="text-white/70" />
+                    <div className="group flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2 transition duration-300 focus-within:border-orange-500/60 focus-within:bg-white/10 focus-within:shadow-[0_0_30px_rgba(249,115,22,0.25)]">
+                      <span className="relative flex h-9 w-9 items-center justify-center">
+                        <span className={inlineHaloClass} />
+                        <span className={inlineIconClass}>
+                          {searchVisualState === 'loading' ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <SearchIcon className="h-4 w-4" />
+                          )}
+                        </span>
+                      </span>
                         <input
                           autoFocus
                           type="text"
