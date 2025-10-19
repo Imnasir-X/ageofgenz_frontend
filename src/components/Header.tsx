@@ -391,26 +391,42 @@ const Header: React.FC = () => {
                   type="button"
                   className={`${navLinkClasses({ isActive: false })} inline-flex items-center gap-1`}
                   aria-haspopup="true"
-                  aria-expanded={openMenu==='world'}
+                  aria-expanded={openMenu === 'world'}
                   onClick={() => setOpenMenu(openMenu === 'world' ? null : 'world')}
                   onKeyDown={onMegaKeyDown('world', 'mega-world')}
                 >
                   Global <ChevronDown size={14} />
                 </button>
                 {openMenu === 'world' && (
-                    <div id="mega-world" className="absolute left-0 mt-2 w-72 rounded-lg border border-gray-800 bg-gray-900/95 text-gray-100 shadow-xl backdrop-blur-md p-3 flex flex-col gap-1 z-50">
-                    {[
-                      { label: 'Europe', to: '/category/europe' },
-                      { label: 'Asia', to: '/category/asia' },
-                      { label: 'Middle East', to: '/category/middle-east' },
-                      { label: 'Africa', to: '/category/africa' },
-                      { label: 'Americas', to: '/category/americas' },
-                      { label: 'Australia', to: '/category/australia' },
-                    ].map((item) => (
-                        <NavLink key={item.label} to={item.to} className={({ isActive }) => `block px-3 py-1.5 rounded text-sm leading-snug transition-colors duration-150 hover:bg-gray-800 ${isActive ? 'text-orange-400 font-semibold' : 'text-gray-200'}`}>
-                        {item.label}
-                      </NavLink>
-                    ))}
+                  <div
+                    id="mega-world"
+                    className="absolute left-0 mt-2 w-72 overflow-hidden rounded-2xl border border-white/10 bg-black/40 text-gray-50 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl"
+                  >
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-white/5 to-transparent opacity-80" />
+                    <div className="relative flex flex-col gap-1 p-4">
+                      {[
+                        { label: 'Europe', to: '/category/europe' },
+                        { label: 'Asia', to: '/category/asia' },
+                        { label: 'Middle East', to: '/category/middle-east' },
+                        { label: 'Africa', to: '/category/africa' },
+                        { label: 'Americas', to: '/category/americas' },
+                        { label: 'Australia', to: '/category/australia' },
+                      ].map((item) => (
+                        <NavLink
+                          key={item.label}
+                          to={item.to}
+                          className={({ isActive }) =>
+                            `block rounded-lg px-3 py-1.5 text-sm leading-snug transition duration-200 ${
+                              isActive
+                                ? 'bg-white/15 text-white shadow-inner shadow-white/15'
+                                : 'text-white/85 hover:bg-white/10 hover:text-white'
+                            }`
+                          }
+                        >
+                          {item.label}
+                        </NavLink>
+                      ))}
+                    </div>
                   </div>
                 )}
               </li>
@@ -427,19 +443,35 @@ const Header: React.FC = () => {
                   Politics <ChevronDown size={14} />
                 </button>
                 {openMenu === 'politics' && (
-                    <div id="mega-politics" className="absolute left-0 mt-2 w-72 rounded-lg border border-gray-800 bg-gray-900/95 text-gray-100 shadow-xl backdrop-blur-md p-3 flex flex-col gap-1 z-50">
-                    {[
-                      { label: 'U.S. Politics', to: '/politics' },
-                      { label: 'World Politics', to: '/world' },
-                      { label: 'Elections', to: '/category/elections' },
-                      { label: 'Congress', to: '/category/congress' },
-                      { label: 'Supreme Court', to: '/category/supreme-court' },
-                      { label: 'Opinion', to: '/opinion' },
-                    ].map((item) => (
-                        <NavLink key={item.label} to={item.to} className={({ isActive }) => `block px-3 py-1.5 rounded text-sm leading-snug transition-colors duration-150 hover:bg-gray-800 ${isActive ? 'text-orange-400 font-semibold' : 'text-gray-200'}`}>
-                        {item.label}
-                      </NavLink>
-                    ))}
+                  <div
+                    id="mega-politics"
+                    className="absolute left-0 mt-2 w-72 overflow-hidden rounded-2xl border border-white/10 bg-black/40 text-gray-50 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl"
+                  >
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-white/5 to-transparent opacity-80" />
+                    <div className="relative flex flex-col gap-1 p-4">
+                      {[
+                        { label: 'U.S. Politics', to: '/politics' },
+                        { label: 'World Politics', to: '/world' },
+                        { label: 'Elections', to: '/category/elections' },
+                        { label: 'Congress', to: '/category/congress' },
+                        { label: 'Supreme Court', to: '/category/supreme-court' },
+                        { label: 'Opinion', to: '/opinion' },
+                      ].map((item) => (
+                        <NavLink
+                          key={item.label}
+                          to={item.to}
+                          className={({ isActive }) =>
+                            `block rounded-lg px-3 py-1.5 text-sm leading-snug transition duration-200 ${
+                              isActive
+                                ? 'bg-white/15 text-white shadow-inner shadow-white/15'
+                                : 'text-white/85 hover:bg-white/10 hover:text-white'
+                            }`
+                          }
+                        >
+                          {item.label}
+                        </NavLink>
+                      ))}
+                    </div>
                   </div>
                 )}
               </li>
@@ -471,9 +503,9 @@ const Header: React.FC = () => {
                   {showSearch ? <X size={18} /> : <SearchIcon size={18} />}
                 </button>
                 {showSearch && (
-                    <div className="absolute right-0 mt-2 w-[480px] rounded-lg border border-gray-800 bg-gray-900/95 text-gray-100 shadow-2xl backdrop-blur-md p-3 z-50">
-                    <div className="flex items-center gap-2">
-                      <SearchIcon size={16} className="text-gray-400" />
+                    <div className="absolute right-0 mt-2 w-[480px] overflow-hidden rounded-2xl border border-white/10 bg-black/50 text-gray-100 shadow-[0_30px_70px_rgba(15,23,42,0.6)] backdrop-blur-xl p-4 z-50">
+                    <div className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2 transition duration-300 focus-within:border-orange-500/60 focus-within:bg-white/10 focus-within:shadow-[0_0_30px_rgba(249,115,22,0.25)]">
+                      <SearchIcon size={16} className="text-white/70" />
                         <input
                           autoFocus
                           type="text"
@@ -489,12 +521,12 @@ const Header: React.FC = () => {
                             setShowSearch(false);
                           }
                         }}
-                          placeholder="Search articles…"
-                          className="flex-1 outline-none bg-transparent text-sm placeholder:text-gray-400 text-gray-100"
+                          placeholder="Search articles..."
+                          className="flex-1 bg-transparent text-sm text-white placeholder:text-white/40 outline-none transition duration-300 focus:text-white"
                         />
                         {query && (
                           <button
-                            className="px-2 py-1 rounded text-gray-400 hover:text-white text-xs transition-colors"
+                            className="px-2 py-1 rounded text-white/70 hover:text-white text-xs transition-colors"
                             aria-label="Clear search"
                             onClick={() => { setQuery(''); setShowSuggest(true); }}
                           >
@@ -502,7 +534,7 @@ const Header: React.FC = () => {
                         </button>
                       )}
                       <button
-                        className="px-2 py-1 rounded bg-orange-500 text-white text-xs hover:bg-orange-600"
+                        className="rounded-lg bg-orange-500 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-orange-500/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                         onClick={() => {
                           if (!query.trim()) return;
                           const q = query.trim();
@@ -527,7 +559,7 @@ const Header: React.FC = () => {
                                 {suggestions.map((s) => (
                                   <li key={s.id}>
                                     <button
-                                      className="w-full text-left px-2 py-2 rounded text-sm text-gray-100 flex items-start gap-3 hover:bg-gray-800 transition-colors"
+                                      className="w-full text-left px-2 py-2 rounded-lg text-sm text-white flex items-start gap-3 transition-colors duration-200 hover:bg-white/10"
                                       onClick={() => { navigate(`/article/${s.slug}`); setShowSuggest(false); setShowSearch(false); }}
                                     >
                                       {s.image && (
@@ -567,7 +599,7 @@ const Header: React.FC = () => {
                               ) : (
                                 <div className="flex flex-wrap gap-2">
                                   {recentSearches.map((r) => (
-                                    <button key={r} className="px-2 py-1 text-xs rounded-full bg-gray-800 text-gray-200 hover:bg-gray-700 transition-colors" onClick={() => { navigate(`/search?q=${encodeURIComponent(r)}`); setShowSuggest(false); setShowSearch(false); }}>
+                                    <button key={r} className="px-2 py-1 text-xs rounded-full bg-white/10 text-white/80 hover:bg-white/15 transition-colors" onClick={() => { navigate(`/search?q=${encodeURIComponent(r)}`); setShowSuggest(false); setShowSearch(false); }}>
                                       {r}
                                     </button>
                                   ))}
@@ -578,7 +610,7 @@ const Header: React.FC = () => {
                                 <div className="text-xs text-white/70 mb-2">Trending</div>
                               <div className="flex flex-wrap gap-2">
                                   {trendingSearches.map((t) => (
-                                    <button key={t} className="px-2 py-1 text-xs rounded-full bg-orange-500/20 text-orange-200 hover:bg-orange-500/30 transition-colors" onClick={() => { navigate(`/search?q=${encodeURIComponent(t)}`); setShowSuggest(false); setShowSearch(false); }}>
+                                    <button key={t} className="px-2 py-1 text-xs rounded-full bg-orange-500/20 text-orange-100 hover:bg-orange-500/30 transition-colors" onClick={() => { navigate(`/search?q=${encodeURIComponent(t)}`); setShowSuggest(false); setShowSearch(false); }}>
                                     {t}
                                   </button>
                                 ))}
@@ -734,7 +766,7 @@ const Header: React.FC = () => {
               <div className="border-t border-gray-700 pt-3 mt-3">
                 <div className="flex justify-center items-center space-x-6">
                   <span className="text-gray-400 text-xs font-medium">Follow:</span>
-                  <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-orange-500 transition-colors">
+                  <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-orange-500 transition-colors">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                     </svg>
