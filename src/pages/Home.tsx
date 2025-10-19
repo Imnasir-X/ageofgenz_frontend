@@ -1102,49 +1102,48 @@ const Home: React.FC = () => {
                 <div
                   tabIndex={0}
                   onKeyDown={handleBreakingKeyDown}
-                  className={`group mx-auto flex w-full flex-col gap-4 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white transition-all duration-500 will-change-transform md:flex-row md:items-center md:gap-6 ${breakingVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
+                  className={`group mx-auto block w-full max-w-[600px] rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white transition-all duration-500 will-change-transform ${breakingVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
                 >
+                  <Link to={href} className="group inline-block mb-3">
+                    <h2 className="font-serif font-extrabold tracking-tight text-gray-900 leading-snug text-xl sm:text-2xl md:text-[28px] underline decoration-gray-900 decoration-1 underline-offset-4 transition-colors group-hover:text-orange-500">
+                      {current.title || 'Untitled Article'}
+                    </h2>
+                  </Link>
+
                   <Link
                     to={href}
-                    className="relative block w-full overflow-hidden rounded-lg border border-gray-100 bg-gray-50 shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white md:w-72 lg:w-80"
+                    className="block overflow-hidden rounded-xl border border-gray-100 bg-gray-100 mb-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                   >
-                    <div className="aspect-[4/3] md:aspect-[16/11]">
+                    <div className="aspect-[18/9] sm:aspect-[20/9]">
                       <img
                         src={img}
                         alt={current.title || 'Breaking image'}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                         loading="lazy"
                         onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/api/placeholder/1200/675'; }}
                       />
                     </div>
                   </Link>
 
-                  <div className="flex flex-1 flex-col gap-3">
-                    <Link to={href} className="group inline-block">
-                      <h2 className="font-serif text-lg font-bold leading-tight text-gray-900 transition-colors sm:text-xl md:text-2xl group-hover:text-orange-500">
-                        {current.title || 'Untitled Article'}
-                      </h2>
-                    </Link>
-                    {current.excerpt && (
-                      <p className="text-sm leading-relaxed text-gray-600 sm:text-base line-clamp-2">
-                        {current.excerpt}
-                      </p>
-                    )}
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 sm:text-sm">
-                      <span className={`${accent.badge} inline-flex items-center rounded-full px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white`}>
-                        {categoryText}
-                      </span>
-                      <span className="hidden h-1 w-1 rounded-full bg-gray-300 sm:inline-flex" aria-hidden="true" />
-                      <span className="flex items-center gap-1">
-                        <Clock size={12} className={accent.text} />
-                        {dateText}
-                      </span>
-                      <span className="hidden h-1 w-1 rounded-full bg-gray-300 sm:inline-flex" aria-hidden="true" />
-                      <span>By {authorName}</span>
-                      <span className="hidden h-1 w-1 rounded-full bg-gray-300 sm:inline-flex" aria-hidden="true" />
-                      <span>{breakingIndex + 1} of {breakingItems.length}</span>
-                    </div>
+                  <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] sm:text-xs text-slate-500 mb-2">
+                    <span className={`${accent.badge} inline-flex items-center rounded-full px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white`}>
+                      {categoryText}
+                    </span>
+                    <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-gray-300" aria-hidden="true" />
+                    <span className="flex items-center gap-1">
+                      <Clock size={12} className={accent.text} />
+                      {dateText}
+                    </span>
+                    <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-gray-300" aria-hidden="true" />
+                    <span>By {authorName}</span>
+                    <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-gray-300" aria-hidden="true" />
+                    <span>{breakingIndex + 1} of {breakingItems.length}</span>
                   </div>
+                  {current.excerpt && (
+                    <p className="text-gray-700 text-xs sm:text-sm leading-relaxed line-clamp-2">
+                      {current.excerpt}
+                    </p>
+                  )}
                 </div>
                 {breakingItems.length > 1 && (
                   <div className="flex flex-col items-center gap-4 border-t border-gray-200 pt-4 sm:flex-row sm:justify-between">
