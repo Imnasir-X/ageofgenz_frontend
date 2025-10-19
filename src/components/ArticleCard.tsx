@@ -94,33 +94,33 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
               loading="lazy"
               fetchPriority="high"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-900/20 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 h-full">
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-slate-950/85 via-slate-900/45 to-transparent" />
-              <div className="relative z-10 p-4 sm:p-6 lg:p-8 space-y-3 sm:space-y-4">
-                <div className="inline-flex flex-wrap items-center gap-2 rounded-full bg-slate-950/55 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-white/95 shadow-[0_18px_40px_rgba(15,23,42,0.6)] backdrop-blur-sm">
-                  <span className={`${categoryAccent} px-3 py-1 rounded-full text-[11px] font-bold text-white shadow-sm`}>
-                    {article.category?.name || 'General'}
-                  </span>
-                  <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-white/40" aria-hidden="true" />
-                  <span className="text-white/85">By {article.author?.name || 'Staff'}</span>
-                  <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-white/40" aria-hidden="true" />
-                  <span className="flex items-center text-white">
-                    <Clock size={14} className={`mr-1 ${categoryTextAccent}`} />
-                    {article.estimated_read_time || 3} min read
-                  </span>
+            <div className="absolute inset-0">
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/45 to-transparent" aria-hidden="true" />
+              <div className="relative z-10 flex h-full flex-col justify-end p-4 sm:p-6 lg:p-8">
+                <div className="max-w-3xl space-y-3 sm:space-y-4">
+                  <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur-lg shadow-[0_20px_40px_rgba(15,23,42,0.45)]">
+                    <span className={`${categoryAccent} px-3 py-1 rounded-full text-[11px] font-bold text-white shadow-sm shadow-black/20`}>
+                      {article.category?.name || 'General'}
+                    </span>
+                    <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-white/40" aria-hidden="true" />
+                    <span className="text-white/90">By {article.author?.name || 'Staff'}</span>
+                    <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-white/40" aria-hidden="true" />
+                    <span className="flex items-center text-white">
+                      <Clock size={14} className={`mr-1 ${categoryTextAccent}`} />
+                      {article.estimated_read_time || 3} min read
+                    </span>
+                  </div>
+                  <div className="rounded-2xl bg-slate-950/45 p-4 sm:p-5 backdrop-blur-md shadow-[0_30px_60px_rgba(15,23,42,0.5)] ring-1 ring-white/10">
+                    <h3 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight line-clamp-3">
+                      {article.title || 'Untitled Article'}
+                    </h3>
+                    {cleanDescription && (
+                      <p className="mt-3 hidden text-sm text-white/85 sm:block sm:text-base sm:leading-relaxed line-clamp-3">
+                        {cleanDescription}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <h3
-                  className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight line-clamp-3 transition-colors group-hover:text-white/90"
-                  style={{ textShadow: '0 20px 45px rgba(0,0,0,0.65), 0 8px 24px rgba(15,23,42,0.65), 0 2px 8px rgba(0,0,0,0.75)' }}
-                >
-                  {article.title || 'Untitled Article'}
-                </h3>
-                {cleanDescription && (
-                  <p className="hidden sm:block text-white/90 text-sm sm:text-base mt-1 max-w-2xl line-clamp-3">
-                    {cleanDescription}
-                  </p>
-                )}
               </div>
             </div>
           </div>
