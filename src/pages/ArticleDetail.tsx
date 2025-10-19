@@ -25,6 +25,7 @@ const ArticleDetail: React.FC = () => {
   const [imageLoaded, setImageLoaded] = useState<boolean>(false);
   const [readingProgress, setReadingProgress] = useState<number>(0);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
+  const [showProgressBar, setShowProgressBar] = useState<boolean>(true);
 
   // Memoized date formatter
   const formatDate = useCallback((dateString: string) => {
@@ -38,6 +39,14 @@ const ArticleDetail: React.FC = () => {
       return 'Unknown date';
     }
   }, []);
+
+  useEffect(() => {
+    if (!article) return;
+    const raf = window.requestAnimationFrame(() => {
+      window.dispatchEvent(new Event('scroll'));
+    });
+    return () => window.cancelAnimationFrame(raf);
+  }, [article]);
 
   // Calculate reading time based on word count
   const estimatedReadTime = useMemo(() => {
@@ -217,14 +226,20 @@ const ArticleDetail: React.FC = () => {
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
       const windowHeight = window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
-      
-      const scrollableHeight = documentHeight - windowHeight;
+
+      const scrollableHeight = Math.max(documentHeight - windowHeight, 0);
       const progress = scrollableHeight > 0 ? (scrollTop / scrollableHeight) * 100 : 0;
-      
+
       setReadingProgress(Math.min(100, Math.max(0, progress)));
+
+      const shouldShow = scrollableHeight > 24;
+      setShowProgressBar(prev => (prev === shouldShow ? prev : shouldShow));
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
+    // run once after mount to set initial visibility/progress
+    handleScroll();
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -372,6 +387,13 @@ const ArticleDetail: React.FC = () => {
           >
             Back to Home
           </Link>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-4 inline-flex items-center justify-center rounded-lg border border-orange-300 px-8 py-3 text-orange-600 transition hover:bg-orange-50"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
@@ -380,6 +402,7 @@ const ArticleDetail: React.FC = () => {
   const articleUrl = `https://theageofgenz.com/article/${article.slug}`;
   const publishedDate = formatDate(article.published_at || article.created_at);
   const imageUrl = article.featured_image_url || article.featured_image || 'https://theageofgenz.com/og-image.jpg';
+  const viewCount = article.view_count ?? article.views ?? null;
   const encodedShareUrl = encodeURIComponent(articleUrl);
   const encodedShareTitle = encodeURIComponent(article.title);
   const shareLinks = [
@@ -414,7 +437,7 @@ const ArticleDetail: React.FC = () => {
     try {
       await navigator.clipboard.writeText(articleUrl);
       setCopySuccess(true);
-      window.setTimeout(() => setCopySuccess(false), 2000);
+      window.setTimeout(() => setCopySuccess(false), 3000);
     } catch (err) {
       console.error('Failed to copy link', err);
     }
@@ -431,6 +454,7 @@ const ArticleDetail: React.FC = () => {
         <meta property="og:title" content={article.title} />
         <meta property="og:description" content={article.excerpt || article.title} />
         <meta property="og:image" content={imageUrl} />
+        <link rel="preload" as="image" href={imageUrl} />
         <meta property="og:url" content={articleUrl} />
         <meta property="og:type" content="article" />
         <meta property="og:site_name" content="The Age of GenZ" />
@@ -480,12 +504,14 @@ const ArticleDetail: React.FC = () => {
       </Helmet>
 
       {/* Reading progress bar */}
-      <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 z-50">
-        <div 
-          className="h-full bg-orange-500 transition-all duration-300" 
-          style={{ width: `${readingProgress}%` }}
-        ></div>
-      </div>
+      {showProgressBar && (
+        <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 z-50">
+          <div 
+            className="h-full bg-orange-500 transition-all duration-300 shadow-[0_0_10px_rgba(249,115,22,0.3)]" 
+            style={{ width: `${readingProgress}%` }}
+          ></div>
+        </div>
+      )}
 
       {/* Breadcrumb Navigation */}
       <nav className="article-breadcrumb">
@@ -493,20 +519,20 @@ const ArticleDetail: React.FC = () => {
           <div className="article-breadcrumb__trail" aria-label="Breadcrumb">
             <Link
               to={`/${article.category?.slug || ''}`}
-              className="article-breadcrumb__category"
+              className="article-breadcrumb__category text-xs sm:text-sm hover:underline"
             >
               {(article.category?.name || 'News').toUpperCase()}
             </Link>
             <span className="article-breadcrumb__separator" aria-hidden="true">
               &bull;
             </span>
-            <span className="article-breadcrumb__date">
+            <span className="article-breadcrumb__date text-xs sm:text-sm">
               {publishedDate}
             </span>
             <span className="article-breadcrumb__separator" aria-hidden="true">
               &bull;
             </span>
-            <Link to="/" className="article-breadcrumb__brand">
+            <Link to="/" className="article-breadcrumb__brand text-xs sm:text-sm hover:underline">
               TheAgeOfGenZ.com
             </Link>
           </div>
@@ -545,6 +571,19 @@ const ArticleDetail: React.FC = () => {
                   </p>
                 )}
 
+                <div className="mb-8 flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                  <span className="inline-flex items-center gap-2">
+                    <BookOpen size={16} className="text-orange-500" aria-hidden="true" />
+                    <span>{estimatedReadTime} min read</span>
+                  </span>
+                  {viewCount !== null && (
+                    <span className="inline-flex items-center gap-2">
+                      <Eye size={16} className="text-orange-400" aria-hidden="true" />
+                      <span>{viewCount.toLocaleString()} views</span>
+                    </span>
+                  )}
+                </div>
+
               </header>
 
               {/* Featured Image */}
@@ -556,7 +595,7 @@ const ArticleDetail: React.FC = () => {
                     )}
                     <img
                       src={imageUrl}
-                      alt={article.title}
+                      alt={article.title || 'Article featured image'}
                       className={`w-full aspect-[16/10] object-cover transition-opacity duration-500 ${
                         imageLoaded ? 'opacity-100' : 'opacity-0'
                       }`}
@@ -567,14 +606,19 @@ const ArticleDetail: React.FC = () => {
                       }}
                       loading="eager"
                     />
+                    {(article.featured_image_caption || article.caption) && (
+                      <figcaption className="px-6 md:px-12 lg:px-14 mt-2 text-sm text-gray-500 italic">
+                        {article.featured_image_caption || article.caption}
+                      </figcaption>
+                    )}
                   </figure>
                 </div>
               )}
 
               <div className="-mx-6 md:-mx-12 lg:-mx-14 border-t border-b border-orange-200 bg-white/90 mt-0">
-                <div className="article-share-wrap px-6 md:px-12 lg:px-14">
+                <div className="article-share-wrap px-6 md:px-12 lg:px-14 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <span className="sr-only">Share this article</span>
-                  <div className="article-share-grid">
+                  <div className="article-share-grid flex flex-col items-stretch gap-3 md:flex-row md:items-center md:gap-6">
                     {shareLinks.map(({ name, href, Icon }) => (
                       <a
                         key={name}
@@ -582,37 +626,37 @@ const ArticleDetail: React.FC = () => {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={`Share on ${name}`}
-                        className="article-share-button"
+                        className="article-share-button focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                       >
-                        <Icon className="article-share-icon" size={12} />
+                        <Icon className="article-share-icon" size={16} />
                         <span className="sr-only">Share on {name}</span>
                       </a>
                     ))}
-                    <div className="article-share-copy">
-                      <button
-                        type="button"
-                        onClick={handleCopyShare}
-                        aria-label="Copy article link"
-                        className={`article-share-button article-share-button--copy ${copySuccess ? 'is-success' : ''}`}
-                      >
-                        <Link2 className="article-share-icon" size={12} />
-                        <span className="sr-only">{copySuccess ? 'Link copied' : 'Copy link'}</span>
-                      </button>
-                      <span
-                        className={`article-share-tooltip ${copySuccess ? 'is-visible is-success' : ''}`}
-                        role="status"
-                        aria-live="polite"
-                      >
-                        {copySuccess ? 'Link copied!' : 'Copy link'}
-                      </span>
-                    </div>
+                  </div>
+                  <div className="article-share-copy md:flex md:items-center md:gap-3">
+                    <button
+                      type="button"
+                      onClick={handleCopyShare}
+                      aria-label="Copy article link"
+                      className={`article-share-button article-share-button--copy ${copySuccess ? 'is-success' : ''} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white`}
+                    >
+                      <Link2 className="article-share-icon" size={16} />
+                      <span className="sr-only">{copySuccess ? 'Link copied' : 'Copy link'}</span>
+                    </button>
+                    <span
+                      className={`article-share-tooltip ${copySuccess ? 'is-visible is-success' : ''}`}
+                      role="status"
+                      aria-live="polite"
+                    >
+                      {copySuccess ? 'Link copied!' : 'Copy link'}
+                    </span>
                   </div>
                 </div>
               </div>
 
               {/* Article body */}
               <div
-                className="article-content-container article-content"
+                className="article-content-container article-content leading-[1.75] hyphens-auto"
                 dangerouslySetInnerHTML={formattedContent}
               />
 
@@ -638,6 +682,16 @@ const ArticleDetail: React.FC = () => {
                 </div>
               )}
 
+              <div className="mt-12">
+                <Link
+                  to={`/${article.category?.slug || ''}`}
+                  className="inline-flex items-center gap-2 rounded-full border border-orange-300 bg-orange-50 px-5 py-2 text-sm font-semibold text-orange-600 transition hover:bg-orange-100 hover:text-orange-700"
+                >
+                  <span aria-hidden="true" className="text-base font-semibold">{'\u2190'}</span>
+                  <span>More in {article.category?.name || 'News'}</span>
+                </Link>
+              </div>
+
             </div>
           </article>
 
@@ -652,12 +706,12 @@ const ArticleDetail: React.FC = () => {
                   <div className="trending-list">
                     {relatedArticles.map((relatedArticle) => (
                       <article key={relatedArticle.id} className="trending-item">
-                        <Link to={`/article/${relatedArticle.slug}`} className="trending-link">
+                        <Link to={`/article/${relatedArticle.slug}`} className="trending-link group">
                           <div className="trending-image-wrap">
                             <img
                               src={relatedArticle.featured_image_url || relatedArticle.featured_image || '/api/placeholder/420/240'}
                               alt={relatedArticle.title}
-                              className="trending-image"
+                              className="trending-image transition-transform duration-300 group-hover:scale-105"
                               loading="lazy"
                               onError={(e) => {
                                 e.currentTarget.src = '/api/placeholder/420/240';
@@ -668,7 +722,7 @@ const ArticleDetail: React.FC = () => {
                             <span className="trending-meta-pill">
                               {relatedArticle.category?.name?.toUpperCase() || 'TRENDING'}
                             </span>
-                            <span className="trending-meta-separator" aria-hidden="true">•</span>
+                            <span className="trending-meta-separator" aria-hidden="true">&bull;</span>
                             <span className="trending-meta-date">
                               {formatDate(relatedArticle.published_at || relatedArticle.created_at)}
                             </span>
