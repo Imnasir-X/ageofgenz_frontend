@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Compass, RefreshCw, Sparkles } from 'lucide-react';
+import { Compass, Loader2, RefreshCw, Sparkles } from 'lucide-react';
 import type { Article } from '../types';
 import ArticleCard from './ArticleCard';
 
