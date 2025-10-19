@@ -118,6 +118,18 @@ const Header: React.FC = () => {
     [getIconVisuals],
   );
 
+  const logoScale = useMemo(() => {
+    const base = isDesktop ? 1 - 0.7 * shrink : 1 - 0.55 * shrink;
+    const min = isDesktop ? 0.7 : 0.6;
+    return Math.max(min, base);
+  }, [isDesktop, shrink]);
+
+  const titleScale = useMemo(() => {
+    const base = isDesktop ? 1 - 0.55 * shrink : 1 - 0.45 * shrink;
+    const min = isDesktop ? 0.75 : 0.65;
+    return Math.max(min, base);
+  }, [isDesktop, shrink]);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
@@ -422,14 +434,14 @@ const Header: React.FC = () => {
               alt="The Age Of GenZ - Home"
               className={`${isCompact ? 'h-6 md:h-8' : 'h-12 md:h-14'} w-auto transition-transform ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'}`}
               style={{
-                transform: `scale(${isDesktop ? 1 - 0.7 * shrink : 1 - 0.55 * shrink})`, // min 0.30 desktop, ~0.45 mobile
+                transform: `scale(${logoScale})`,
                 transformOrigin: 'left center',
               }}
             />
             <span
-              className={`${isCompact ? 'text-lg md:text-xl' : 'text-3xl md:text-4xl'} font-bold tracking-normal leading-tight font-serif text-white transition-transform ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'}`}
+              className={`${isCompact ? 'text-lg md:text-xl' : 'text-3xl md:text-4xl'} font-bold tracking-normal leading-tight font-serif text-white whitespace-nowrap transition-transform ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'}`}
               style={{
-                transform: `scale(${isDesktop ? 1 - 0.8 * shrink : 1 - 0.65 * shrink})`, // min 0.20 desktop, ~0.35 mobile
+                transform: `scale(${titleScale})`,
                 transformOrigin: 'left center',
               }}
             >
@@ -439,7 +451,7 @@ const Header: React.FC = () => {
               className={`hidden lg:inline ml-4 text-gray-500 font-light transition-opacity ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'} text-xs tracking-wider`}
               style={{ opacity: 1 - shrink }}
             >
-              EST. 2025 • GEN Z NEWS
+              EST. 2025 •
             </span>
           </Link>
 
