@@ -77,7 +77,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
       case 'horizontal':
         return 'bg-white rounded-md shadow-sm hover:shadow-md transition-transform duration-300 ease-out transform-gpu hover:-translate-y-1 overflow-hidden group';
       case 'sidebarLarge':
-        return 'flex flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-100 transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg';
+        return 'flex flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-100 transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg h-[230px]';
       default:
         return 'bg-white rounded-md shadow-sm hover:shadow-md transition-transform duration-300 ease-out transform-gpu hover:-translate-y-1 overflow-hidden group';
     }
@@ -172,7 +172,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
     return (
       <article className={wrapperClasses}>
         <Link to={`/article/${article.slug}`} className="block h-full" onMouseEnter={onHoverPrefetch}>
-          <div className="relative aspect-[16/9] w-full overflow-hidden bg-gray-100">
+          <div className="relative aspect-[5/3] w-full overflow-hidden bg-gray-100">
             <img
               src={imgSrc}
               alt={article.title || 'Article image'}
@@ -181,18 +181,18 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
               loading="lazy"
             />
           </div>
-          <div className="flex h-full flex-col gap-2 px-4 py-3">
-            <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-gray-500">
-              <span className={`${categoryAccent} inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold text-white`}>
+          <div className="flex h-full flex-col gap-1.5 px-3 py-2.5">
+            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+              <span className={`${categoryAccent} inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold text-white`}>
                 {article.category?.name || 'General'}
               </span>
               <span className="text-gray-400">•</span>
               <span className="flex items-center gap-1 text-gray-500">
-                <Clock size={11} className="text-gray-400" />
+                <Clock size={10} className="text-gray-400" />
                 {formattedDate}
               </span>
             </div>
-            <h3 className="text-lg font-semibold leading-snug text-gray-900 line-clamp-3">
+            <h3 className="text-[15px] font-semibold leading-snug text-gray-900 line-clamp-2">
               {article.title || 'Untitled Article'}
             </h3>
           </div>

@@ -1284,23 +1284,25 @@ const Home: React.FC = () => {
                     </div>
                     {/* Secondary sidebar-styled list (desktop and up) */}
                     {secondaryFeatured.length > 0 && (
-                      <div className="hidden lg:grid lg:col-span-4 lg:grid-rows-4 lg:gap-4">
-                        {secondaryFeatured.map((a, idx) => (
-                          <FadeReveal key={`featured-${a.id}`} delay={120 + idx * 60}>
-                            <ArticleCard
-                              article={a}
-                              imagePosition={getImagePosition(a)}
-                              variant="sidebarLarge"
-                            />
-                          </FadeReveal>
-                        ))}
+                      <div className="hidden lg:block lg:col-span-4">
+                        <div className="flex flex-col gap-3">
+                          {secondaryFeatured.slice(0, 3).map((a, idx) => (
+                            <FadeReveal key={`featured-${a.id}`} delay={120 + idx * 60}>
+                              <ArticleCard
+                                article={a}
+                                imagePosition={getImagePosition(a)}
+                                variant="sidebarLarge"
+                              />
+                            </FadeReveal>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
                   {secondaryFeatured.length > 0 && (
                     <div className="mt-6 lg:hidden">
                       <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory">
-                        {secondaryFeatured.map((a, idx) => (
+                        {secondaryFeatured.slice(0, 3).map((a, idx) => (
                           <div key={`featured-mobile-${a.id}`} className="snap-start shrink-0 w-64">
                             <FadeReveal delay={idx * 80} className="h-full">
                               <ArticleCard
