@@ -153,8 +153,7 @@ const CategoryPage: React.FC<Props> = ({
 
   return (
     <ErrorBoundary>
-      <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 pb-16">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,153,102,0.22),transparent_55%)]" />
+      <div className="relative min-h-screen bg-slate-950 pb-16">
 
         <Helmet>
           <title>{pageTitle}</title>
@@ -172,9 +171,9 @@ const CategoryPage: React.FC<Props> = ({
           Skip to content
         </a>
 
-        <div className="relative mx-auto max-w-6xl px-4 pt-16 sm:px-6 lg:px-8">
-          <header className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 shadow-[0_40px_80px_rgba(15,23,42,0.3)] backdrop-blur-xl sm:p-12">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,176,120,0.35),transparent_55%)]" />
+        <div className="relative mx-auto max-w-6xl space-y-10 px-4 pt-14 sm:px-6 lg:px-8">
+          <header className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900 p-6 shadow-2xl sm:p-8">
+            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-transparent to-transparent" />
             <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-1 flex-col gap-4">
                 <nav
@@ -194,20 +193,20 @@ const CategoryPage: React.FC<Props> = ({
                 <h1 className="bg-gradient-to-br from-orange-200 via-orange-400 to-orange-600 bg-clip-text text-4xl font-black tracking-tight text-transparent sm:text-5xl">
                   {title}
                 </h1>
-                <p className="max-w-2xl text-base text-white/80 sm:text-lg">{description}</p>
+                <p className="max-w-2xl text-base text-white/90 sm:text-lg">{description}</p>
               </div>
-              <div className="relative flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-400/20 via-orange-500/10 to-orange-600/20 text-white shadow-[0_30px_60px_rgba(255,146,43,0.2)]">
-                <div className="h-12 w-12 text-orange-200">{categoryIcon}</div>
+              <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-slate-800 text-white shadow-lg sm:h-24 sm:w-24">
+                <div className="h-10 w-10 text-orange-200 sm:h-12 sm:w-12">{categoryIcon}</div>
               </div>
             </div>
           </header>
 
           <main id="main-content" className="relative -mt-8 space-y-8">
             <section
-              className="rounded-3xl border border-white/10 bg-white/90 p-6 shadow-[0_24px_60px_rgba(15,23,42,0.15)] backdrop-blur-md transition-all duration-300 ease-out sm:p-8"
+              className="rounded-3xl border border-white/10 bg-white p-6 shadow-xl transition-all duration-300 ease-out sm:p-8"
               aria-live="polite"
             >
-              <div className="sticky top-20 z-20 -mx-6 mb-6 border-b border-slate-200/70 bg-white/95 px-6 py-4 backdrop-blur sm:-mx-8 sm:px-8">
+              <div className="sticky top-20 z-20 -mx-6 mb-6 border-b border-slate-200 bg-white px-6 py-4 sm:-mx-8 sm:px-8">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
                     <Filter className="h-4 w-4 text-orange-500" aria-hidden="true" />
@@ -275,35 +274,35 @@ const CategoryPage: React.FC<Props> = ({
               />
             </section>
 
-            <section className="rounded-3xl border border-white/10 bg-white/90 p-6 shadow-[0_24px_60px_rgba(15,23,42,0.1)] backdrop-blur-md transition-all duration-300 ease-out sm:p-8">
+            <section className="rounded-3xl border border-white/10 bg-white p-6 shadow-xl transition-all duration-300 ease-out sm:p-8">
               <div className="mb-6 flex items-center justify-between gap-4">
                 <div>
                   <h2 className="text-lg font-bold text-slate-900 sm:text-xl">Related Categories</h2>
-                  <p className="text-sm text-slate-500">Expand your feed with these curated beats.</p>
+                  <p className="text-sm text-slate-600">Expand your feed with these curated beats.</p>
                 </div>
                 <Link
                   to="/trending"
-                  className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-600 transition hover:bg-orange-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-50"
+                  className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-600 transition hover:bg-orange-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                 >
                   Discover more
                   <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {relatedCategories.map((cat, idx) => (
                   <Link
                     key={cat.slug}
                     to={`/category/${cat.slug}`}
-                    className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-white/40 bg-gradient-to-br from-white via-white/95 to-white/80 p-5 shadow-[0_20px_45px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-2 hover:border-orange-200 hover:shadow-[0_30px_65px_rgba(15,23,42,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                    className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-lg transition-all duration-300 hover:-translate-y-2 hover:border-orange-200 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                     style={{ transitionDelay: `${idx * 40}ms` }}
                   >
-                    <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-orange-100 opacity-50 blur-2xl transition group-hover:opacity-80" />
-                    <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-orange-500/10 text-orange-500">
+                    <div className="absolute -right-12 -top-10 h-28 w-28 rounded-full bg-orange-100 opacity-40 blur-2xl transition group-hover:opacity-60" />
+                    <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-orange-100 text-orange-500">
                       <Sparkles className="h-5 w-5" aria-hidden="true" />
                     </div>
                     <div className="relative mt-6 space-y-2">
                       <h3 className="text-lg font-semibold text-slate-900">{cat.name}</h3>
-                      <p className="text-sm text-slate-500">{cat.description}</p>
+                      <p className="text-sm text-slate-600">{cat.description}</p>
                     </div>
                     <span className="relative mt-4 inline-flex items-center gap-1 text-sm font-semibold text-orange-500">
                       Explore <ArrowUpRight className="h-4 w-4" />
