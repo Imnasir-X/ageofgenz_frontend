@@ -69,195 +69,200 @@ const ArticleDetail: React.FC = () => {
       return { html: '<p class="text-gray-600">No content available.</p>', toc: [] as Array<{ id: string; text: string; level: number }> };
     }
 
-    const slugify = (text: string) =>
-      text
-        .toLowerCase()
-        .trim()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-');
+    try {
+      const slugify = (text: string) =>
+        text
+          .toLowerCase()
+          .trim()
+          .replace(/[^\w\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-');
 
-    const seenIds = new Map<string, number>();
-    const tocEntries: Array<{ id: string; text: string; level: number }> = [];
+      const seenIds = new Map<string, number>();
+      const tocEntries: Array<{ id: string; text: string; level: number }> = [];
 
-    const applyTextHighlights = (markup: string) =>
-      markup.replace(/==([\s\S]+?)==/g, (_match, text) => `<mark>${text.trim()}</mark>`);
+      const applyTextHighlights = (markup: string) =>
+        markup.replace(/==([\s\S]+?)==/g, (_match, text) => `<mark>${text.trim()}</mark>`);
 
-    const applyStatHighlights = (markup: string) =>
-      markup.replace(/%%([\s\S]+?)%%/g, (_match, text) => `<span class="article-stat-highlight">${text.trim()}</span>`);
+      const applyStatHighlights = (markup: string) =>
+        markup.replace(/%%([\s\S]+?)%%/g, (_match, text) => `<span class="article-stat-highlight">${text.trim()}</span>`);
 
-    const enhanceInlineMarkup = (markup: string) => applyTextHighlights(applyStatHighlights(markup));
+      const enhanceInlineMarkup = (markup: string) => applyTextHighlights(applyStatHighlights(markup));
 
-    const createHeading = (tag: 'h2' | 'h3', attrs: string, body: string) => {
-      const clean = body.replace(/<[^>]+>/g, '').trim();
-      const attrString = attrs?.trim();
-      const existingIdMatch = attrString?.match(/id\s*=\s*["']([^"']+)["']/i);
-      const existingId = existingIdMatch?.[1];
-      const attributes = attrString ? ` ${attrString}` : '';
-      if (!clean) return `<${tag}${attributes}>${body}</${tag}>`;
+      const createHeading = (tag: 'h2' | 'h3', attrs: string, body: string) => {
+        const clean = body.replace(/<[^>]+>/g, '').trim();
+        const attrString = attrs?.trim();
+        const existingIdMatch = attrString?.match(/id\s*=\s*["']([^"']+)["']/i);
+        const existingId = existingIdMatch?.[1];
+        const attributes = attrString ? ` ${attrString}` : '';
+        if (!clean) return `<${tag}${attributes}>${body}</${tag}>`;
 
-      if (existingId) {
-        tocEntries.push({ id: existingId, text: clean, level: tag === 'h2' ? 2 : 3 });
-        return `<${tag}${attributes}>${body}</${tag}>`;
-      }
-
-      let baseId = slugify(clean);
-      if (!baseId) baseId = `${tag}-${tocEntries.length}`;
-      const count = seenIds.get(baseId) ?? 0;
-      const generatedId = count === 0 ? baseId : `${baseId}-${count + 1}`;
-      seenIds.set(baseId, count + 1);
-      tocEntries.push({ id: generatedId, text: clean, level: tag === 'h2' ? 2 : 3 });
-      return `<${tag}${attributes} id="${generatedId}">${body}</${tag}>`;
-    };
-
-    const createInfoboxMarkup = (variant: 'info' | 'alert', body: string) => {
-      const icon = variant === 'alert' ? '&#9888;' : '&#9432;';
-      const formattedBody = enhanceInlineMarkup(body.trim());
-      const wrappedBody = /<(p|ul|ol|div|h[1-6])/i.test(formattedBody) ? formattedBody : `<p>${formattedBody}</p>`;
-      return `<div class="article-infobox article-infobox--${variant}"><span class="article-infobox__icon" aria-hidden="true">${icon}</span><div class="article-infobox__content">${wrappedBody}</div></div>`;
-    };
-
-    const transformInfoBoxes = (markup: string) =>
-      markup
-        .replace(/<p>\s*\[(info|note)\]\s*(.*?)<\/p>/gi, (_match, _type, body) => createInfoboxMarkup('info', body))
-        .replace(/<p>\s*\[(alert|warning|important)\]\s*(.*?)<\/p>/gi, (_match, _type, body) => createInfoboxMarkup('alert', body));
-
-    const transformKeyTakeaways = (markup: string) => {
-      let updatedMarkup = markup;
-      const markerPattern = /<p>\s*\[\[key-takeaways\]\]\s*<\/p>([\s\S]*?)(<p>\s*\[\[\/key-takeaways\]\]\s*<\/p>)/i;
-
-      let match = markerPattern.exec(updatedMarkup);
-      while (match) {
-        const innerContent = enhanceInlineMarkup(match[1].trim());
-        const sectionHTML = `<section class="article-key-takeaways"><div class="article-key-takeaways__label">Key Takeaways</div><div class="article-key-takeaways__body">${innerContent}</div></section>`;
-        updatedMarkup = updatedMarkup.replace(match[0], sectionHTML);
-        match = markerPattern.exec(updatedMarkup);
-      }
-
-      return updatedMarkup;
-    };
-
-    const transformPullQuotes = (markup: string) =>
-      markup.replace(/<p([^>]*)>["']([^"']{50,200})["']<\/p>/gi, (_match, attrs, quote) => {
-        if (/class\s*=/.test(attrs || '') && /article-pullquote/.test(attrs || '')) {
-          return _match;
+        if (existingId) {
+          tocEntries.push({ id: existingId, text: clean, level: tag === 'h2' ? 2 : 3 });
+          return `<${tag}${attributes}>${body}</${tag}>`;
         }
-        return `<div class="article-pullquote">${enhanceInlineMarkup(quote)}</div>`;
-      });
 
-    const ensureLazyImages = (markup: string) =>
-      markup.replace(/<img([^>]*)>/gi, (match, attrs) => {
-        if (/loading\s*=/.test(attrs)) {
-          return match;
+        let baseId = slugify(clean);
+        if (!baseId) baseId = `${tag}-${tocEntries.length}`;
+        const count = seenIds.get(baseId) ?? 0;
+        const generatedId = count === 0 ? baseId : `${baseId}-${count + 1}`;
+        seenIds.set(baseId, count + 1);
+        tocEntries.push({ id: generatedId, text: clean, level: tag === 'h2' ? 2 : 3 });
+        return `<${tag}${attributes} id="${generatedId}">${body}</${tag}>`;
+      };
+
+      const createInfoboxMarkup = (variant: 'info' | 'alert', body: string) => {
+        const icon = variant === 'alert' ? '&#9888;' : '&#9432;';
+        const formattedBody = enhanceInlineMarkup(body.trim());
+        const wrappedBody = /<(p|ul|ol|div|h[1-6])/i.test(formattedBody) ? formattedBody : `<p>${formattedBody}</p>`;
+        return `<div class="article-infobox article-infobox--${variant}"><span class="article-infobox__icon" aria-hidden="true">${icon}</span><div class="article-infobox__content">${wrappedBody}</div></div>`;
+      };
+
+      const transformInfoBoxes = (markup: string) =>
+        markup
+          .replace(/<p>\s*\[(info|note)\]\s*(.*?)<\/p>/gi, (_match, _type, body) => createInfoboxMarkup('info', body))
+          .replace(/<p>\s*\[(alert|warning|important)\]\s*(.*?)<\/p>/gi, (_match, _type, body) => createInfoboxMarkup('alert', body));
+
+      const transformKeyTakeaways = (markup: string) => {
+        let updatedMarkup = markup;
+        const markerPattern = /<p>\s*\[\[key-takeaways\]\]\s*<\/p>([\s\S]*?)(<p>\s*\[\[\/key-takeaways\]\]\s*<\/p>)/i;
+
+        let match = markerPattern.exec(updatedMarkup);
+        while (match) {
+          const innerContent = enhanceInlineMarkup(match[1].trim());
+          const sectionHTML = `<section class="article-key-takeaways"><div class="article-key-takeaways__label">Key Takeaways</div><div class="article-key-takeaways__body">${innerContent}</div></section>`;
+          updatedMarkup = updatedMarkup.replace(match[0], sectionHTML);
+          match = markerPattern.exec(updatedMarkup);
         }
-        return `<img${attrs} loading="lazy">`;
-      });
 
-    const attachHeadingIds = (markup: string) =>
-      markup
-        .replace(/<h2([^>]*)>([\s\S]*?)<\/h2>/gi, (_match, attrs, body) => createHeading('h2', attrs, body))
-        .replace(/<h3([^>]*)>([\s\S]*?)<\/h3>/gi, (_match, attrs, body) => createHeading('h3', attrs, body));
+        return updatedMarkup;
+      };
 
-    const htmlPattern = /<(p|br|h[1-6]|ul|ol|blockquote|figure|pre|code|img)/i;
+      const transformPullQuotes = (markup: string) =>
+        markup.replace(/<p([^>]*)>["']([^"']{50,200})["']<\/p>/gi, (_match, attrs, quote) => {
+          if (/class\s*=/.test(attrs || '') && /article-pullquote/.test(attrs || '')) {
+            return _match;
+          }
+          return `<div class="article-pullquote">${enhanceInlineMarkup(quote)}</div>`;
+        });
 
-    if (htmlPattern.test(article.content)) {
-      let content = article.content.trim();
-      content = content.replace(/<p>\s*<\/p>/gi, '');
-      content = transformPullQuotes(content);
-      content = ensureLazyImages(content);
-      content = transformInfoBoxes(content);
-      content = transformKeyTakeaways(content);
-      content = enhanceInlineMarkup(content);
-      content = attachHeadingIds(content);
-      return { html: content, toc: tocEntries };
-    }
+      const ensureLazyImages = (markup: string) =>
+        markup.replace(/<img([^>]*)>/gi, (match, attrs) => {
+          if (/loading\s*=/.test(attrs)) {
+            return match;
+          }
+          return `<img${attrs} loading="lazy">`;
+        });
 
-    const paragraphs = article.content
-      .split(/\n\s*\n/)
-      .map((paragraph) => paragraph.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim())
-      .filter((paragraph) => paragraph.length > 0);
+      const attachHeadingIds = (markup: string) =>
+        markup
+          .replace(/<h2([^>]*)>([\s\S]*?)<\/h2>/gi, (_match, attrs, body) => createHeading('h2', attrs, body))
+          .replace(/<h3([^>]*)>([\s\S]*?)<\/h3>/gi, (_match, attrs, body) => createHeading('h3', attrs, body));
 
-    const htmlPieces: string[] = [];
-    let collectingTakeaways = false;
-    const takeawayItems: string[] = [];
+      const htmlPattern = /<(p|br|h[1-6]|ul|ol|blockquote|figure|pre|code|img)/i;
 
-    const pushTakeawaySection = () => {
-      if (takeawayItems.length > 0) {
-        htmlPieces.push(
-          `<section class="article-key-takeaways"><div class="article-key-takeaways__label">Key Takeaways</div><ul class="article-key-takeaways__list">${takeawayItems.join(
-            ''
-          )}</ul></section>`
-        );
-        takeawayItems.length = 0;
-      }
-      collectingTakeaways = false;
-    };
-
-    paragraphs.forEach((paragraph) => {
-      const normalised = paragraph.replace(/\s+/g, ' ').trim();
-      if (!normalised.length) {
-        return;
+      if (htmlPattern.test(article.content)) {
+        let content = article.content.trim();
+        content = content.replace(/<p>\s*<\/p>/gi, '');
+        content = transformPullQuotes(content);
+        content = ensureLazyImages(content);
+        content = transformInfoBoxes(content);
+        content = transformKeyTakeaways(content);
+        content = enhanceInlineMarkup(content);
+        content = attachHeadingIds(content);
+        return { html: content, toc: tocEntries };
       }
 
-      if (/^\[\[key-takeaways\]\]/i.test(normalised)) {
-        collectingTakeaways = true;
-        return;
-      }
+      const paragraphs = article.content
+        .split(/\n\s*\n/)
+        .map((paragraph) => paragraph.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim())
+        .filter((paragraph) => paragraph.length > 0);
 
-      if (/^\[\[\/key-takeaways\]\]/i.test(normalised)) {
-        pushTakeawaySection();
-        return;
-      }
+      const htmlPieces: string[] = [];
+      let collectingTakeaways = false;
+      const takeawayItems: string[] = [];
 
-      if (collectingTakeaways) {
-        const item = normalised.replace(/^[*-]\s*/, '');
-        takeawayItems.push(`<li>${enhanceInlineMarkup(item)}</li>`);
-        return;
-      }
+      const pushTakeawaySection = () => {
+        if (takeawayItems.length > 0) {
+          htmlPieces.push(
+            `<section class="article-key-takeaways"><div class="article-key-takeaways__label">Key Takeaways</div><ul class="article-key-takeaways__list">${takeawayItems.join(
+              ''
+            )}</ul></section>`
+          );
+          takeawayItems.length = 0;
+        }
+        collectingTakeaways = false;
+      };
 
-      if (/^\[(info|note)\]/i.test(normalised)) {
-        const body = normalised.replace(/^\[(info|note)\]\s*/i, '');
-        htmlPieces.push(createInfoboxMarkup('info', body));
-        return;
-      }
-
-      if (/^\[(alert|warning|important)\]/i.test(normalised)) {
-        const body = normalised.replace(/^\[(alert|warning|important)\]\s*/i, '');
-        htmlPieces.push(createInfoboxMarkup('alert', body));
-        return;
-      }
-
-      if (
-        (normalised.startsWith('"') && normalised.endsWith('"')) ||
-        (normalised.startsWith("'") && normalised.endsWith("'"))
-      ) {
-        const text = normalised.slice(1, -1);
-        if (text.length >= 50 && text.length <= 200) {
-          htmlPieces.push(`<div class="article-pullquote">${enhanceInlineMarkup(text)}</div>`);
+      paragraphs.forEach((paragraph) => {
+        const normalised = paragraph.replace(/\s+/g, ' ').trim();
+        if (!normalised.length) {
           return;
         }
+
+        if (/^\[\[key-takeaways\]\]/i.test(normalised)) {
+          collectingTakeaways = true;
+          return;
+        }
+
+        if (/^\[\[\/key-takeaways\]\]/i.test(normalised)) {
+          pushTakeawaySection();
+          return;
+        }
+
+        if (collectingTakeaways) {
+          const item = normalised.replace(/^[*-]\s*/, '');
+          takeawayItems.push(`<li>${enhanceInlineMarkup(item)}</li>`);
+          return;
+        }
+
+        if (/^\[(info|note)\]/i.test(normalised)) {
+          const body = normalised.replace(/^\[(info|note)\]\s*/i, '');
+          htmlPieces.push(createInfoboxMarkup('info', body));
+          return;
+        }
+
+        if (/^\[(alert|warning|important)\]/i.test(normalised)) {
+          const body = normalised.replace(/^\[(alert|warning|important)\]\s*/i, '');
+          htmlPieces.push(createInfoboxMarkup('alert', body));
+          return;
+        }
+
+        if (
+          (normalised.startsWith('"') && normalised.endsWith('"')) ||
+          (normalised.startsWith("'") && normalised.endsWith("'"))
+        ) {
+          const text = normalised.slice(1, -1);
+          if (text.length >= 50 && text.length <= 200) {
+            htmlPieces.push(`<div class="article-pullquote">${enhanceInlineMarkup(text)}</div>`);
+            return;
+          }
+        }
+
+        if (normalised.startsWith('> ')) {
+          htmlPieces.push(`<blockquote>${enhanceInlineMarkup(normalised.slice(2))}</blockquote>`);
+          return;
+        }
+
+        if (normalised.startsWith('**') && normalised.endsWith('**')) {
+          const body = enhanceInlineMarkup(normalised.slice(2, -2));
+          htmlPieces.push(createHeading('h3', '', body));
+          return;
+        }
+
+        htmlPieces.push(`<p>${enhanceInlineMarkup(normalised)}</p>`);
+      });
+
+      if (collectingTakeaways) {
+        pushTakeawaySection();
       }
 
-      if (normalised.startsWith('> ')) {
-        htmlPieces.push(`<blockquote>${enhanceInlineMarkup(normalised.slice(2))}</blockquote>`);
-        return;
-      }
-
-      if (normalised.startsWith('**') && normalised.endsWith('**')) {
-        const body = enhanceInlineMarkup(normalised.slice(2, -2));
-        htmlPieces.push(createHeading('h3', '', body));
-        return;
-      }
-
-      htmlPieces.push(`<p>${enhanceInlineMarkup(normalised)}</p>`);
-    });
-
-    if (collectingTakeaways) {
-      pushTakeawaySection();
+      const html = attachHeadingIds(htmlPieces.join(''));
+      return { html, toc: tocEntries };
+    } catch (err) {
+      console.error('Failed to process article content', err);
+      return { html: article.content, toc: [] as Array<{ id: string; text: string; level: number }> };
     }
-
-    const html = attachHeadingIds(htmlPieces.join(''));
-    return { html, toc: tocEntries };
   }, [article?.content]);
 
   const formattedContent = useMemo(() => ({ __html: processedContent.html }), [processedContent.html]);
