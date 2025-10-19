@@ -20,7 +20,7 @@ const CATEGORY_ACCENTS: Record<string, string> = {
 interface ArticleCardProps {
   article: Article;
   imagePosition?: 'top' | 'center' | 'bottom';
-  variant?: 'compact' | 'large' | 'horizontal';
+  variant?: 'compact' | 'large' | 'horizontal' | 'sidebarLarge';
   prefetchOnHover?: boolean;
 }
 
@@ -76,6 +76,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
         return 'bg-white rounded-xl shadow-sm hover:shadow-lg transition-transform duration-500 ease-out transform-gpu hover:-translate-y-1 overflow-hidden group';
       case 'horizontal':
         return 'bg-white rounded-md shadow-sm hover:shadow-md transition-transform duration-300 ease-out transform-gpu hover:-translate-y-1 overflow-hidden group';
+      case 'sidebarLarge':
+        return 'flex flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-100 transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg';
       default:
         return 'bg-white rounded-md shadow-sm hover:shadow-md transition-transform duration-300 ease-out transform-gpu hover:-translate-y-1 overflow-hidden group';
     }
@@ -160,6 +162,39 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
                 {cleanDescription}
               </p>
             )}
+          </div>
+        </Link>
+      </article>
+    );
+  }
+
+  if (variant === 'sidebarLarge') {
+    return (
+      <article className={wrapperClasses}>
+        <Link to={`/article/${article.slug}`} className="block h-full" onMouseEnter={onHoverPrefetch}>
+          <div className="relative aspect-[16/9] w-full overflow-hidden bg-gray-100">
+            <img
+              src={imgSrc}
+              alt={article.title || 'Article image'}
+              className={`h-full w-full object-cover ${getObjectPosition()} transition-transform duration-300 group-hover:scale-[1.03]`}
+              onError={(e) => { e.currentTarget.src = '/api/placeholder/640/360'; }}
+              loading="lazy"
+            />
+          </div>
+          <div className="flex h-full flex-col gap-2 px-4 py-3">
+            <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-gray-500">
+              <span className={`${categoryAccent} inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold text-white`}>
+                {article.category?.name || 'General'}
+              </span>
+              <span className="text-gray-400">•</span>
+              <span className="flex items-center gap-1 text-gray-500">
+                <Clock size={11} className="text-gray-400" />
+                {formattedDate}
+              </span>
+            </div>
+            <h3 className="text-lg font-semibold leading-snug text-gray-900 line-clamp-3">
+              {article.title || 'Untitled Article'}
+            </h3>
           </div>
         </Link>
       </article>

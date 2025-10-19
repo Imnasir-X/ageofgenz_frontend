@@ -1282,15 +1282,15 @@ const Home: React.FC = () => {
                         />
                       </FadeReveal>
                     </div>
-                    {/* Secondary compact/horizontal list (desktop and up) */}
+                    {/* Secondary sidebar-styled list (desktop and up) */}
                     {secondaryFeatured.length > 0 && (
-                      <div className="hidden lg:flex lg:col-span-4 lg:flex-col lg:space-y-4">
+                      <div className="hidden lg:grid lg:col-span-4 lg:grid-rows-4 lg:gap-4">
                         {secondaryFeatured.map((a, idx) => (
                           <FadeReveal key={`featured-${a.id}`} delay={120 + idx * 60}>
                             <ArticleCard
                               article={a}
                               imagePosition={getImagePosition(a)}
-                              variant="horizontal"
+                              variant="sidebarLarge"
                             />
                           </FadeReveal>
                         ))}
