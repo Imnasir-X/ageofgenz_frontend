@@ -1125,7 +1125,7 @@ const Home: React.FC = () => {
                     </div>
                   </Link>
 
-                  <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] sm:text-xs text-gray-700 mb-2">
+                  <div className="flex flex-wrap items-center justify-center gap-2 text-xs sm:text-sm text-gray-700 mb-2">
                     <span className={`${accent.badge} inline-flex items-center rounded-full px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white`}>
                       {categoryText}
                     </span>
@@ -1151,7 +1151,7 @@ const Home: React.FC = () => {
                       <button
                         type="button"
                         aria-label="Previous breaking story"
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 transition hover:-translate-y-0.5 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                        className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 transition hover:-translate-y-0.5 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                         onClick={() => { setBreakingPlaying(false); goToPrevBreaking(); }}
                       >
                         <ChevronLeft size={18} aria-hidden="true" />
@@ -1160,7 +1160,7 @@ const Home: React.FC = () => {
                         type="button"
                         aria-label={breakingPlaying ? 'Pause breaking news rotation' : 'Play breaking news rotation'}
                         aria-pressed={!breakingPlaying}
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 transition hover:-translate-y-0.5 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                        className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 transition hover:-translate-y-0.5 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                         onClick={() => setBreakingPlaying((playing) => !playing)}
                       >
                         {breakingPlaying ? <Pause size={18} aria-hidden="true" /> : <Play size={18} aria-hidden="true" />}
@@ -1168,7 +1168,7 @@ const Home: React.FC = () => {
                       <button
                         type="button"
                         aria-label="Next breaking story"
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 transition hover:-translate-y-0.5 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                        className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-600 transition hover:-translate-y-0.5 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                         onClick={() => { setBreakingPlaying(false); goToNextBreaking(); }}
                       >
                         <ChevronRight size={18} aria-hidden="true" />
@@ -1301,7 +1301,7 @@ const Home: React.FC = () => {
                   </div>
                   {secondaryFeatured.length > 0 && (
                     <div className="mt-6 lg:hidden">
-                      <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory">
+                      <div className="-mx-4 px-2 flex gap-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory">
                         {secondaryFeatured.slice(0, 3).map((a, idx) => (
                           <div key={`featured-mobile-${a.id}`} className="snap-start shrink-0 w-64">
                             <FadeReveal delay={idx * 80} className="h-full">
@@ -1476,7 +1476,7 @@ const Home: React.FC = () => {
             <button
               type="button"
               aria-label="Dismiss newsletter prompt"
-              className="absolute -top-2 -right-2 flex h-9 w-9 items-center justify-center rounded-full border border-orange-200 bg-white text-gray-500 shadow-sm transition hover:-translate-y-0.5 hover:text-gray-800"
+              className="absolute -top-2 -right-2 flex h-10 w-10 items-center justify-center rounded-full border border-orange-200 bg-white text-gray-500 shadow-sm transition hover:-translate-y-0.5 hover:text-gray-800"
               onClick={() => {
                 localStorage.setItem('newsletterDismissed', '1');
                 setShowNewsletterCard(false);
