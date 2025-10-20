@@ -278,7 +278,7 @@ const CategoryPage: React.FC<Props> = ({
             >
               <div className="sticky top-20 z-20 -mx-6 mb-6 border-b border-slate-200 bg-white px-6 py-4 sm:-mx-8 sm:px-8">
                 <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-slate-600">
+                    <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-slate-800">
                     <Filter className="h-4 w-4 text-orange-500" aria-hidden="true" />
                     Refine Feed
                   </div>
@@ -291,7 +291,7 @@ const CategoryPage: React.FC<Props> = ({
                         className={`rounded-full px-4 py-1.5 font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white ${
                           activeSort === option.value
                             ? 'border border-orange-500 bg-orange-500 text-white shadow-md'
-                            : 'border border-slate-200 bg-white text-slate-600 hover:border-orange-200 hover:text-orange-600'
+                            : 'border border-slate-200 bg-white text-slate-800 hover:border-orange-200 hover:text-orange-700'
                         }`}
                       >
                         {option.label}
