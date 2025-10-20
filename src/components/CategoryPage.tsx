@@ -145,7 +145,7 @@ const CategoryPage: React.FC<Props> = ({
 
   const categoryIcon = useMemo(() => {
     const renderIcon = CATEGORY_ICON_MAP[slug] || CATEGORY_ICON_MAP.default;
-    return renderIcon('h-full w-full');
+    return renderIcon('h-12 w-12 text-orange-200 sm:h-14 sm:w-14');
   }, [slug]);
 
   const normalizeDate = (article: Article) =>
@@ -244,11 +244,11 @@ const CategoryPage: React.FC<Props> = ({
         <div className="relative mx-auto max-w-6xl space-y-10 px-4 pt-14 sm:px-6 lg:px-8">
           <header className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900 p-6 shadow-md sm:p-8">
             <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-transparent to-transparent" />
-            <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative z-10 flex flex-col gap-6">
               <div className="flex flex-1 flex-col gap-4">
                 <nav
                   aria-label="Breadcrumb"
-                  className="flex items-center gap-2 text-sm font-medium text-white/70"
+                  className="flex items-center gap-2 text-sm font-medium text-white"
                 >
                   <Link
                     to="/"
@@ -260,13 +260,13 @@ const CategoryPage: React.FC<Props> = ({
                   <span className="text-white/50">&gt;</span>
                   <span className="rounded-full bg-white/10 px-3 py-1 text-white/80">{title}</span>
                 </nav>
-                <h1 className="bg-gradient-to-br from-orange-200 via-orange-400 to-orange-600 bg-clip-text text-4xl font-black tracking-tight text-transparent sm:text-5xl">
-                  {title}
-                </h1>
+                <div className="flex flex-wrap items-baseline gap-2 sm:gap-3">
+                  <span className="flex shrink-0 items-center justify-center">{categoryIcon}</span>
+                  <h1 className="bg-gradient-to-br from-orange-200 via-orange-400 to-orange-600 bg-clip-text text-4xl font-black tracking-tight text-transparent sm:text-5xl">
+                    {title}
+                  </h1>
+                </div>
                 <p className="max-w-2xl text-base text-white/90 sm:text-lg">{description}</p>
-              </div>
-              <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-slate-800 text-white shadow-md sm:h-24 sm:w-24">
-                <div className="h-10 w-10 text-orange-200 sm:h-12 sm:w-12">{categoryIcon}</div>
               </div>
             </div>
           </header>
@@ -278,7 +278,7 @@ const CategoryPage: React.FC<Props> = ({
             >
               <div className="sticky top-20 z-20 -mx-6 mb-6 border-b border-slate-200 bg-white px-6 py-4 sm:-mx-8 sm:px-8">
                 <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-slate-800">
+                  <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-slate-900">
                     <Filter className="h-4 w-4 text-orange-500" aria-hidden="true" />
                     Refine Feed
                   </div>
@@ -291,7 +291,7 @@ const CategoryPage: React.FC<Props> = ({
                         className={`rounded-full px-4 py-1.5 font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white ${
                           activeSort === option.value
                             ? 'border border-orange-500 bg-orange-500 text-white shadow-md'
-                            : 'border border-slate-200 bg-white text-slate-800 hover:border-orange-200 hover:text-orange-700'
+                            : 'border border-slate-200 bg-white text-slate-900 hover:border-orange-200 hover:text-orange-700'
                         }`}
                       >
                         {option.label}
@@ -305,7 +305,7 @@ const CategoryPage: React.FC<Props> = ({
                       className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white ${
                         viewMode === 'grid'
                           ? 'border-orange-300 bg-orange-50 text-orange-600'
-                          : 'border-slate-200 bg-white text-slate-500 hover:border-orange-200 hover:text-orange-500'
+                          : 'border-slate-200 bg-white text-slate-900 hover:border-orange-200 hover:text-orange-700'
                       }`}
                       aria-pressed={viewMode === 'grid'}
                     >
@@ -318,7 +318,7 @@ const CategoryPage: React.FC<Props> = ({
                       className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white ${
                         viewMode === 'list'
                           ? 'border-orange-300 bg-orange-50 text-orange-600'
-                          : 'border-slate-200 bg-white text-slate-500 hover:border-orange-200 hover:text-orange-500'
+                          : 'border-slate-200 bg-white text-slate-900 hover:border-orange-200 hover:text-orange-700'
                       }`}
                       aria-pressed={viewMode === 'list'}
                     >
@@ -326,13 +326,13 @@ const CategoryPage: React.FC<Props> = ({
                       List
                     </button>
                   </div>
-                  <div className="flex w-full max-w-xs items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm text-slate-600 focus-within:border-orange-300 focus-within:ring-2 focus-within:ring-orange-200">
+                  <div className="flex w-full max-w-xs items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm text-slate-900 focus-within:border-orange-300 focus-within:ring-2 focus-within:ring-orange-200">
                     <input
                       type="search"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search articles..."
-                      className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
+                      className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-600"
                       aria-label="Search articles within category"
                     />
                     {searchQuery && (
@@ -459,7 +459,7 @@ const CategoryPage: React.FC<Props> = ({
                         className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
                           activeSort === option.value
                             ? 'border border-orange-500 bg-orange-500 text-white shadow-md'
-                            : 'border border-slate-200 bg-white text-slate-600'
+                            : 'border border-slate-200 bg-white text-slate-900 hover:border-orange-200 hover:text-orange-700'
                         }`}
                       >
                         {option.label}
@@ -478,7 +478,7 @@ const CategoryPage: React.FC<Props> = ({
                       className={`flex-1 rounded-xl border px-4 py-3 text-sm font-semibold ${
                         viewMode === 'grid'
                           ? 'border-orange-300 bg-orange-50 text-orange-600'
-                          : 'border-slate-200 text-slate-600'
+                          : 'border-slate-200 text-slate-900 hover:border-orange-200 hover:text-orange-700'
                       }`}
                     >
                       Grid
@@ -489,7 +489,7 @@ const CategoryPage: React.FC<Props> = ({
                       className={`flex-1 rounded-xl border px-4 py-3 text-sm font-semibold ${
                         viewMode === 'list'
                           ? 'border-orange-300 bg-orange-50 text-orange-600'
-                          : 'border-slate-200 text-slate-600'
+                          : 'border-slate-200 text-slate-900 hover:border-orange-200 hover:text-orange-700'
                       }`}
                     >
                       List
@@ -506,7 +506,7 @@ const CategoryPage: React.FC<Props> = ({
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search articles..."
-                      className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
+                      className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-600"
                       aria-label="Search articles within category"
                     />
                     {searchQuery && (
