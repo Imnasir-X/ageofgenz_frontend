@@ -416,7 +416,7 @@ const CategoryPage: React.FC<Props> = ({
 
         {showQuickFilters && (
           <div
-            className="fixed inset-0 z-50 touch-pan-y bg-black/40 backdrop-blur-sm sm:hidden"
+            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm sm:hidden"
             role="dialog"
             aria-modal="true"
           >
