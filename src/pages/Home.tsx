@@ -415,10 +415,10 @@ const Home: React.FC = () => {
                 <Search size={48} className="text-gray-400" aria-hidden="true" />
               </div>
               <h3 className="text-2xl font-semibold text-gray-900 mb-3">No Results Found</h3>
-              <p className="text-gray-600 mb-2 text-lg">
+              <p className="text-gray-700 mb-2 text-lg">
                 No articles found for "<span className="font-semibold text-gray-900">{searchQuery}</span>"
               </p>
-              <div className="text-gray-500 space-y-1 mt-6">
+              <div className="text-gray-700 space-y-1 mt-6">
                 <p className="font-medium">Try searching for:</p>
                 <div className="flex flex-wrap justify-center gap-2 mt-3">
                   <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">Different keywords</span>
@@ -1061,7 +1061,7 @@ const Home: React.FC = () => {
               <div className="relative w-full rounded-2xl overflow-hidden bg-white border border-dashed border-gray-300 shadow-sm p-6 sm:p-10">
                 <div className="max-w-xl space-y-3">
                   <h2 className="text-2xl sm:text-3xl font-semibold text-gray-800">Highlight your top story</h2>
-                  <p className="text-gray-600">Add a featured article or mark a piece as featured to populate this hero area. We'll showcase your most recent headline automatically.</p>
+                  <p className="text-gray-700">Add a featured article or mark a piece as featured to populate this hero area. We'll showcase your most recent headline automatically.</p>
                   <div className="flex items-center gap-2 text-sm text-gray-500">
                     <Clock size={16} className="text-orange-500" aria-hidden="true" />
                     <span>Tip: set at least one article as featured to unlock the carousel experience.</span>
@@ -1125,7 +1125,7 @@ const Home: React.FC = () => {
                     </div>
                   </Link>
 
-                  <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] sm:text-xs text-slate-500 mb-2">
+                  <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] sm:text-xs text-gray-700 mb-2">
                     <span className={`${accent.badge} inline-flex items-center rounded-full px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white`}>
                       {categoryText}
                     </span>
@@ -1323,7 +1323,7 @@ const Home: React.FC = () => {
                     <TrendingUp size={40} className="text-orange-500" aria-hidden="true" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-3">No Featured Articles Yet</h3>
-                  <p className="text-gray-600 max-w-md mx-auto">
+                  <p className="text-gray-700 max-w-md mx-auto">
                     Featured articles will appear here once they're added to the system. Check back soon for curated content!
                   </p>
                 </div>
@@ -1336,18 +1336,23 @@ const Home: React.FC = () => {
             </div>
 
             {/* Enhanced Latest News Section */}
-            <section>
+            <section role="region" aria-label="Latest news articles" aria-labelledby="latest-heading">
               <div className="flex items-center gap-3 mb-6">
                 <Clock size={28} className="text-blue-500" aria-hidden="true" />
-                <h2 className="text-3xl font-bold text-gray-900">
-                  Latest News
-                </h2>
+                <div>
+                  <h2 id="latest-heading" className="text-3xl font-bold text-gray-900">
+                    Latest News
+                  </h2>
+                  <span className="mt-1 block text-sm font-medium text-gray-600" aria-live="polite">
+                    {latestList.length} article{latestList.length === 1 ? '' : 's'}
+                  </span>
+                </div>
               </div>
               {liveUpdatesCount > 0 && (
                 <div className="mb-4">
                   <button
                     type="button"
-                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-2 text-green-800 transition hover:bg-green-100 disabled:cursor-not-allowed disabled:opacity-70"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-orange-200 bg-orange-50 px-4 py-2 text-orange-800 transition hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-70"
                     onClick={() => { void triggerRefresh(); }}
                     disabled={isRefreshing}
                     aria-live="polite"
@@ -1367,18 +1372,20 @@ const Home: React.FC = () => {
                 </div>
               )}
               {(isRefreshing || pullDistance > 0) && (
-                <div className="mb-4 flex items-center justify-center text-xs text-gray-500 sm:hidden">
-                  <Loader2
-                    className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin text-blue-500' : pullDistance > 90 ? 'text-blue-500' : 'text-gray-300'} transition-colors`}
-                    aria-hidden="true"
-                  />
-                  <span>
-                    {isRefreshing
-                      ? 'Refreshing latest stories...'
-                      : pullDistance > 90
-                        ? 'Release to refresh'
-                        : 'Pull down to refresh'}
-                  </span>
+                <div className="mb-4 flex justify-center sm:hidden">
+                  <div className="flex items-center gap-2 rounded-full bg-white/85 p-3 text-sm font-medium text-gray-700 shadow-sm shadow-slate-900/8">
+                    <Loader2
+                      className={`h-4 w-4 ${isRefreshing ? 'animate-spin text-blue-500' : pullDistance > 90 ? 'text-blue-500' : 'text-gray-300'} transition-colors`}
+                      aria-hidden="true"
+                    />
+                    <span>
+                      {isRefreshing
+                        ? 'Refreshing latest stories...'
+                        : pullDistance > 90
+                          ? 'Release to refresh'
+                          : 'Pull down to refresh'}
+                    </span>
+                  </div>
                 </div>
               )}
               {loadingLatest && latestList.length === 0 ? (
@@ -1409,18 +1416,18 @@ const Home: React.FC = () => {
                     <BookOpen size={40} className="text-blue-500" aria-hidden="true" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-3">No Articles Available</h3>
-                  <p className="text-gray-600 max-w-md mx-auto">
+                  <p className="text-gray-700 max-w-md mx-auto">
                     Latest articles will appear here once they're published. Start creating content to fill this space!
                   </p>
                 </div>
               )}
 
               {/* Load More / Infinite Scroll Sentinel */}
-              <div className="relative mt-8 h-16 sm:h-12">
-                <div className="pointer-events-none sticky bottom-6 flex justify-center">
-                  <div className="pointer-events-auto">
+              <div className="mt-8 space-y-4">
+                <div className="sticky bottom-0 z-20 bg-gradient-to-t from-white/95 via-white/80 to-transparent px-4 pt-4 pb-4 shadow-md shadow-gray-900/10">
+                  <div className="mx-auto flex max-w-lg items-center justify-center rounded-full border border-gray-200 bg-white/95 px-4 py-2 shadow-lg shadow-gray-900/5 backdrop-blur">
                     {loadingMoreLatest ? (
-                      <div className="flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-gray-600 shadow-md backdrop-blur">
+                      <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
                         <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                         Loading more stories...
                       </div>
@@ -1428,7 +1435,7 @@ const Home: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => loadLatestPage(latestPage + 1, activeCategory !== 'all' ? activeCategory : undefined)}
-                        className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2"
+                        className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-5 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2"
                         disabled={isRefreshing}
                         aria-label="Load more latest stories"
                       >
@@ -1436,14 +1443,14 @@ const Home: React.FC = () => {
                         <ChevronRight className="h-4 w-4 text-white/70" aria-hidden="true" />
                       </button>
                     ) : (
-                      <div className="rounded-full bg-white/90 px-4 py-2 text-sm text-gray-500 shadow-sm backdrop-blur">
+                      <div className="flex items-center justify-center rounded-full border border-gray-200 bg-white/80 px-4 py-2 text-sm font-semibold text-gray-700">
                         You reached the end
                       </div>
                     )}
                   </div>
                 </div>
+                <div ref={sentinelRef} className="h-1" />
               </div>
-              <div ref={sentinelRef} className="h-1" />
             </section>
           </div>
 
@@ -1473,7 +1480,7 @@ const Home: React.FC = () => {
               <div className="flex-1">
                 <p className="text-sm font-semibold uppercase tracking-wide text-orange-500">Newsletter</p>
                 <h3 className="text-lg font-semibold text-gray-900 sm:text-xl">Stay a step ahead of the headlines</h3>
-                <p className="mt-1 text-sm text-gray-600">
+                <p className="mt-1 text-sm text-gray-700">
                   Get the latest stories, breaking alerts, and weekend reads delivered straight to your inbox.
                 </p>
               </div>
