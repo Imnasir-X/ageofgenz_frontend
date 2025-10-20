@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -24,6 +24,7 @@ const CATEGORY_ICON_MAP: Record<string, (className: string) => ReactElement> = {
   technology: (className) => <Sparkles className={className} aria-hidden="true" />,
   default: (className) => <Sparkles className={className} aria-hidden="true" />,
 };
+const STORAGE_PREFIX = 'category-preferences';
 
 type Props = {
   slug: string;
@@ -49,6 +50,37 @@ const CategoryPage: React.FC<Props> = ({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showQuickFilters, setShowQuickFilters] = useState<boolean>(false);
   const [showBackToTop, setShowBackToTop] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const mobileSheetRef = useRef<HTMLDivElement | null>(null);
+  const touchStartRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = window.localStorage.getItem(`${STORAGE_PREFIX}:${slug}`);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as {
+        sort?: 'latest' | 'popular' | 'trending';
+        view?: 'grid' | 'list';
+        search?: string;
+      };
+      if (parsed.sort) setActiveSort(parsed.sort);
+      if (parsed.view) setViewMode(parsed.view);
+      if (parsed.search) setSearchQuery(parsed.search);
+    } catch {
+      // ignore malformed storage
+    }
+  }, [slug]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const payload = JSON.stringify({
+      sort: activeSort,
+      view: viewMode,
+      search: searchQuery,
+    });
+    window.localStorage.setItem(`${STORAGE_PREFIX}:${slug}`, payload);
+  }, [activeSort, viewMode, searchQuery, slug]);
 
   const pageTitle = metaTitle || `${title} | The Age of GenZ`;
   const pageDescription = metaDescription || description;
@@ -76,6 +108,40 @@ const CategoryPage: React.FC<Props> = ({
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  useEffect(() => {
+    if (!showQuickFilters || typeof window === 'undefined') return;
+
+    const handleTouchStart = (event: TouchEvent) => {
+      if (!mobileSheetRef.current) return;
+      if (!mobileSheetRef.current.contains(event.target as Node)) return;
+      touchStartRef.current = event.touches[0].clientY;
+    };
+
+    const handleTouchMove = (event: TouchEvent) => {
+      if (touchStartRef.current === null) return;
+      const delta = event.touches[0].clientY - touchStartRef.current;
+      if (delta > 80) {
+        setShowQuickFilters(false);
+        touchStartRef.current = null;
+      }
+    };
+
+    const handleTouchEnd = () => {
+      touchStartRef.current = null;
+    };
+
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      touchStartRef.current = null;
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [showQuickFilters]);
 
   const categoryIcon = useMemo(() => {
     const renderIcon = CATEGORY_ICON_MAP[slug] || CATEGORY_ICON_MAP.default;
@@ -106,6 +172,17 @@ const CategoryPage: React.FC<Props> = ({
     }
     return data;
   }, [articles, activeSort]);
+
+  const filteredArticles = useMemo(() => {
+    if (!searchQuery.trim()) return sortedArticles;
+    const query = searchQuery.trim().toLowerCase();
+    return sortedArticles.filter((article) => {
+      const haystack = `${article.title} ${article.excerpt ?? ''} ${
+        article.description ?? ''
+      }`.toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [sortedArticles, searchQuery]);
 
   const relatedCategories = useMemo(
     () =>
@@ -248,11 +325,21 @@ const CategoryPage: React.FC<Props> = ({
                       List
                     </button>
                   </div>
+                  <div className="flex w-full max-w-xs items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-1.5 text-sm text-slate-600 focus-within:border-orange-300 focus-within:ring-2 focus-within:ring-orange-200">
+                    <input
+                      type="search"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search articles..."
+                      className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
+                      aria-label="Search articles within category"
+                    />
+                  </div>
                 </div>
               </div>
 
               <CategoryGrid
-                articles={sortedArticles}
+                articles={filteredArticles}
                 loading={loading}
                 loadingMore={loadingMore}
                 error={error}
@@ -332,24 +419,11 @@ const CategoryPage: React.FC<Props> = ({
             className="fixed inset-0 z-50 touch-pan-y bg-black/40 backdrop-blur-sm sm:hidden"
             role="dialog"
             aria-modal="true"
-            onTouchStart={(event) => {
-              const startY = event.touches[0].clientY;
-              const onMove = (moveEvent: TouchEvent) => {
-                const delta = moveEvent.touches[0].clientY - startY;
-                if (delta > 80) {
-                  setShowQuickFilters(false);
-                  window.removeEventListener('touchmove', onMove);
-                }
-              };
-              window.addEventListener('touchmove', onMove, { passive: true });
-              window.addEventListener(
-                'touchend',
-                () => window.removeEventListener('touchmove', onMove),
-                { once: true },
-              );
-            }}
           >
-            <div className="absolute bottom-0 left-0 right-0 rounded-t-3xl border border-white/10 bg-white p-6 pb-[calc(env(safe-area-inset-bottom,0px)+20px)] shadow-md">
+            <div
+              ref={mobileSheetRef}
+              className="absolute bottom-0 left-0 right-0 rounded-t-3xl border border-white/10 bg-white p-6 pb-[calc(env(safe-area-inset-bottom,0px)+20px)] shadow-md"
+            >
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-base font-semibold text-slate-900">Filter feed</h3>
                 <button
@@ -411,13 +485,40 @@ const CategoryPage: React.FC<Props> = ({
                     </button>
                   </div>
                 </div>
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.3em] text-orange-500">
+                    Search
+                  </p>
+                  <input
+                    type="search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search articles..."
+                    className="w-full rounded-full border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:border-orange-300 focus:ring-2 focus:ring-orange-200"
+                    aria-label="Search articles within category"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowQuickFilters(false);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="w-full rounded-full bg-orange-500 py-3 text-sm font-semibold uppercase tracking-widest text-white shadow-md shadow-orange-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                >
+                  Apply Filters
+                </button>
               </div>
             </div>
           </div>
         )}
-      </div>
+     </div>
     </ErrorBoundary>
   );
 };
 
 export default CategoryPage;
+
+
+
+

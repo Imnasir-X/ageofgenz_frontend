@@ -90,7 +90,7 @@ const CategoryGrid: React.FC<Props> = ({
           </div>
         </div>
         <div className="space-y-2">
-          <h3 className="text-2xl font-bold text-gray-900">No stories yet but stay tuned!</h3>
+          <h3 className="text-2xl font-bold text-gray-900">No stories yet... but stay tuned!</h3>
           <p className="text-sm text-gray-600 max-w-xl">
             {emptyMessage ||
               'We are curating fresh reporting for this category right now. In the meantime, explore our most popular stories or discover another topic.'}
@@ -149,8 +149,12 @@ const CategoryGrid: React.FC<Props> = ({
           </button>
         </div>
       )}
+      {!hasMore && articles.length > 0 && (
+        <p className="mt-6 text-center text-sm text-gray-500">That's all for now!</p>
+      )}
     </>
   );
 };
 
 export default CategoryGrid;
+
