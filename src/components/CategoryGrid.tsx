@@ -150,7 +150,7 @@ const CategoryGrid: React.FC<Props> = ({
         </div>
       )}
       {!hasMore && articles.length > 0 && (
-        <p className="mt-6 text-center text-sm text-gray-500">That's all for now!</p>
+        <p className="mt-6 text-center text-sm text-gray-500">That's all!</p>
       )}
     </>
   );
