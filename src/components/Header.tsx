@@ -355,8 +355,8 @@ const Header: React.FC = () => {
   return (
     <>
       {breakingNews && !breakingDismissed && (
-        <div className={`${isDesktop ? 'sticky top-0' : 'relative'} z-[60] bg-gradient-to-r from-red-600 via-red-700 to-red-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium overflow-hidden`}>
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
+        <div className={`${isDesktop ? 'sticky top-0' : 'relative'} z-[60] bg-red-700 text-white px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium overflow-hidden`}>
+          <div className="absolute inset-0 bg-white/10 animate-shimmer" />
           <div className="relative flex flex-wrap items-center gap-2 sm:gap-3 sm:justify-between">
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <span className="inline-flex items-center gap-1 bg-white text-red-600 px-2 py-0.5 rounded-full text-xs font-bold">
@@ -387,7 +387,7 @@ const Header: React.FC = () => {
       >
         {/* Top bar (date + socials) - continuous fade/compress on desktop */}
         <div
-          className="hidden md:flex items-center justify-between px-4 border-b text-xs text-gray-300 transition-[opacity,max-height,padding]"
+          className="hidden md:flex items-center justify-between px-4 border-b text-xs text-gray-300 transition-[opacity,max-height,padding] overflow-visible"
           style={{
             opacity: 1 - shrink,
             paddingTop: `${4 * (1 - shrink)}px`,
@@ -597,7 +597,7 @@ const Header: React.FC = () => {
                 </button>
                 {showSearch && (
                     <div className="absolute right-0 mt-2 w-[480px] overflow-hidden rounded-2xl border border-white/10 bg-black/50 text-gray-100 shadow-[0_30px_70px_rgba(15,23,42,0.6)] backdrop-blur-xl p-4 z-50">
-                    <div className="group flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2 transition duration-300 focus-within:border-orange-500/60 focus-within:bg-white/10 focus-within:shadow-[0_0_30px_rgba(249,115,22,0.25)]">
+                    <div className="group flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 transition duration-300 focus-within:border-orange-500/60 focus-within:bg-white/10 focus-within:shadow-[0_0_30px_rgba(249,115,22,0.25)]">
                       {renderSearchGlyph(searchVisualState, 'inline')}
                         <input
                           autoFocus
@@ -615,11 +615,11 @@ const Header: React.FC = () => {
                           }
                         }}
                           placeholder="Search articles..."
-                          className="flex-1 bg-transparent text-sm text-white placeholder:text-white/40 outline-none transition duration-300 focus:text-white"
+                          className="flex-1 bg-transparent px-4 py-3 text-sm text-white placeholder:text-white/50 outline-none transition duration-300 focus:text-white"
                         />
                         {query && (
                           <button
-                            className="px-2 py-1 rounded text-white/70 hover:text-white text-xs transition-colors"
+                            className="px-3 py-1.5 rounded text-white/70 hover:text-white text-xs transition-colors"
                             aria-label="Clear search"
                             onClick={() => { setQuery(''); setShowSuggest(true); }}
                           >
@@ -740,7 +740,7 @@ const Header: React.FC = () => {
         {isMenuOpen && (
           <nav ref={mobileNavRef} className="lg:hidden pt-3 pb-3 border-t border-gray-800 bg-black text-white header-mobile-nav" aria-label="Mobile menu">
             <div className="px-2 space-y-3">
-              <form onSubmit={handleMobileSearchSubmit} className="group flex items-center gap-2 rounded-lg border border-gray-800 bg-gray-900 px-3 py-2 shadow-sm">
+              <form onSubmit={handleMobileSearchSubmit} className="group flex items-center gap-2 rounded-lg border border-gray-800 bg-gray-900 px-4 py-3 shadow-sm">
                 {renderSearchGlyph(mobileSearchVisualState, 'inline')}
                 <input
                   type="search"
@@ -748,7 +748,7 @@ const Header: React.FC = () => {
                   onChange={(e) => setMobileQuery(e.target.value)}
                   placeholder="Search articles..."
                   aria-label="Search articles"
-                  className="flex-1 bg-transparent text-sm text-white placeholder:text-gray-500 focus:outline-none"
+                  className="flex-1 bg-transparent px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none"
                 />
                 <button
                   type="submit"
