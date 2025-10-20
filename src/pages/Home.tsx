@@ -1073,7 +1073,7 @@ const Home: React.FC = () => {
         )}
         {/* Ad Slot */}
         <div className="max-w-6xl mx-auto mb-8">
-          <div className="w-full h-20 bg-gray-100 border border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-500 text-sm">Ad Placement</div>
+          <div className="w-full h-20 bg-gray-100 border border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-700 text-sm">Ad Placement</div>
         </div>
 
         {/* Breaking News - single featured card */}
@@ -1091,7 +1091,7 @@ const Home: React.FC = () => {
           return (
             <div className="mx-auto mb-5 max-w-6xl px-2 sm:px-4">
               <div
-                className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm p-4 sm:p-6"
+                className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm p-3 sm:p-5"
                 role="region"
                 aria-roledescription="carousel"
                 aria-label="Breaking news headlines"
@@ -1211,7 +1211,7 @@ const Home: React.FC = () => {
                   <span className="inline-flex h-2 w-2 rounded-full bg-orange-500" aria-hidden="true" />
                   <h3 className="text-base font-semibold text-gray-800">Browse by Category</h3>
                 </div>
-                <div className="text-xs uppercase tracking-wide text-gray-500">Tap to filter</div>
+                <div className="text-xs uppercase tracking-wide text-gray-700">Tap to filter</div>
               </div>
               {loadingCategories ? (
                 <div className="flex flex-wrap gap-3">
@@ -1332,7 +1332,7 @@ const Home: React.FC = () => {
 
             {/* Ad Slot */}
             <div className="mb-10">
-              <div className="w-full h-20 bg-gray-100 border border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-500 text-sm">Ad Placement</div>
+          <div className="w-full h-20 bg-gray-100 border border-dashed border-gray-300 rounded-lg flex items-center justify-center text-gray-700 text-sm">Ad Placement</div>
             </div>
 
             {/* Enhanced Latest News Section */}
@@ -1343,7 +1343,7 @@ const Home: React.FC = () => {
                   <h2 id="latest-heading" className="text-3xl font-bold text-gray-900">
                     Latest News
                   </h2>
-                  <span className="mt-1 block text-sm font-medium text-gray-600" aria-live="polite">
+                  <span className="mt-1 block text-sm font-medium text-gray-700" aria-live="polite">
                     {latestList.length} article{latestList.length === 1 ? '' : 's'}
                   </span>
                 </div>
@@ -1401,13 +1401,21 @@ const Home: React.FC = () => {
                   section="latest"
                 />
               ) : latestList.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+                  aria-live="polite"
+                  aria-atomic="false"
+                >
                   {latestList.map((article) => (
-                    <ArticleCard
+                    <div
                       key={`latest-${article.id}`}
-                      article={article}
-                      imagePosition={getImagePosition(article)}
-                    />
+                      className="bg-white border border-gray-100 p-5 rounded-xl shadow-sm transition-shadow duration-300 hover:shadow-md"
+                    >
+                      <ArticleCard
+                        article={article}
+                        imagePosition={getImagePosition(article)}
+                      />
+                    </div>
                   ))}
                 </div>
               ) : (
@@ -1424,7 +1432,7 @@ const Home: React.FC = () => {
 
               {/* Load More / Infinite Scroll Sentinel */}
               <div className="mt-8 space-y-4">
-                <div className="sticky bottom-0 z-20 bg-gradient-to-t from-white/95 via-white/80 to-transparent px-4 pt-4 pb-4 shadow-md shadow-gray-900/10">
+                <div className="sticky bottom-0 z-20 bg-gradient-to-t from-white/95 via-white/80 to-transparent px-4 pt-4 pb-4 shadow-md shadow-gray-900/10 shadow-[0_-4px_12px_rgba(15,23,42,0.08)]">
                   <div className="mx-auto flex max-w-lg items-center justify-center rounded-full border border-gray-200 bg-white/95 px-4 py-2 shadow-lg shadow-gray-900/5 backdrop-blur">
                     {loadingMoreLatest ? (
                       <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
