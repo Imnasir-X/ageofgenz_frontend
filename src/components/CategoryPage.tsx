@@ -18,6 +18,13 @@ import CategoryGrid from './CategoryGrid';
 import useCategoryArticles from '../hooks/useCategoryArticles';
 import type { Article } from '../types';
 
+const CATEGORY_ICON_MAP: Record<string, (className: string) => ReactElement> = {
+  politics: (className) => <Flame className={className} aria-hidden="true" />,
+  world: (className) => <Compass className={className} aria-hidden="true" />,
+  technology: (className) => <Sparkles className={className} aria-hidden="true" />,
+  default: (className) => <Sparkles className={className} aria-hidden="true" />,
+};
+
 type Props = {
   slug: string;
   title: string;
@@ -71,12 +78,8 @@ const CategoryPage: React.FC<Props> = ({
   }, []);
 
   const categoryIcon = useMemo(() => {
-    const glyphBySlug: Record<string, ReactElement> = {
-      politics: <Flame className="h-full w-full" aria-hidden="true" />,
-      world: <Compass className="h-full w-full" aria-hidden="true" />,
-      technology: <Sparkles className="h-full w-full" aria-hidden="true" />,
-    };
-    return glyphBySlug[slug] || <Sparkles className="h-full w-full" aria-hidden="true" />;
+    const renderIcon = CATEGORY_ICON_MAP[slug] || CATEGORY_ICON_MAP.default;
+    return renderIcon('h-full w-full');
   }, [slug]);
 
   const normalizeDate = (article: Article) =>
@@ -103,17 +106,6 @@ const CategoryPage: React.FC<Props> = ({
     }
     return data;
   }, [articles, activeSort]);
-
-  const progressLabel = useMemo(() => {
-    const count = sortedArticles.length;
-    if (loadingMore) {
-      return `Loading ${count + 6} of ${hasMore ? 'many' : count} articles…`;
-    }
-    if (loading) {
-      return 'Gathering the latest stories…';
-    }
-    return `Loaded ${count}${hasMore ? '+' : ''} articles`;
-  }, [sortedArticles.length, loadingMore, loading, hasMore]);
 
   const relatedCategories = useMemo(
     () =>
@@ -172,7 +164,7 @@ const CategoryPage: React.FC<Props> = ({
         </a>
 
         <div className="relative mx-auto max-w-6xl space-y-10 px-4 pt-14 sm:px-6 lg:px-8">
-          <header className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900 p-6 shadow-2xl sm:p-8">
+          <header className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900 p-6 shadow-md sm:p-8">
             <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-transparent to-transparent" />
             <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-1 flex-col gap-4">
@@ -195,7 +187,7 @@ const CategoryPage: React.FC<Props> = ({
                 </h1>
                 <p className="max-w-2xl text-base text-white/90 sm:text-lg">{description}</p>
               </div>
-              <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-slate-800 text-white shadow-lg sm:h-24 sm:w-24">
+              <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-slate-800 text-white shadow-md sm:h-24 sm:w-24">
                 <div className="h-10 w-10 text-orange-200 sm:h-12 sm:w-12">{categoryIcon}</div>
               </div>
             </div>
@@ -203,12 +195,12 @@ const CategoryPage: React.FC<Props> = ({
 
           <main id="main-content" className="relative -mt-8 space-y-8">
             <section
-              className="rounded-3xl border border-white/10 bg-white p-6 shadow-xl transition-all duration-300 ease-out sm:p-8"
+              className="rounded-3xl border border-white/10 bg-white p-6 shadow-md transition-all duration-300 ease-out sm:p-8"
               aria-live="polite"
             >
               <div className="sticky top-20 z-20 -mx-6 mb-6 border-b border-slate-200 bg-white px-6 py-4 sm:-mx-8 sm:px-8">
                 <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
+                    <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.2em] text-slate-600">
                     <Filter className="h-4 w-4 text-orange-500" aria-hidden="true" />
                     Refine Feed
                   </div>
@@ -220,8 +212,8 @@ const CategoryPage: React.FC<Props> = ({
                         onClick={() => setActiveSort(option.value)}
                         className={`rounded-full px-4 py-1.5 font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white ${
                           activeSort === option.value
-                            ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/30'
-                            : 'border border-slate-200 bg-white text-slate-600 hover:border-orange-200 hover:text-orange-500'
+                            ? 'border border-orange-500 bg-orange-500 text-white shadow-md'
+                            : 'border border-slate-200 bg-white text-slate-600 hover:border-orange-200 hover:text-orange-600'
                         }`}
                       >
                         {option.label}
@@ -257,7 +249,6 @@ const CategoryPage: React.FC<Props> = ({
                     </button>
                   </div>
                 </div>
-                <p className="mt-3 text-xs uppercase tracking-[0.3em] text-orange-400">{progressLabel}</p>
               </div>
 
               <CategoryGrid
@@ -270,11 +261,10 @@ const CategoryPage: React.FC<Props> = ({
                 onLoadMore={loadMore}
                 emptyMessage={emptyMessage}
                 viewMode={viewMode}
-                progressLabel={progressLabel}
               />
             </section>
 
-            <section className="rounded-3xl border border-white/10 bg-white p-6 shadow-xl transition-all duration-300 ease-out sm:p-8">
+            <section className="rounded-3xl border border-white/10 bg-white p-6 shadow-md transition-all duration-300 ease-out sm:p-8">
               <div className="mb-6 flex items-center justify-between gap-4">
                 <div>
                   <h2 className="text-lg font-bold text-slate-900 sm:text-xl">Related Categories</h2>
@@ -289,26 +279,27 @@ const CategoryPage: React.FC<Props> = ({
                 </Link>
               </div>
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {relatedCategories.map((cat, idx) => (
-                  <Link
-                    key={cat.slug}
-                    to={`/category/${cat.slug}`}
-                    className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-lg transition-all duration-300 hover:-translate-y-2 hover:border-orange-200 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-                    style={{ transitionDelay: `${idx * 40}ms` }}
-                  >
-                    <div className="absolute -right-12 -top-10 h-28 w-28 rounded-full bg-orange-100 opacity-40 blur-2xl transition group-hover:opacity-60" />
-                    <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-orange-100 text-orange-500">
-                      <Sparkles className="h-5 w-5" aria-hidden="true" />
-                    </div>
-                    <div className="relative mt-6 space-y-2">
-                      <h3 className="text-lg font-semibold text-slate-900">{cat.name}</h3>
-                      <p className="text-sm text-slate-600">{cat.description}</p>
-                    </div>
-                    <span className="relative mt-4 inline-flex items-center gap-1 text-sm font-semibold text-orange-500">
-                      Explore <ArrowUpRight className="h-4 w-4" />
-                    </span>
-                  </Link>
-                ))}
+                {relatedCategories.map((cat) => {
+                  const renderIcon = CATEGORY_ICON_MAP[cat.slug] || CATEGORY_ICON_MAP.default;
+                  return (
+                    <Link
+                      key={cat.slug}
+                      to={`/category/${cat.slug}`}
+                      className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-orange-200 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                    >
+                      <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-orange-100 text-orange-500">
+                        {renderIcon('h-5 w-5')}
+                      </div>
+                      <div className="relative mt-6 space-y-2">
+                        <h3 className="text-lg font-semibold text-slate-900">{cat.name}</h3>
+                        <p className="text-sm text-slate-600">{cat.description}</p>
+                      </div>
+                      <span className="relative mt-4 inline-flex items-center gap-1 text-sm font-semibold text-orange-500">
+                        Explore <ArrowUpRight className="h-4 w-4" />
+                      </span>
+                    </Link>
+                  );
+                })}
               </div>
             </section>
           </main>
@@ -318,7 +309,7 @@ const CategoryPage: React.FC<Props> = ({
           <button
             type="button"
             onClick={() => setShowQuickFilters((prev) => !prev)}
-            className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full bg-orange-500 text-white shadow-lg shadow-orange-500/30 transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+            className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full bg-orange-500 text-white shadow-md shadow-orange-500/30 transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
             aria-label="Toggle filters"
           >
             <Filter className="h-6 w-6" aria-hidden="true" />
@@ -328,7 +319,7 @@ const CategoryPage: React.FC<Props> = ({
             <button
               type="button"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/40 bg-white text-slate-700 shadow-lg shadow-slate-900/15 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+              className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/40 bg-white text-slate-700 shadow-md shadow-slate-900/15 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
               aria-label="Back to top"
             >
               <ArrowUp className="h-5 w-5" aria-hidden="true" />
@@ -358,7 +349,7 @@ const CategoryPage: React.FC<Props> = ({
               );
             }}
           >
-            <div className="absolute bottom-0 left-0 right-0 rounded-t-3xl border border-white/10 bg-white p-6 pb-[calc(env(safe-area-inset-bottom,0px)+20px)] shadow-2xl">
+            <div className="absolute bottom-0 left-0 right-0 rounded-t-3xl border border-white/10 bg-white p-6 pb-[calc(env(safe-area-inset-bottom,0px)+20px)] shadow-md">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-base font-semibold text-slate-900">Filter feed</h3>
                 <button
@@ -382,8 +373,8 @@ const CategoryPage: React.FC<Props> = ({
                         onClick={() => setActiveSort(option.value)}
                         className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
                           activeSort === option.value
-                            ? 'bg-orange-500 text-white shadow-lg'
-                            : 'border border-slate-200 text-slate-600'
+                            ? 'border border-orange-500 bg-orange-500 text-white shadow-md'
+                            : 'border border-slate-200 bg-white text-slate-600'
                         }`}
                       >
                         {option.label}
@@ -420,13 +411,6 @@ const CategoryPage: React.FC<Props> = ({
                     </button>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowQuickFilters(false)}
-                  className="mt-4 w-full rounded-full bg-gradient-to-r from-orange-500 to-amber-500 py-3 text-sm font-semibold uppercase tracking-widest text-white shadow-lg shadow-orange-500/30"
-                >
-                  Apply
-                </button>
               </div>
             </div>
           </div>

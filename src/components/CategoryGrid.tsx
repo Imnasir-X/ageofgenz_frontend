@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Compass, Loader2, RefreshCw, Sparkles } from 'lucide-react';
 import type { Article } from '../types';
@@ -14,11 +14,10 @@ type Props = {
   onLoadMore?: () => void;
   emptyMessage?: string;
   viewMode?: 'grid' | 'list';
-  progressLabel?: string;
 };
 
 const SkeletonCard: React.FC = () => (
-  <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg transition-all duration-300">
+  <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md transition-all duration-300">
     <div className="relative aspect-[5/3] overflow-hidden">
       <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200" />
     </div>
@@ -40,15 +39,7 @@ const CategoryGrid: React.FC<Props> = ({
   onLoadMore,
   emptyMessage,
   viewMode = 'grid',
-  progressLabel = 'Loading more stories…',
 }) => {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const t = window.setTimeout(() => setMounted(true), 10);
-    return () => window.clearTimeout(t);
-  }, []);
-
   const gridClass = useMemo(() => {
     if (viewMode === 'list') {
       return 'space-y-4';
@@ -79,7 +70,7 @@ const CategoryGrid: React.FC<Props> = ({
         {onRetry && (
           <button
             onClick={onRetry}
-            className="mt-5 inline-flex items-center gap-2 rounded-full bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-orange-500/30 transition hover:bg-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-red-50"
+            className="mt-5 inline-flex items-center gap-2 rounded-full bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-orange-500/30 transition hover:bg-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-red-50"
           >
             <RefreshCw size={16} aria-hidden="true" />
             Retry Loading
@@ -99,7 +90,7 @@ const CategoryGrid: React.FC<Props> = ({
           </div>
         </div>
         <div className="space-y-2">
-          <h3 className="text-2xl font-bold text-gray-900">No stories yet… but stay tuned! ✨</h3>
+          <h3 className="text-2xl font-bold text-gray-900">No stories yet but stay tuned!</h3>
           <p className="text-sm text-gray-600 max-w-xl">
             {emptyMessage ||
               'We are curating fresh reporting for this category right now. In the meantime, explore our most popular stories or discover another topic.'}
@@ -115,7 +106,7 @@ const CategoryGrid: React.FC<Props> = ({
           </Link>
           <Link
             to="/"
-            className="inline-flex items-center gap-2 rounded-full bg-orange-500 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-orange-500/30 transition hover:bg-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-50"
+            className="inline-flex items-center gap-2 rounded-full bg-orange-500 px-5 py-2 text-sm font-semibold text-white shadow-md shadow-orange-500/30 transition hover:bg-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-50"
           >
             Explore All Categories
           </Link>
@@ -129,43 +120,27 @@ const CategoryGrid: React.FC<Props> = ({
   return (
     <>
       <div className={gridClass} aria-busy={loadingMore ? 'true' : 'false'}>
-        {articles.map((article, idx) => (
+        {articles.map((article) => (
           <div
             key={article.id}
-            className={`overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg transition-all duration-400 ease-out ${
-              mounted ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
-            } hover:-translate-y-2 hover:shadow-xl focus-within:-translate-y-2`}
-            style={{ transitionDelay: `${idx * 60}ms` }}
+            className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md transition hover:-translate-y-2 hover:shadow-md focus-within:-translate-y-2"
           >
-            <ArticleCard
-              article={article}
-              variant={cardVariant}
-              imagePosition="center"
-            />
+            <ArticleCard article={article} variant={cardVariant} imagePosition="center" />
           </div>
         ))}
       </div>
-      {loadingMore && (
-        <div className="mt-6 flex items-center justify-center gap-3 text-sm font-semibold text-gray-600">
-          <Loader2 className="h-4 w-4 animate-spin text-orange-500" aria-hidden="true" />
-          <span>{progressLabel}</span>
-        </div>
-      )}
       {hasMore && onLoadMore && (
         <div className="mt-6 text-center">
           <button
             onClick={onLoadMore}
-            className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-gray-900/30 transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+            className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-5 py-2 text-sm font-semibold text-white shadow-md shadow-gray-900/20 transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
             disabled={loadingMore}
             aria-live="polite"
             aria-busy={loadingMore ? 'true' : 'false'}
           >
             {loadingMore ? (
               <>
-                <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                </svg>
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                 Loading...
               </>
             ) : (
