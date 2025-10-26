@@ -100,6 +100,20 @@ const Subscribe: React.FC = () => {
     }
   }, [isAuthenticated]);
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    const storedPlanId = sessionStorage.getItem('subscriptionIntent');
+    if (!storedPlanId) {
+      return;
+    }
+
+    sessionStorage.removeItem('subscriptionIntent');
+    handleSubscribe(storedPlanId, { fromResume: true });
+  }, [isAuthenticated]);
+
   const fetchSubscription = async () => {
     try {
       const response = await api.get('/api/subscriptions/current/');
@@ -116,7 +130,7 @@ const Subscribe: React.FC = () => {
     }
   };
 
-  const handleSubscribe = async (planId: string) => {
+  const handleSubscribe = async (planId: string, options?: { fromResume?: boolean }) => {
     if (!isAuthenticated) {
       sessionStorage.setItem('subscriptionIntent', planId);
       navigate('/login');
@@ -127,6 +141,9 @@ const Subscribe: React.FC = () => {
     setError('');
     setSuccess('');
     setPendingPlanId(planId);
+    if (!options?.fromResume) {
+      sessionStorage.removeItem('subscriptionIntent');
+    }
 
     try {
       const response = await api.post('/api/subscriptions/create-checkout/', {
