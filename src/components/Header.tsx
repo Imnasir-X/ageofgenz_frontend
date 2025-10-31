@@ -338,7 +338,7 @@ const Header: React.FC = () => {
 
   // Desktop nav link styles - responsive to compact state
   const navLinkClasses = ({ isActive }: { isActive: boolean }): string =>
-    `transition-colors ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'} font-semibold text-sm uppercase tracking-wide ${isActive ? 'text-orange-500' : 'text-white'} hover:text-orange-500`;
+    `transition-colors ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'} font-semibold uppercase tracking-wide ${isActive ? 'text-orange-500' : 'text-white'} hover:text-orange-500`;
 
   // Mobile nav link styles - with explicit colors
   const mobileNavLinkClasses = ({ isActive }: { isActive: boolean }): string =>
@@ -585,6 +585,13 @@ const Header: React.FC = () => {
 
   const navGapBase = isDesktop ? 16 : 12;
   const navGapExpanded = isDesktop ? 24 : 16;
+  const navFontCompact = 0.75;
+  const navFontExpanded = isDesktop ? 0.875 : 0.75;
+  const navFontDelta = navFontExpanded - navFontCompact;
+  const navFontSizeValue =
+    navFontDelta === 0
+      ? `${navFontCompact}rem`
+      : `calc(${navFontCompact}rem + ${navFontDelta}rem * ${1 - shrink})`;
   useEffect(() => {
     if (!isMenuOpen) return;
     const container = mobileNavRef.current;
@@ -641,7 +648,13 @@ const Header: React.FC = () => {
       )}
       <header
         className={`header-nav sticky top-0 z-[55] text-white font-sans ${hasShadow ? 'shadow-md' : ''} ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'} transition-[padding,transform,background-color,backdrop-filter] bg-black backdrop-blur-md`}
-        style={{ '--nav-gap-base': `${navGapBase}px`, '--nav-gap-expanded': `${navGapExpanded}px` } as React.CSSProperties}
+        style={
+          {
+            '--nav-gap-base': `${navGapBase}px`,
+            '--nav-gap-expanded': `${navGapExpanded}px`,
+            '--nav-font-size': navFontSizeValue,
+          } as React.CSSProperties
+        }
         onMouseLeave={handleMouseLeave}
         onMouseEnter={handleMouseEnter}
       >
@@ -719,7 +732,10 @@ const Header: React.FC = () => {
           <nav className="hidden lg:block header-desktop-nav">
             <ul
               className={`flex items-center transition-all ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'}`}
-              style={{ gap: `calc(var(--nav-gap-base) + (var(--nav-gap-expanded) - var(--nav-gap-base)) * ${1 - shrink})` }}
+              style={{
+                gap: `calc(var(--nav-gap-base) + (var(--nav-gap-expanded) - var(--nav-gap-base)) * ${1 - shrink})`,
+                fontSize: 'var(--nav-font-size)',
+              }}
             >
               {navItems.map((node) => renderDesktopNavItem(node))}
               {isLive && (
