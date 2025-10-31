@@ -44,6 +44,35 @@ const RedditIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   </svg>
 );
 
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): { hasError: boolean } {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: unknown, info: unknown) {
+    console.error('ArticleDetail render error', error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+          <div className="max-w-md text-center space-y-4">
+            <h1 className="text-2xl font-semibold text-gray-900">Something went wrong</h1>
+            <p className="text-gray-600">Please refresh the page or try again later.</p>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 const slugify = (value?: string | null): string => {
   if (!value) return 'trending';
   const slug = value
@@ -66,6 +95,10 @@ const ArticleDetail: React.FC = () => {
   const [showShareMenu, setShowShareMenu] = useState<boolean>(false);
   const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
   const shareMenuRef = useRef<HTMLDivElement | null>(null);
+  const shareMenuContentRef = useRef<HTMLDivElement | null>(null);
+  const shareTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const [bookmarkMessage, setBookmarkMessage] = useState<string | null>(null);
+  const bookmarkToastTimeoutRef = useRef<number | null>(null);
 
   const categoryMeta: CategoryMeta | null = useMemo(() => {
     if (!article) return null;
@@ -130,6 +163,36 @@ const ArticleDetail: React.FC = () => {
     }
   }, [slug]);
 
+  const closeShareMenu = useCallback(
+    (focusTrigger = false) => {
+      setShowShareMenu(false);
+      if (focusTrigger && shareTriggerRef.current) {
+        shareTriggerRef.current.focus();
+      }
+    },
+    [],
+  );
+
+  const showBookmarkToast = useCallback((message: string) => {
+    if (bookmarkToastTimeoutRef.current) {
+      window.clearTimeout(bookmarkToastTimeoutRef.current);
+    }
+    setBookmarkMessage(message);
+    bookmarkToastTimeoutRef.current = window.setTimeout(() => {
+      setBookmarkMessage(null);
+    }, 2400);
+  }, []);
+
+  const handleToggleShareMenu = useCallback(() => {
+    setShowShareMenu((prev) => {
+      const next = !prev;
+      if (!next && shareTriggerRef.current) {
+        shareTriggerRef.current.focus();
+      }
+      return next;
+    });
+  }, []);
+
   useEffect(() => {
     if (!showShareMenu) {
       return;
@@ -137,13 +200,63 @@ const ArticleDetail: React.FC = () => {
 
     const handleOutsideClick = (event: MouseEvent) => {
       if (shareMenuRef.current && !shareMenuRef.current.contains(event.target as Node)) {
-        setShowShareMenu(false);
+        closeShareMenu();
       }
     };
 
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeShareMenu(true);
+        return;
+      }
+
+      if (event.key !== 'Tab') {
+        return;
+      }
+
+      const focusable = shareMenuContentRef.current?.querySelectorAll<HTMLElement>('[data-share-menu-item]');
+
+      if (!focusable || focusable.length === 0) {
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (event.shiftKey) {
+        if (document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        }
+        return;
+      }
+
+      if (document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    const focusable = shareMenuContentRef.current?.querySelectorAll<HTMLElement>('[data-share-menu-item]');
+    focusable && focusable[0]?.focus();
+
     document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, [showShareMenu]);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [closeShareMenu, showShareMenu]);
+
+  useEffect(() => {
+    return () => {
+      if (bookmarkToastTimeoutRef.current) {
+        window.clearTimeout(bookmarkToastTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Memoized date formatter
   const formatDate = useCallback((dateString: string) => {
@@ -524,86 +637,130 @@ const ArticleDetail: React.FC = () => {
   const encodedShareUrl = encodeURIComponent(articleUrl);
   const encodedShareTitle = encodeURIComponent(article.title);
   const shareMenuItemClass =
-    'flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors';
+    'flex items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white';
 
-  const shareLinks = [
-    {
-      name: 'Email',
-      href: `mailto:?subject=${encodedShareTitle}&body=${encodedShareTitle}%0A%0A${encodedShareUrl}`,
-      Icon: Mail,
-    },
-    {
-      name: 'Facebook',
-      href: `https://www.facebook.com/sharer/sharer.php?u=${encodedShareUrl}`,
-      Icon: Facebook,
-    },
-    {
-      name: 'Bluesky',
-      href: `https://bsky.app/intent/compose?text=${encodedShareTitle}%20${encodedShareUrl}`,
-      Icon: Bird,
-    },
-    {
-      name: 'X',
-      href: `https://x.com/intent/tweet?url=${encodedShareUrl}&text=${encodedShareTitle}`,
-      Icon: XIcon,
-    },
-    {
-      name: 'Telegram',
-      href: `https://t.me/share/url?url=${encodedShareUrl}&text=${encodedShareTitle}`,
-      Icon: Send,
-    },
-    {
-      name: 'LinkedIn',
-      href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedShareUrl}`,
-      Icon: Linkedin,
-    },
-    {
-      name: 'WhatsApp',
-      href: `https://wa.me/?text=${encodedShareTitle}%20${encodedShareUrl}`,
-      Icon: MessageCircle,
-    },
-    {
-      name: 'Reddit',
-      href: `https://www.reddit.com/submit?url=${encodedShareUrl}&title=${encodedShareTitle}`,
-      Icon: RedditIcon,
-    },
-  ];
+  const shareLinks = useMemo(
+    () => [
+      {
+        name: 'Email',
+        href: `mailto:?subject=${encodedShareTitle}&body=${encodedShareTitle}%0A%0A${encodedShareUrl}`,
+        Icon: Mail,
+        iconClass: 'text-gray-500',
+      },
+      {
+        name: 'Facebook',
+        href: `https://www.facebook.com/sharer/sharer.php?u=${encodedShareUrl}`,
+        Icon: Facebook,
+        iconClass: 'text-blue-600',
+      },
+      {
+        name: 'Bluesky',
+        href: `https://bsky.app/intent/compose?text=${encodedShareTitle}%20${encodedShareUrl}`,
+        Icon: Bird,
+        iconClass: 'text-sky-500',
+      },
+      {
+        name: 'X',
+        href: `https://x.com/intent/tweet?url=${encodedShareUrl}&text=${encodedShareTitle}`,
+        Icon: XIcon,
+        iconClass: 'text-gray-900',
+      },
+      {
+        name: 'Telegram',
+        href: `https://t.me/share/url?url=${encodedShareUrl}&text=${encodedShareTitle}`,
+        Icon: Send,
+        iconClass: 'text-sky-400',
+      },
+      {
+        name: 'LinkedIn',
+        href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedShareUrl}`,
+        Icon: Linkedin,
+        iconClass: 'text-sky-600',
+      },
+      {
+        name: 'WhatsApp',
+        href: `https://wa.me/?text=${encodedShareTitle}%20${encodedShareUrl}`,
+        Icon: MessageCircle,
+        iconClass: 'text-green-500',
+      },
+      {
+        name: 'Reddit',
+        href: `https://www.reddit.com/submit?url=${encodedShareUrl}&title=${encodedShareTitle}`,
+        Icon: RedditIcon,
+        iconClass: 'text-orange-500',
+      },
+    ],
+    [encodedShareTitle, encodedShareUrl],
+  );
+
+  const shareLinkItems = useMemo(() => shareLinks.filter((item) => Boolean(item.href)), [shareLinks]);
 
   const toggleBookmark = useCallback(() => {
     if (!slug || typeof window === 'undefined') return;
 
     try {
       const raw = window.localStorage.getItem('aoz_bookmarks');
-      const items: string[] = raw ? JSON.parse(raw) : [];
+      const parsed = raw ? JSON.parse(raw) : [];
+      const sanitizedItems = Array.isArray(parsed)
+        ? (parsed as unknown[]).filter((entry): entry is string => typeof entry === 'string')
+        : [];
       let nextItems: string[];
       let nextState = false;
 
-      if (items.includes(slug)) {
-        nextItems = items.filter((entry) => entry !== slug);
+      if (sanitizedItems.includes(slug)) {
+        nextItems = sanitizedItems.filter((entry) => entry !== slug);
       } else {
-        nextItems = [...items, slug];
+        nextItems = [...sanitizedItems, slug];
         nextState = true;
       }
 
-      window.localStorage.setItem('aoz_bookmarks', JSON.stringify(nextItems));
+      const trimmedItems = nextItems.slice(-50);
+      window.localStorage.setItem('aoz_bookmarks', JSON.stringify(trimmedItems));
       setIsBookmarked(nextState);
+      showBookmarkToast(nextState ? 'Added to bookmarks' : 'Removed from bookmarks');
     } catch (error) {
       console.error('Failed to toggle bookmark', error);
+      showBookmarkToast('Could not update bookmark');
     }
-  }, [slug]);
+  }, [showBookmarkToast, slug]);
 
-  const handleCopyShare = async () => {
+  const handleCopyShare = useCallback(async (): Promise<boolean> => {
     try {
-      await navigator.clipboard.writeText(articleUrl);
+      if (typeof window === 'undefined') {
+        return false;
+      }
+
+      if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        await navigator.clipboard.writeText(articleUrl);
+      } else {
+        const fallback = window.prompt('Copy this link', articleUrl);
+        if (fallback === null) {
+          return false;
+        }
+      }
       setCopySuccess(true);
       window.setTimeout(() => setCopySuccess(false), 3000);
+      return true;
     } catch (err) {
       console.error('Failed to copy link', err);
+      return false;
     }
-  };
+  }, [articleUrl]);
 
   return (
+    <ErrorBoundary>
     <div className="min-h-screen bg-gray-50">
+      {bookmarkMessage && (
+        <div className="pointer-events-none fixed inset-x-0 top-20 z-50 flex justify-center px-4">
+          <div
+            className="pointer-events-auto rounded-full bg-gray-900/90 px-4 py-2 text-sm font-medium text-white shadow-lg"
+            role="status"
+            aria-live="polite"
+          >
+            {bookmarkMessage}
+          </div>
+        </div>
+      )}
       {/* Enhanced SEO and Social Meta Tags */}
       <Helmet>
         <title>{article.title} - The Age of GenZ</title>
@@ -766,11 +923,14 @@ const ArticleDetail: React.FC = () => {
                     <div className="relative" ref={shareMenuRef}>
                       <button
                         type="button"
+                        id="article-share-trigger"
+                        ref={shareTriggerRef}
                         className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                         aria-haspopup="true"
                         aria-expanded={showShareMenu}
                         aria-controls="article-share-menu"
-                        onClick={() => setShowShareMenu((prev) => !prev)}
+                        aria-label={showShareMenu ? 'Close share menu' : 'Open share menu'}
+                        onClick={handleToggleShareMenu}
                       >
                         <Share2 size={16} aria-hidden="true" />
                         <span>Share</span>
@@ -779,34 +939,44 @@ const ArticleDetail: React.FC = () => {
                         <div
                           id="article-share-menu"
                           role="menu"
-                          className="absolute right-0 z-40 mt-2 w-64 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl"
+                          aria-labelledby="article-share-trigger"
+                          ref={shareMenuContentRef}
+                          className="absolute right-0 top-full z-40 mt-2 w-64 max-md:left-0 max-md:right-auto overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl divide-y divide-gray-100 transition-transform duration-150 ease-out"
                         >
-                          <div className="border-b border-gray-100 px-4 py-3">
+                          <div className="px-4 py-3">
                             <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Share</p>
                             <p className="text-sm text-gray-500">Spread this story</p>
                           </div>
-                          <button
-                            type="button"
-                            className={`${shareMenuItemClass} w-full text-left`}
-                            onClick={() => {
-                              void handleCopyShare();
-                              setShowShareMenu(false);
-                            }}
-                          >
-                            <Link2 size={16} className="text-gray-500" aria-hidden="true" />
-                            <span>Copy link</span>
-                          </button>
-                          <div className="border-t border-gray-100">
-                            {shareLinks.map(({ name, href, Icon }) => (
+                          <div>
+                            <button
+                              type="button"
+                              className={`${shareMenuItemClass} w-full text-left`}
+                              role="menuitem"
+                              data-share-menu-item
+                              onClick={async () => {
+                                const copied = await handleCopyShare();
+                                if (copied) {
+                                  closeShareMenu(true);
+                                }
+                              }}
+                            >
+                              <Link2 size={16} className="text-gray-500" aria-hidden="true" />
+                              <span>Copy link</span>
+                            </button>
+                          </div>
+                          <div className="py-1">
+                            {shareLinkItems.map(({ name, href, Icon, iconClass }) => (
                               <a
                                 key={name}
                                 href={href}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className={`${shareMenuItemClass} block`}
-                                onClick={() => setShowShareMenu(false)}
+                                role="menuitem"
+                                data-share-menu-item
+                                onClick={() => closeShareMenu()}
                               >
-                                <Icon size={16} className="text-gray-500" aria-hidden="true" />
+                                <Icon size={16} className={iconClass} aria-hidden="true" />
                                 <span>{name}</span>
                               </a>
                             ))}
@@ -852,7 +1022,7 @@ const ArticleDetail: React.FC = () => {
                 <div className="article-share-wrap px-6 md:px-12 lg:px-14 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <span className="sr-only">Share this article</span>
                   <div className="article-share-grid flex flex-col items-stretch gap-3 md:flex-row md:items-center md:gap-6">
-                    {shareLinks.map(({ name, href, Icon }) => (
+                    {shareLinkItems.map(({ name, href, Icon, iconClass }) => (
                       <a
                         key={name}
                         href={href}
@@ -861,7 +1031,7 @@ const ArticleDetail: React.FC = () => {
                         aria-label={`Share on ${name}`}
                         className="article-share-button focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                       >
-                        <Icon className="article-share-icon" size={16} />
+                        <Icon className={`article-share-icon ${iconClass}`} size={16} />
                         <span className="sr-only">Share on {name}</span>
                       </a>
                     ))}
@@ -869,7 +1039,9 @@ const ArticleDetail: React.FC = () => {
                   <div className="article-share-copy md:flex md:items-center md:gap-3">
                     <button
                       type="button"
-                      onClick={handleCopyShare}
+                      onClick={() => {
+                        void handleCopyShare();
+                      }}
                       aria-label="Copy article link"
                       className={`article-share-button article-share-button--copy ${copySuccess ? 'is-success' : ''} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white`}
                     >
@@ -989,9 +1161,15 @@ const ArticleDetail: React.FC = () => {
         </div>
       </div>
     </div>
+    </ErrorBoundary>
   );
 };
 
 export default ArticleDetail;
+
+
+
+
+
 
 
