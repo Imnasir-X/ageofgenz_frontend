@@ -24,6 +24,15 @@ const XIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   </svg>
 );
 
+const slugify = (value?: string | null): string => {
+  if (!value) return 'trending';
+  const slug = value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return slug || 'trending';
+};
+
 const ArticleDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [article, setArticle] = useState<Article | null>(null);
@@ -37,16 +46,23 @@ const ArticleDetail: React.FC = () => {
 
   const categoryMeta: CategoryMeta | null = useMemo(() => {
     if (!article) return null;
-    const source = article.category
-      ? {
-          slug: (article.category?.slug ?? article.category_name?.toLowerCase().replace(/[^a-z0-9]+/g, '-')),
-          name: article.category.name,
+
+    const source = (() => {
+      if (article.category && article.category.slug) {
+        return {
+          slug: slugify(article.category.slug),
+          name: article.category.name || article.category_name || 'Trending',
           parent_slug: article.category.parent_slug ?? null,
-        }
-      : {
-          slug: article.category?.slug ?? article.category_name?.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-          name: article.category_name,
         };
+      }
+
+      return {
+        slug: slugify(article.category_name),
+        name: article.category_name || 'Trending',
+        parent_slug: null,
+      };
+    })();
+
     return resolveCategoryMeta(source);
   }, [article]);
 
@@ -757,15 +773,16 @@ const ArticleDetail: React.FC = () => {
                   <div className="trending-list">
                     {relatedArticles.map((relatedArticle) => {
                       const relatedMeta = resolveCategoryMeta(
-                        relatedArticle.category
+                        relatedArticle.category && relatedArticle.category.slug
                           ? {
-                              slug: (relatedArticle.category?.slug ?? relatedArticle.category_name?.toLowerCase().replace(/[^a-z0-9]+/g, '-')),
-                              name: relatedArticle.category.name,
+                              slug: slugify(relatedArticle.category.slug),
+                              name: relatedArticle.category.name || relatedArticle.category_name || 'Trending',
                               parent_slug: relatedArticle.category.parent_slug ?? null,
                             }
                           : {
-                              slug: relatedArticle.category?.slug ?? relatedArticle.category_name?.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-                              name: relatedArticle.category_name,
+                              slug: slugify(relatedArticle.category_name),
+                              name: relatedArticle.category_name || 'Trending',
+                              parent_slug: null,
                             },
                       );
                       return (
