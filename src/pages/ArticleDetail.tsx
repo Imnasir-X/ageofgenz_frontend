@@ -1,9 +1,24 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { getArticleBySlug, getArticles } from '../utils/api';
 import DonationPlaceholder from '../components/DonationPlaceholder';
-import { Eye, Tag, BookOpen, Facebook, Mail, Link2, Linkedin, MessageCircle } from 'lucide-react';
+import {
+  Eye,
+  Tag,
+  BookOpen,
+  Facebook,
+  Mail,
+  Link2,
+  Linkedin,
+  MessageCircle,
+  Share2,
+  Bookmark,
+  BookmarkCheck,
+  Send,
+  Bird,
+  Reddit,
+} from 'lucide-react';
 import { Article } from '../types';
 import {
   resolveCategoryMeta,
@@ -43,6 +58,9 @@ const ArticleDetail: React.FC = () => {
   const [readingProgress, setReadingProgress] = useState<number>(0);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
   const [showProgressBar, setShowProgressBar] = useState<boolean>(true);
+  const [showShareMenu, setShowShareMenu] = useState<boolean>(false);
+  const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
+  const shareMenuRef = useRef<HTMLDivElement | null>(null);
 
   const categoryMeta: CategoryMeta | null = useMemo(() => {
     if (!article) return null;
@@ -88,6 +106,39 @@ const ArticleDetail: React.FC = () => {
   const categoryLink = categoryMeta ? `/category/${categoryMeta.slug}` : '/category/trending';
   const categoryDisplayName = categoryMeta?.name ?? 'Trending';
   const topLevelCategoryName = categoryMeta?.topLevelName ?? categoryDisplayName;
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !slug) {
+      return;
+    }
+    try {
+      const raw = window.localStorage.getItem('aoz_bookmarks');
+      if (!raw) {
+        setIsBookmarked(false);
+        return;
+      }
+      const stored = JSON.parse(raw);
+      setIsBookmarked(Array.isArray(stored) && stored.includes(slug));
+    } catch (error) {
+      console.error('Failed to read bookmarks', error);
+      setIsBookmarked(false);
+    }
+  }, [slug]);
+
+  useEffect(() => {
+    if (!showShareMenu) {
+      return;
+    }
+
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (shareMenuRef.current && !shareMenuRef.current.contains(event.target as Node)) {
+        setShowShareMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [showShareMenu]);
 
   // Memoized date formatter
   const formatDate = useCallback((dateString: string) => {
@@ -467,11 +518,24 @@ const ArticleDetail: React.FC = () => {
   const viewCount = article.view_count ?? article.views ?? null;
   const encodedShareUrl = encodeURIComponent(articleUrl);
   const encodedShareTitle = encodeURIComponent(article.title);
+  const shareMenuItemClass =
+    'flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors';
+
   const shareLinks = [
+    {
+      name: 'Email',
+      href: `mailto:?subject=${encodedShareTitle}&body=${encodedShareTitle}%0A%0A${encodedShareUrl}`,
+      Icon: Mail,
+    },
     {
       name: 'Facebook',
       href: `https://www.facebook.com/sharer/sharer.php?u=${encodedShareUrl}`,
       Icon: Facebook,
+    },
+    {
+      name: 'Bluesky',
+      href: `https://bsky.app/intent/compose?text=${encodedShareTitle}%20${encodedShareUrl}`,
+      Icon: Bird,
     },
     {
       name: 'X',
@@ -479,21 +543,49 @@ const ArticleDetail: React.FC = () => {
       Icon: XIcon,
     },
     {
+      name: 'Telegram',
+      href: `https://t.me/share/url?url=${encodedShareUrl}&text=${encodedShareTitle}`,
+      Icon: Send,
+    },
+    {
       name: 'LinkedIn',
       href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedShareUrl}`,
       Icon: Linkedin,
-    },
-    {
-      name: 'Email',
-      href: `mailto:?subject=${encodedShareTitle}&body=${encodedShareTitle}%0A%0A${encodedShareUrl}`,
-      Icon: Mail,
     },
     {
       name: 'WhatsApp',
       href: `https://wa.me/?text=${encodedShareTitle}%20${encodedShareUrl}`,
       Icon: MessageCircle,
     },
+    {
+      name: 'Reddit',
+      href: `https://www.reddit.com/submit?url=${encodedShareUrl}&title=${encodedShareTitle}`,
+      Icon: Reddit,
+    },
   ];
+
+  const toggleBookmark = useCallback(() => {
+    if (!slug || typeof window === 'undefined') return;
+
+    try {
+      const raw = window.localStorage.getItem('aoz_bookmarks');
+      const items: string[] = raw ? JSON.parse(raw) : [];
+      let nextItems: string[];
+      let nextState = false;
+
+      if (items.includes(slug)) {
+        nextItems = items.filter((entry) => entry !== slug);
+      } else {
+        nextItems = [...items, slug];
+        nextState = true;
+      }
+
+      window.localStorage.setItem('aoz_bookmarks', JSON.stringify(nextItems));
+      setIsBookmarked(nextState);
+    } catch (error) {
+      console.error('Failed to toggle bookmark', error);
+    }
+  }, [slug]);
 
   const handleCopyShare = async () => {
     try {
@@ -649,6 +741,75 @@ const ArticleDetail: React.FC = () => {
                       <span>{viewCount.toLocaleString()} views</span>
                     </span>
                   )}
+                  <div className="ml-auto flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={toggleBookmark}
+                      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white ${
+                        isBookmarked
+                          ? 'border-orange-300 bg-orange-50 text-orange-600 hover:bg-orange-100'
+                          : 'border-gray-300 text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      {isBookmarked ? (
+                        <BookmarkCheck size={16} aria-hidden="true" />
+                      ) : (
+                        <Bookmark size={16} aria-hidden="true" />
+                      )}
+                      <span>{isBookmarked ? 'Bookmarked' : 'Bookmark'}</span>
+                    </button>
+                    <div className="relative" ref={shareMenuRef}>
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                        aria-haspopup="true"
+                        aria-expanded={showShareMenu}
+                        aria-controls="article-share-menu"
+                        onClick={() => setShowShareMenu((prev) => !prev)}
+                      >
+                        <Share2 size={16} aria-hidden="true" />
+                        <span>Share</span>
+                      </button>
+                      {showShareMenu && (
+                        <div
+                          id="article-share-menu"
+                          role="menu"
+                          className="absolute right-0 z-40 mt-2 w-64 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl"
+                        >
+                          <div className="border-b border-gray-100 px-4 py-3">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Share</p>
+                            <p className="text-sm text-gray-500">Spread this story</p>
+                          </div>
+                          <button
+                            type="button"
+                            className={`${shareMenuItemClass} w-full text-left`}
+                            onClick={() => {
+                              void handleCopyShare();
+                              setShowShareMenu(false);
+                            }}
+                          >
+                            <Link2 size={16} className="text-gray-500" aria-hidden="true" />
+                            <span>Copy link</span>
+                          </button>
+                          <div className="border-t border-gray-100">
+                            {shareLinks.map(({ name, href, Icon }) => (
+                              <a
+                                key={name}
+                                href={href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`${shareMenuItemClass} block`}
+                                onClick={() => setShowShareMenu(false)}
+                              >
+                                <Icon size={16} className="text-gray-500" aria-hidden="true" />
+                                <span>{name}</span>
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
               </header>
@@ -827,4 +988,5 @@ const ArticleDetail: React.FC = () => {
 };
 
 export default ArticleDetail;
+
 
