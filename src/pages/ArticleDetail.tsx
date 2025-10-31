@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { getArticleBySlug, getArticles } from '../utils/api';
 import DonationPlaceholder from '../components/DonationPlaceholder';
@@ -84,6 +84,7 @@ const slugify = (value?: string | null): string => {
 
 const ArticleDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const [article, setArticle] = useState<Article | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);
@@ -654,24 +655,34 @@ const ArticleDetail: React.FC = () => {
   }
 
   if (error || !article) {
+    const message = error || (article === null ? 'This article is not available' : 'Article data missing');
     return (
       <div className="container mx-auto px-4 py-20 text-center">
-        <div className="max-w-md mx-auto">
-          <h1 className="text-4xl font-bold mb-4 text-gray-900">Article Not Found</h1>
-          <p className="mb-8 text-gray-600 text-lg">{error || 'This article is not available'}</p>
-          <Link 
-            to="/" 
-            className="inline-flex items-center bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg font-medium transition-colors"
-          >
-            Back to Home
-          </Link>
-          <button
-            type="button"
-            onClick={() => window.location.reload()}
-            className="mt-4 inline-flex items-center justify-center rounded-lg border border-orange-300 px-8 py-3 text-orange-600 transition hover:bg-orange-50"
-          >
-            Try Again
-          </button>
+        <div className="max-w-md mx-auto space-y-4">
+          <h1 className="text-4xl font-bold text-gray-900">Article Not Found</h1>
+          <p className="text-gray-600 text-lg">{message}</p>
+          <div className="flex flex-col items-center gap-3">
+            <Link
+              to="/"
+              className="inline-flex items-center bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg font-medium transition-colors"
+            >
+              Back to Home
+            </Link>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center justify-center rounded-lg border border-orange-300 px-8 py-3 text-orange-600 transition hover:bg-orange-50"
+            >
+              Try Again
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-8 py-3 text-gray-600 transition hover:bg-gray-50"
+            >
+              Go Back
+            </button>
+          </div>
         </div>
       </div>
     );

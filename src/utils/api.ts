@@ -146,27 +146,55 @@ const retryRequest = async <T>(
 
 // Transform backend data to frontend format with better debugging
 const transformArticle = (backendArticle: any): Article => {
-  console.log('ðŸ”„ Raw backend article:', backendArticle);
-  
+  console.log('[Article] Raw backend article:', backendArticle);
+
+  const resolveRichText = (input: any): string => {
+    if (typeof input === 'string') {
+      return input;
+    }
+    if (input && typeof input === 'object') {
+      if (typeof input.rendered === 'string') {
+        return input.rendered;
+      }
+      if (typeof input.html === 'string') {
+        return input.html;
+      }
+      if (Array.isArray(input)) {
+        return input.filter((value) => typeof value === 'string').join('\n');
+      }
+    }
+    return '';
+  };
+
+  const rawContent =
+    resolveRichText(
+      backendArticle.content ??
+        backendArticle.content_html ??
+        backendArticle.body ??
+        backendArticle.article_body ??
+        backendArticle.rich_text,
+    ) || '';
+
+  const rawExcerpt =
+    resolveRichText(backendArticle.excerpt ?? backendArticle.summary ?? backendArticle.description) ||
+    '';
+
   const transformed: Article = {
     id: backendArticle.id,
     title: backendArticle.title || 'Untitled',
     slug: backendArticle.slug || '',
-    excerpt: backendArticle.excerpt || '',
-    content: backendArticle.content || '',
+    excerpt: rawExcerpt,
+    content: rawContent,
     
-    // âœ… CRITICAL FIX: Use featured_image_url from backend API
     featured_image: backendArticle.featured_image_url || backendArticle.featured_image || null,
     featured_image_url: backendArticle.featured_image_url || null,
     
-    // Enhanced author handling
-    author: backendArticle.author ? 
+    author: backendArticle.author ?
       (typeof backendArticle.author === 'object' ? backendArticle.author : { id: 1, name: backendArticle.author }) :
       { id: 1, name: 'The Age of GenZ' },
     
-    // Enhanced category handling
-    category: backendArticle.category ? 
-      (typeof backendArticle.category === 'object' ? backendArticle.category : { id: 1, name: backendArticle.category, slug: backendArticle.category.toLowerCase() }) :
+    category: backendArticle.category ?
+      (typeof backendArticle.category === 'object' ? backendArticle.category : { id: 1, name: backendArticle.category, slug: String(backendArticle.category).toLowerCase() }) :
       { id: 1, name: 'General', slug: 'general' },
     
     category_name: backendArticle.category?.name || backendArticle.category || 'General',
@@ -185,25 +213,27 @@ const transformArticle = (backendArticle: any): Article => {
     published_at: backendArticle.published_at || backendArticle.created_at,
     created_at: backendArticle.created_at,
     updated_at: backendArticle.updated_at,
-    estimated_read_time: Math.ceil((backendArticle.content || '').split(' ').length / 200) || 1,
+    estimated_read_time: Math.max(
+      1,
+      Math.ceil(rawContent.split(/\s+/).filter(Boolean).length / 200),
+    ),
     
-    // âœ… FIXED: Backward compatibility fields use new image URL
     image: backendArticle.featured_image_url || backendArticle.featured_image,
-    description: backendArticle.excerpt || '',
+    description: rawExcerpt || backendArticle.excerpt || '',
     date: backendArticle.published_at || backendArticle.created_at,
     views: Number(backendArticle.view_count) || 0,
     featured: Boolean(backendArticle.is_featured)
   };
-  
-  console.log('ðŸ”„ Transformed article:', {
+
+  console.log('[Article] Transformed article summary:', {
     id: transformed.id,
     title: transformed.title,
+    hasContent: transformed.content.length > 0,
     featured_image: transformed.featured_image,
-    featured_image_url: transformed.featured_image_url,
     category: transformed.category,
-    is_featured: transformed.is_featured
+    is_featured: transformed.is_featured,
   });
-  
+
   return transformed;
 };
 
@@ -415,26 +445,87 @@ export const getArticleById = async (id: number) => {
 };
 
 export const getArticleBySlug = async (slug: string) => {
-  console.log('ðŸ“„ Fetching article by slug:', slug);
+  console.log('📄 Fetching article by slug:', slug);
   
   try {
-    // Use direct endpoint - this works with your ViewSet
     const response = await retryRequest<any>(() =>
       api.get(`/api/articles/${slug}/`)
     );
     
-    console.log('ðŸ“„ Raw backend response:', response.data);
+    console.log('📄 Raw backend response:', response.data);
     const transformedArticle = transformArticle(response.data);
-    console.log('ðŸ“„ Transformed article:', transformedArticle);
+    console.log('📄 Transformed article:', transformedArticle);
     
     return {
       ...response,
-      data: transformedArticle
+      data: transformedArticle,
     } as AxiosResponse<Article>;
   } catch (error: any) {
-    console.error('ðŸ“„ Failed to get article by slug:', error);
-    console.error('ðŸ“„ Error details:', error.response?.data);
-    throw new Error(`Article with slug "${slug}" not found: ${error.response?.data?.detail || error.message}`);
+    console.error('📄 Failed to get article by slug directly:', error);
+
+    const tryMatch = (articles: Article[] | undefined) => {
+      if (!Array.isArray(articles)) return null;
+      return (
+        articles.find((article) => article.slug === slug) ??
+        articles.find((article) => article.slug?.toLowerCase() === slug.toLowerCase()) ??
+        null
+      );
+    };
+
+    try {
+      const filterResponse = await retryRequest<any>(() =>
+        api.get('/api/articles/', { params: { slug } })
+      );
+      const filterResults = Array.isArray(filterResponse.data?.results)
+        ? filterResponse.data.results
+        : Array.isArray(filterResponse.data)
+          ? filterResponse.data
+          : undefined;
+      const filterMatch = tryMatch(filterResults);
+      if (filterMatch) {
+        return {
+          ...filterResponse,
+          data: filterMatch,
+        } as AxiosResponse<Article>;
+      }
+    } catch (filterError) {
+      console.warn('📄 Slug filter fallback failed:', filterError);
+    }
+
+    try {
+      const searchResponse = await getArticlesBySearch(slug);
+      const searchMatch = tryMatch(searchResponse.data?.results);
+      if (searchMatch) {
+        return {
+          ...searchResponse,
+          data: searchMatch,
+        } as AxiosResponse<Article>;
+      }
+    } catch (searchError) {
+      console.warn('📄 Search fallback failed:', searchError);
+    }
+
+    try {
+      const fallbackResponse = await getArticles();
+      const match = tryMatch(fallbackResponse.data?.results);
+
+      if (!match) {
+        throw new Error(`Article with slug "${slug}" not found in fallback list`);
+      }
+
+      return {
+        ...fallbackResponse,
+        data: match,
+      } as AxiosResponse<Article>;
+    } catch (fallbackError: any) {
+      console.error('📄 Fallback list search failed:', fallbackError);
+      const message =
+        fallbackError?.response?.data?.detail ||
+        fallbackError?.message ||
+        error?.response?.data?.detail ||
+        error.message;
+      throw new Error(`Article with slug "${slug}" not found: ${message}`);
+    }
   }
 };
 
@@ -848,3 +939,7 @@ export const subscribeToPlan = async (plan: string, billingCycle: string, amount
 };
 
 export default api;
+
+
+
+
