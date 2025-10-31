@@ -27,7 +27,7 @@ const Header: React.FC = () => {
   const [suggestions, setSuggestions] = useState<Array<{ id: number; title: string; slug: string; image?: string; date?: string; category?: string }>>([]);
   const [loadingSuggest, setLoadingSuggest] = useState(false);
   const [showSuggest, setShowSuggest] = useState(false);
-  const searchBoxRef = useRef<HTMLLIElement | null>(null);
+  const searchBoxRef = useRef<HTMLDivElement | null>(null);
   const recentKey = 'recentSearches';
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [loadingRecent, setLoadingRecent] = useState(false);
@@ -720,16 +720,10 @@ const Header: React.FC = () => {
             >
               The Age of GenZ
             </span>
-            <span
-              className={`hidden lg:inline ml-4 text-gray-500 font-light transition-opacity ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'} text-[10px] tracking-widest`}
-              style={{ opacity: 1 - shrink }}
-            >
-              EST. 2025 â€¢
-            </span>
-          </Link>
+            </Link>
 
           {/* Desktop Navigation - Force styles to prevent conflicts */}
-          <nav className="hidden lg:block header-desktop-nav">
+          <nav className="hidden lg:flex flex-1 justify-center header-desktop-nav">
             <ul
               className={`flex items-center transition-all ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'}`}
               style={{
@@ -755,202 +749,204 @@ const Header: React.FC = () => {
                   Updating
                 </li>
               )}
-
-              <li
-                className="relative"
-                onMouseEnter={() => setOpenMenu('account')}
-                onFocus={() => setOpenMenu('account')}
+            </ul>
+          </nav>
+          <div className="hidden lg:flex items-center gap-3">
+            <div
+              className="relative"
+              onMouseEnter={() => setOpenMenu('account')}
+              onFocus={() => setOpenMenu('account')}
+            >
+              <button
+                type="button"
+                className={`${navLinkClasses({ isActive: false })} inline-flex items-center gap-1 px-2.5 py-1`}
+                aria-haspopup="true"
+                aria-expanded={openMenu === 'account'}
+                aria-controls="mega-account"
+                onClick={() => setOpenMenu((current) => (current === 'account' ? null : 'account'))}
+                onKeyDown={onMegaKeyDown('account', 'mega-account')}
               >
-                <button
-                  type="button"
-                  className={`${navLinkClasses({ isActive: false })} inline-flex items-center gap-1 px-2.5 py-1`}
-                  aria-haspopup="true"
-                  aria-expanded={openMenu === 'account'}
-                  aria-controls="mega-account"
-                  onClick={() => setOpenMenu((current) => (current === 'account' ? null : 'account'))}
-                  onKeyDown={onMegaKeyDown('account', 'mega-account')}
+                Account <ChevronDown size={14} />
+              </button>
+              {openMenu === 'account' && (
+                <div
+                  id="mega-account"
+                  className="absolute right-0 mt-2 w-52 overflow-hidden rounded-2xl border border-white/10 bg-black/40 text-gray-50 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl"
+                  role="menu"
                 >
-                  Account <ChevronDown size={14} />
-                </button>
-                {openMenu === 'account' && (
-                  <div
-                    id="mega-account"
-                    className="absolute right-0 mt-2 w-52 overflow-hidden rounded-2xl border border-white/10 bg-black/40 text-gray-50 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl"
-                    role="menu"
-                  >
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-white/5 to-transparent opacity-80" />
-                    <div className="relative flex flex-col gap-1 p-4">
-                      <NavLink
-                        to="/subscribe"
-                        className={({ isActive }) =>
-                          `block rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
-                            isActive
-                              ? 'bg-white/15 text-white shadow-inner shadow-white/15'
-                              : 'text-white/85 hover:bg-white/10 hover:text-white'
-                          }`
-                        }
-                        onClick={() => setOpenMenu(null)}
-                      >
-                        Subscribe
-                      </NavLink>
-                      <NavLink
-                        to="/login"
-                        className={({ isActive }) =>
-                          `block rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
-                            isActive
-                              ? 'bg-white/15 text-white shadow-inner shadow-white/15'
-                              : 'text-white/85 hover:bg-white/10 hover:text-white'
-                          }`
-                        }
-                        onClick={() => setOpenMenu(null)}
-                      >
-                        Login
-                      </NavLink>
-                    </div>
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-white/5 to-transparent opacity-80" />
+                  <div className="relative flex flex-col gap-1 p-4">
+                    <NavLink
+                      to="/subscribe"
+                      className={({ isActive }) =>
+                        `block rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
+                          isActive
+                            ? 'bg-white/15 text-white shadow-inner shadow-white/15'
+                            : 'text-white/85 hover:bg-white/10 hover:text-white'
+                        }`
+                      }
+                      onClick={() => setOpenMenu(null)}
+                    >
+                      Subscribe
+                    </NavLink>
+                    <NavLink
+                      to="/login"
+                      className={({ isActive }) =>
+                        `block rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
+                          isActive
+                            ? 'bg-white/15 text-white shadow-inner shadow-white/15'
+                            : 'text-white/85 hover:bg-white/10 hover:text-white'
+                        }`
+                      }
+                      onClick={() => setOpenMenu(null)}
+                    >
+                      Login
+                    </NavLink>
                   </div>
-                )}
-              </li>
-              {/* Search icon + expandable */}
-              <li className="relative" ref={searchBoxRef}>
-                <button
-                  type="button"
-                  className={`group relative ml-4 flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200 ${
-                    showSearch ? 'text-orange-400' : 'text-white hover:text-orange-400'
-                  } hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black`}
-                  aria-label={showSearch ? 'Close search' : 'Search'}
-                  onClick={() => { setShowSearch((s) => !s); setShowSuggest(true); }}
-                >
-                  {showSearch ? <X size={18} /> : renderSearchGlyph(searchVisualState, 'button')}
-                </button>
-                {showSearch && (
-                    <div className="absolute right-0 mt-2 w-[400px] overflow-hidden rounded-2xl border border-white/10 bg-black/50 text-gray-100 shadow-[0_30px_70px_rgba(15,23,42,0.6)] backdrop-blur-xl p-4 z-50">
-                    <div className="group flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 transition duration-200 focus-within:border-orange-500/60 focus-within:bg-white/10 focus-within:shadow-[0_0_30px_rgba(249,115,22,0.25)]">
-                      {renderSearchGlyph(searchVisualState, 'inline')}
-                        <input
-                          autoFocus
-                          type="text"
-                          value={query}
-                          onChange={(e) => { setQuery(e.target.value); setShowSuggest(true); }}
-                        aria-label="Search articles"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && query.trim()) {
-                            const q = query.trim();
-                            saveRecentSearch(q);
-                            navigate(`/search?q=${encodeURIComponent(q)}`);
-                            setShowSuggest(false);
-                            setShowSearch(false);
-                          }
-                        }}
-                          placeholder="Search articles..."
-                          className="flex-1 bg-transparent px-4 py-3 text-sm text-white placeholder:text-white/50 outline-none transition duration-200 focus:text-white"
-                        />
-                        {query && (
-                          <button
-                            className="px-3 py-1.5 rounded text-white/70 hover:text-white text-xs transition-colors"
-                            aria-label="Clear search"
-                            onClick={() => { setQuery(''); setShowSuggest(true); }}
-                          >
-                          Clear
-                        </button>
-                      )}
-                      <button
-                        className="rounded-lg bg-orange-500 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-orange-500/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-                        onClick={() => {
-                          if (!query.trim()) return;
+                </div>
+              )}
+            </div>
+            <div className="relative" ref={searchBoxRef}>
+              <button
+                type="button"
+                className={`group relative flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200 ${
+                  showSearch ? 'text-orange-400' : 'text-white hover:text-orange-400'
+                } hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black`}
+                aria-label={showSearch ? 'Close search' : 'Search'}
+                onClick={() => { setShowSearch((s) => !s); setShowSuggest(true); }}
+              >
+                {showSearch ? <X size={18} /> : renderSearchGlyph(searchVisualState, 'button')}
+              </button>
+              {showSearch && (
+                <div className="absolute right-0 mt-2 w-[400px] overflow-hidden rounded-2xl border border-white/10 bg-black/50 text-gray-100 shadow-[0_30px_70px_rgba(15,23,42,0.6)] backdrop-blur-xl p-4 z-50">
+                  <div className="group flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 transition duration-200 focus-within:border-orange-500/60 focus-within:bg-white/10 focus-within:shadow-[0_0_30px_rgba(249,115,22,0.25)]">
+                    {renderSearchGlyph(searchVisualState, 'inline')}
+                    <input
+                      autoFocus
+                      type="text"
+                      value={query}
+                      onChange={(e) => { setQuery(e.target.value); setShowSuggest(true); }}
+                      aria-label="Search articles"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && query.trim()) {
                           const q = query.trim();
                           saveRecentSearch(q);
                           navigate(`/search?q=${encodeURIComponent(q)}`);
                           setShowSuggest(false);
                           setShowSearch(false);
-                        }}
+                        }
+                      }}
+                      placeholder="Search articles..."
+                      className="flex-1 bg-transparent px-4 py-3 text-sm text-white placeholder:text-white/50 outline-none transition duration-200 focus:text-white"
+                    />
+                    {query && (
+                      <button
+                        className="px-3 py-1.5 rounded text-white/70 hover:text-white text-xs transition-colors"
+                        aria-label="Clear search"
+                        onClick={() => { setQuery(''); setShowSuggest(true); }}
                       >
-                        Search
+                        Clear
                       </button>
-                    </div>
-                    {showSuggest && (
-                      <div className="mt-3">
-                        {query.trim().length >= 2 ? (
-                          <div>
-                            <div className="text-xs text-white/70 mb-2">Suggestions</div>
-                            {loadingSuggest ? (
-                              <div className="text-sm text-white/70">Searchingâ€¦</div>
-                            ) : suggestions.length > 0 ? (
-                              <ul className="divide-y divide-white/10">
-                                {suggestions.map((s) => (
-                                  <li key={s.id}>
-                                    <button
-                                      className="w-full text-left px-2 py-1 rounded-lg text-sm text-white flex items-start gap-3 transition-colors duration-200 hover:bg-white/10"
-                                        onClick={() => { navigate(`/article/${s.slug}`); setShowSuggest(false); setShowSearch(false); }}
-                                    >
-                                      {s.image && (
-                                        <img src={s.image} alt="" className="w-16 h-16 object-cover rounded flex-shrink-0" />
+                    )}
+                    <button
+                      className="rounded-lg bg-orange-500 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-orange-500/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                      onClick={() => {
+                        if (!query.trim()) return;
+                        const q = query.trim();
+                        saveRecentSearch(q);
+                        navigate(`/search?q=${encodeURIComponent(q)}`);
+                        setShowSuggest(false);
+                        setShowSearch(false);
+                      }}
+                    >
+                      Search
+                    </button>
+                  </div>
+                  {showSuggest && (
+                    <div className="mt-3">
+                      {query.trim().length >= 2 ? (
+                        <div>
+                          <div className="text-xs text-white/70 mb-2">Suggestions</div>
+                          {loadingSuggest ? (
+                            <div className="text-sm text-white/70">Searching?</div>
+                          ) : suggestions.length > 0 ? (
+                            <ul className="divide-y divide-white/10">
+                              {suggestions.map((s) => (
+                                <li key={s.id}>
+                                  <button
+                                    className="w-full text-left px-2 py-1 rounded-lg text-sm text-white flex items-start gap-3 transition-colors duration-200 hover:bg-white/10"
+                                    onClick={() => { navigate(`/article/${s.slug}`); setShowSuggest(false); setShowSearch(false); }}
+                                  >
+                                    {s.image && (
+                                      <img src={s.image} alt="" className="w-16 h-16 object-cover rounded flex-shrink-0" />
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-medium line-clamp-2 mb-1">{s.title}</div>
+                                      {(s.category || s.date) && (
+                                        <div className="flex items-center gap-2 text-xs text-white/70">
+                                          {s.category && (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-200 font-medium">
+                                              {s.category}
+                                            </span>
+                                          )}
+                                          {s.date && (
+                                            <span>{new Date(s.date).toLocaleDateString()}</span>
+                                          )}
+                                        </div>
                                       )}
-                                      <div className="flex-1 min-w-0">
-                                        <div className="font-medium line-clamp-2 mb-1">{s.title}</div>
-                                        {(s.category || s.date) && (
-                                            <div className="flex items-center gap-2 text-xs text-white/70">
-                                              {s.category && (
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-200 font-medium">
-                                                  {s.category}
-                                                </span>
-                                              )}
-                                            {s.date && (
-                                              <span>{new Date(s.date).toLocaleDateString()}</span>
-                                            )}
-                                          </div>
-                                        )}
-                                      </div>
-                                    </button>
-                                  </li>
-                                ))}
-                              </ul>
+                                    </div>
+                                  </button>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <div className="text-sm text-white/70">No results</div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                          <div>
+                            <div className="text-xs text-white/70 mb-2">Recent searches</div>
+                            {loadingRecent ? (
+                              <div className="text-sm text-white/70">Loading?</div>
+                            ) : recentSearches.length === 0 ? (
+                              <div className="text-sm text-white/70">No recent searches</div>
                             ) : (
-                              <div className="text-sm text-white/70">No results</div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                            <div>
-                              <div className="text-xs text-white/70 mb-2">Recent searches</div>
-                              {loadingRecent ? (
-                                <div className="text-sm text-white/70">Loadingâ€¦</div>
-                              ) : recentSearches.length === 0 ? (
-                                  <div className="text-sm text-white/70">No recent searches</div>
-                              ) : (
-                                <div className="flex flex-wrap gap-2">
-                                  {recentSearches.map((r) => (
-                                    <button key={r} className="px-2 py-1 text-xs rounded-full bg-white/10 text-white/80 hover:bg-white/15 transition-colors" onClick={() => { navigate(`/search?q=${encodeURIComponent(r)}`); setShowSuggest(false); setShowSearch(false); }}>
-                                      {r}
-                                    </button>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                            <div>
-                                <div className="text-xs text-white/70 mb-2">Trending</div>
                               <div className="flex flex-wrap gap-2">
-                                  {trendingSearches.map((t) => (
-                                    <button key={t} className="px-2 py-1 text-xs rounded-full bg-orange-500/20 text-orange-100 hover:bg-orange-500/30 transition-colors" onClick={() => { navigate(`/search?q=${encodeURIComponent(t)}`); setShowSuggest(false); setShowSearch(false); }}>
-                                    {t}
+                                {recentSearches.map((r) => (
+                                  <button
+                                    key={r}
+                                    className="px-2 py-1 text-xs rounded-full bg-white/10 text-white/80 hover:bg-white/15 transition-colors"
+                                    onClick={() => { navigate(`/search?q=${encodeURIComponent(r)}`); setShowSuggest(false); setShowSearch(false); }}
+                                  >
+                                    {r}
                                   </button>
                                 ))}
                               </div>
+                            )}
+                          </div>
+                          <div>
+                            <div className="text-xs text-white/70 mb-2">Trending</div>
+                            <div className="flex flex-wrap gap-2">
+                              {trendingSearches.map((t) => (
+                                <button
+                                  key={t}
+                                  className="px-2 py-1 text-xs rounded-full bg-orange-500/20 text-orange-100 hover:bg-orange-500/30 transition-colors"
+                                  onClick={() => { navigate(`/search?q=${encodeURIComponent(t)}`); setShowSuggest(false); setShowSearch(false); }}
+                                >
+                                  {t}
+                                </button>
+                              ))}
                             </div>
                           </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </li>
-            </ul>
-            {navStatusMessage && (
-              <span className="sr-only" role="status" aria-live="polite">
-                {navStatusMessage}
-              </span>
-            )}
-          </nav>
-
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
           {/* Mobile Menu Button - Force white color */}
           <button
             className="lg:hidden p-2 text-white hover:text-orange-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-orange-500 rounded-md transition-colors"
@@ -1068,6 +1064,8 @@ const Header: React.FC = () => {
 };
 
 export default Header;
+
+
 
 
 
