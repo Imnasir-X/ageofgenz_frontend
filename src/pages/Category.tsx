@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Clock, Eye, Loader2, ChevronRight } from 'lucide-react';
 import { getArticlesByCategory, getCategories } from '../utils/api';
-import type { Article, Category } from '../types';
+import type { Article, Category, PaginatedResponse } from '../types';
 import {
   resolveCategoryMeta,
   getCategoryAccent,
@@ -84,10 +84,14 @@ const CategoryPage: React.FC = () => {
 
       try {
         const categoriesResponse = await getCategories({ flat: true });
-        const payload = categoriesResponse.data;
-        const categoriesPayload: Category[] = Array.isArray(payload)
-          ? payload
-          : (payload?.results as Category[]) ?? [];
+        const payload = categoriesResponse.data as Category[] | PaginatedResponse<Category> | undefined;
+
+        let categoriesPayload: Category[] = [];
+        if (Array.isArray(payload)) {
+          categoriesPayload = payload;
+        } else if (payload && Array.isArray(payload.results)) {
+          categoriesPayload = payload.results;
+        }
 
         if (categoriesPayload.length > 0) {
           const flatList = flattenCategoryTree(categoriesPayload);
@@ -401,4 +405,3 @@ const CategoryPage: React.FC = () => {
 };
 
 export default CategoryPage;
-
