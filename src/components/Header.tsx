@@ -584,9 +584,9 @@ const Header: React.FC = () => {
   const mobileNavRef = useRef<HTMLDivElement | null>(null);
 
   const navGapBase = isDesktop ? 16 : 12;
-  const navGapExpanded = isDesktop ? 24 : 16;
+  const navGapExpanded = isDesktop ? 28 : 16;
   const navFontCompact = 0.75;
-  const navFontExpanded = isDesktop ? 0.9 : 0.75;
+  const navFontExpanded = isDesktop ? 0.85 : 0.75;
   const navFontDelta = navFontExpanded - navFontCompact;
   const navFontSizeValue =
     navFontDelta === 0
@@ -700,7 +700,7 @@ const Header: React.FC = () => {
         >
           <div className="flex justify-between items-center">
           {/* Logo and Title - Force white text */}
-          <Link to="/" className="flex items-center space-x-2 mr-4">
+          <Link to="/" className="flex items-center space-x-2 mr-8">
             {/* âœ… FIXED: Use public folder logo with cache-busting */}
             <img
               src="/logo.png?v=2025"
@@ -712,7 +712,7 @@ const Header: React.FC = () => {
               }}
             />
             <span
-              className={`${isCompact ? 'text-lg md:text-xl' : 'text-3xl md:text-4xl'} font-bold tracking-normal leading-tight font-serif text-white whitespace-nowrap transition-transform ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'}`}
+              className={`${isCompact ? 'text-lg md:text-xl' : 'text-2xl md:text-3xl'} font-bold tracking-normal leading-tight font-serif text-white whitespace-nowrap transition-transform ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'}`}
               style={{
                 transform: `scale(${titleScale})`,
                 transformOrigin: 'left center',
@@ -751,7 +751,7 @@ const Header: React.FC = () => {
               )}
             </ul>
           </nav>
-          <div className="hidden lg:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-3 pr-4">
             <div
               className="relative"
               onMouseEnter={() => setOpenMenu('account')}
