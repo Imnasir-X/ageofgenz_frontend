@@ -4,15 +4,28 @@ import { Clock, Eye } from 'lucide-react';
 import { getArticlesByCategory, getCategories } from '../utils/api';
 import type { Article, Category } from '../types';
 
+type CategoryArticle = Article & { sanitizedExcerpt?: string };
+
+const stripHtml = (html?: string | null): string => {
+  if (!html) return '';
+  if (typeof window === 'undefined') {
+    return html.replace(/<[^>]+>/g, '');
+  }
+  const temp = document.createElement('div');
+  temp.innerHTML = html;
+  return temp.textContent || temp.innerText || '';
+};
+
 const CategoryPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   
-  const [articles, setArticles] = useState<Article[]>([]);
+  const [articles, setArticles] = useState<CategoryArticle[]>([]);
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   // Category color mapping
+  // TODO: Replace static mapping with API-provided color metadata once category service exposes it.
   const categoryColors: { [key: string]: string } = {
     'Politics': 'bg-red-600',
     'AI & Tech': 'bg-blue-600',
@@ -59,14 +72,25 @@ const CategoryPage: React.FC = () => {
         console.log(`Found ${fetchedArticles.length} articles for category:`, slug);
         
         // Format articles for display
-        const formattedArticles = fetchedArticles.map((article: Article) => ({
-          ...article,
-          formattedDate: new Date(article.date || Date.now()).toLocaleDateString('en-US', {
+        const formattedArticles = fetchedArticles.map((article: Article) => {
+          const formattedDate = new Date(article.date || Date.now()).toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
             year: 'numeric',
-          }),
-        }));
+          });
+          const rawSummary = article.description || article.excerpt || '';
+          const strippedSummary = stripHtml(rawSummary).trim();
+          const sanitizedExcerpt =
+            strippedSummary.length > 0
+              ? `${strippedSummary.slice(0, 100)}${strippedSummary.length > 100 ? '…' : ''}`
+              : 'No description available.';
+
+          return {
+            ...article,
+            formattedDate,
+            sanitizedExcerpt,
+          };
+        });
         
         setArticles(formattedArticles);
         
@@ -82,12 +106,6 @@ const CategoryPage: React.FC = () => {
   }, [slug]);
 
   // Function to strip HTML tags from text
-  const stripHtml = (html: string): string => {
-    const temp = document.createElement('div');
-    temp.innerHTML = html;
-    return temp.textContent || temp.innerText || '';
-  };
-
   // Handle loading state
   if (loading) {
     return (
@@ -147,7 +165,7 @@ const CategoryPage: React.FC = () => {
 
           {/* Articles Grid */}
           {articles.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {articles.map((article) => {
                 console.log('Rendering Category Article:', article);
                 
@@ -156,10 +174,7 @@ const CategoryPage: React.FC = () => {
                   return null;
                 }
                 
-                // Process the description
-                const cleanDescription = article.description || article.excerpt
-                  ? stripHtml(article.description || article.excerpt).substring(0, 100) + '...' 
-                  : 'No description available.';
+                const cleanDescription = article.sanitizedExcerpt || 'No description available.';
                 
                 return (
                   <div key={`category-${article.id}`} className="relative group">

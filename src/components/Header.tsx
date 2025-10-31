@@ -338,7 +338,7 @@ const Header: React.FC = () => {
 
   // Desktop nav link styles - responsive to compact state
   const navLinkClasses = ({ isActive }: { isActive: boolean }): string =>
-    `transition-colors ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'} font-semibold uppercase tracking-wide ${isActive ? 'text-orange-500' : 'text-white'} hover:text-orange-500`;
+    `transition-colors ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'} font-semibold uppercase tracking-wide line-clamp-1 ${isActive ? 'text-orange-500' : 'text-white'} hover:text-orange-500`;
 
   // Mobile nav link styles - with explicit colors
   const mobileNavLinkClasses = ({ isActive }: { isActive: boolean }): string =>
@@ -586,7 +586,7 @@ const Header: React.FC = () => {
   const navGapBase = isDesktop ? 16 : 12;
   const navGapExpanded = isDesktop ? 24 : 16;
   const navFontCompact = 0.75;
-  const navFontExpanded = isDesktop ? 0.875 : 0.75;
+  const navFontExpanded = isDesktop ? 0.9 : 0.75;
   const navFontDelta = navFontExpanded - navFontCompact;
   const navFontSizeValue =
     navFontDelta === 0
@@ -879,8 +879,8 @@ const Header: React.FC = () => {
                                 {suggestions.map((s) => (
                                   <li key={s.id}>
                                     <button
-                                      className="w-full text-left px-2 py-1.5 rounded-lg text-sm text-white flex items-start gap-3 transition-colors duration-200 hover:bg-white/10"
-                                      onClick={() => { navigate(`/article/${s.slug}`); setShowSuggest(false); setShowSearch(false); }}
+                                      className="w-full text-left px-2 py-1 rounded-lg text-sm text-white flex items-start gap-3 transition-colors duration-200 hover:bg-white/10"
+                                        onClick={() => { navigate(`/article/${s.slug}`); setShowSuggest(false); setShowSearch(false); }}
                                     >
                                       {s.image && (
                                         <img src={s.image} alt="" className="w-16 h-16 object-cover rounded flex-shrink-0" />
@@ -970,7 +970,11 @@ const Header: React.FC = () => {
 
         {/* Mobile Menu - Force black background and white text */}
         {isMenuOpen && (
-          <nav ref={mobileNavRef} className="lg:hidden pt-3 pb-3 border-t border-gray-800 bg-black text-white header-mobile-nav" aria-label="Mobile menu">
+          <nav
+            ref={mobileNavRef}
+            className="lg:hidden pt-3 pb-3 border-t border-gray-800 bg-black text-white header-mobile-nav max-h-[60vh] overflow-y-auto"
+            aria-label="Mobile menu"
+          >
             <div className="px-2 space-y-3">
               <form onSubmit={handleMobileSearchSubmit} className="group flex items-center gap-2 rounded-lg border border-gray-800 bg-gray-900 px-4 py-2 shadow-sm">
                 {renderSearchGlyph(mobileSearchVisualState, 'inline')}
