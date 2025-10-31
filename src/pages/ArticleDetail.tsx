@@ -17,7 +17,6 @@ import {
   BookmarkCheck,
   Send,
   Bird,
-  Reddit,
 } from 'lucide-react';
 import { Article } from '../types';
 import {
@@ -36,6 +35,12 @@ const relatedCache = new Map<string, Article[]>();
 const XIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg viewBox="0 0 24 24" fill="currentColor" width={24} height={24} {...props}>
     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
+
+const RedditIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" width={24} height={24} {...props}>
+    <path d="M14.5 3a1 1 0 0 0-1 .81l-.37 1.86a7.18 7.18 0 0 0-2.8.01L10.1 3.8a1 1 0 1 0-2 .4l.35 1.73a5.69 5.69 0 0 0-3.33 5.16c0 3.36 3.24 6.08 7.88 6.08s7.88-2.72 7.88-6.08a5.69 5.69 0 0 0-3.33-5.17l.35-1.72a1 1 0 0 0-1.93-.4l-.24 1.18a7.22 7.22 0 0 0-2.93-.01l.36-1.81A1 1 0 0 0 14.5 3Zm-5.63 7.02a1.5 1.5 0 1 1-1.5 1.5 1.5 1.5 0 0 1 1.5-1.5Zm6.26 0a1.5 1.5 0 1 1-1.5 1.5 1.5 1.5 0 0 1 1.5-1.5Zm-6.05 4.1a.75.75 0 0 1 1.06.05c.6.67 1.51 1.05 2.5 1.05s1.9-.38 2.5-1.05a.75.75 0 0 1 1.12.99C14.31 16.52 12.96 17 11.63 17s-2.68-.48-3.63-1.29a.75.75 0 0 1-.05-1.06Z" />
   </svg>
 );
 
@@ -560,7 +565,7 @@ const ArticleDetail: React.FC = () => {
     {
       name: 'Reddit',
       href: `https://www.reddit.com/submit?url=${encodedShareUrl}&title=${encodedShareTitle}`,
-      Icon: Reddit,
+      Icon: RedditIcon,
     },
   ];
 
