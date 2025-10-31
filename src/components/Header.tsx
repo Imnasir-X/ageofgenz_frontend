@@ -98,11 +98,11 @@ const Header: React.FC = () => {
   const getIconVisuals = useCallback(
     (state: SearchVisualState, variant: 'button' | 'inline') => {
       const buttonIconBase =
-        'relative z-10 flex h-5 w-5 items-center justify-center transition-transform duration-300 group-hover:scale-110 group-focus-visible:scale-110 group-active:scale-105 group-hover:-translate-y-0.5 group-hover:translate-x-0.5';
+        'relative z-10 flex h-5 w-5 items-center justify-center transition-transform duration-200 group-hover:scale-110 group-focus-visible:scale-110 group-active:scale-105 group-hover:-translate-y-0.5 group-hover:translate-x-0.5';
       const buttonHaloBase =
         'pointer-events-none absolute -inset-2 rounded-full transition-all duration-500 group-hover:scale-110 group-focus-visible:scale-110';
       const inlineIconBase =
-        'relative z-10 flex h-4 w-4 items-center justify-center transition-transform duration-300 group-hover:scale-105 group-focus-within:scale-105 group-hover:-translate-y-0.5 group-hover:translate-x-0.5';
+        'relative z-10 flex h-4 w-4 items-center justify-center transition-transform duration-200 group-hover:scale-105 group-focus-within:scale-105 group-hover:-translate-y-0.5 group-hover:translate-x-0.5';
       const inlineHaloBase = 'pointer-events-none absolute -inset-2 rounded-full transition duration-500';
 
       const bases =
@@ -338,7 +338,7 @@ const Header: React.FC = () => {
 
   // Desktop nav link styles - responsive to compact state
   const navLinkClasses = ({ isActive }: { isActive: boolean }): string =>
-    `transition-colors ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'} font-semibold text-sm uppercase tracking-wide ${isActive ? 'text-orange-500' : 'text-white'} hover:text-orange-500`;
+    `transition-colors ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'} font-semibold text-sm uppercase tracking-wide ${isActive ? 'text-orange-500' : 'text-white'} hover:text-orange-500`;
 
   // Mobile nav link styles - with explicit colors
   const mobileNavLinkClasses = ({ isActive }: { isActive: boolean }): string =>
@@ -390,29 +390,33 @@ const Header: React.FC = () => {
     }));
   };
 
-  const renderMobileNavBranch = (node: NavNode, depth: number): React.ReactNode => (
-    <div key={`mobile-${node.slug}-${depth}`} className="space-y-1">
-      <NavLink
-        to={getCategoryPath(node.slug)}
-        className={({ isActive }) =>
-          `block rounded px-3 py-1.5 text-sm transition-colors ${
-            isActive
-              ? 'bg-white/10 text-orange-400 font-semibold'
-              : 'text-gray-200 hover:bg-white/5 hover:text-orange-400'
-          }`
-        }
-        style={{ paddingLeft: depth * 16 }}
-        onClick={() => setIsMenuOpen(false)}
-      >
-        {node.name}
-      </NavLink>
-      {node.children.length > 0 && (
-        <div className="space-y-1 border-l border-gray-800 pl-3">
-          {node.children.map((child) => renderMobileNavBranch(child, depth + 1))}
-        </div>
-      )}
-    </div>
-  );
+  const renderMobileNavBranch = (node: NavNode, depth: number): React.ReactNode => {
+    const shouldRenderChildren = depth < 2 && node.children.length > 0;
+
+    return (
+      <div key={`mobile-${node.slug}-${depth}`} className="space-y-1">
+        <NavLink
+          to={getCategoryPath(node.slug)}
+          className={({ isActive }) =>
+            `block rounded px-3 py-2 text-sm transition-colors ${
+              isActive
+                ? 'bg-white/10 text-orange-400 font-semibold'
+                : 'text-gray-200 hover:bg-white/5 hover:text-orange-400'
+            }`
+          }
+          style={{ paddingLeft: depth * 16 }}
+          onClick={() => setIsMenuOpen(false)}
+        >
+          {node.name}
+        </NavLink>
+        {shouldRenderChildren && (
+          <div className="space-y-1 border-l border-gray-800 pl-3">
+            {node.children.map((child) => renderMobileNavBranch(child, depth + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const renderMobileNavNode = (node: NavNode): React.ReactNode => {
     const hasChildren = node.children.length > 0;
@@ -458,7 +462,7 @@ const Header: React.FC = () => {
             <NavLink
               to={getCategoryPath(node.slug)}
               className={({ isActive }) =>
-                `block px-3 py-1.5 text-sm font-medium transition ${
+                `block px-3 py-2 text-sm font-medium transition ${
                   isActive
                     ? 'text-orange-400'
                     : 'text-gray-300 hover:text-orange-400 hover:bg-white/5'
@@ -468,7 +472,7 @@ const Header: React.FC = () => {
             >
               View all {node.name}
             </NavLink>
-            {node.children.map((child) => renderMobileNavBranch(child, 2))}
+            {node.children.map((child) => renderMobileNavBranch(child, 1))}
           </div>
         )}
       </div>
@@ -578,6 +582,9 @@ const Header: React.FC = () => {
 
   // Focus trap for mobile menu
   const mobileNavRef = useRef<HTMLDivElement | null>(null);
+
+  const navGapBase = isDesktop ? 16 : 12;
+  const navGapExpanded = isDesktop ? 24 : 16;
   useEffect(() => {
     if (!isMenuOpen) return;
     const container = mobileNavRef.current;
@@ -633,7 +640,8 @@ const Header: React.FC = () => {
         </div>
       )}
       <header
-        className={`header-nav sticky top-0 z-[55] text-white font-sans ${hasShadow ? 'shadow-md' : ''} ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'} transition-[padding,transform,background-color,backdrop-filter] bg-black backdrop-blur-md`}
+        className={`header-nav sticky top-0 z-[55] text-white font-sans ${hasShadow ? 'shadow-md' : ''} ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'} transition-[padding,transform,background-color,backdrop-filter] bg-black backdrop-blur-md`}
+        style={{ '--nav-gap-base': `${navGapBase}px`, '--nav-gap-expanded': `${navGapExpanded}px` } as React.CSSProperties}
         onMouseLeave={handleMouseLeave}
         onMouseEnter={handleMouseEnter}
       >
@@ -674,7 +682,7 @@ const Header: React.FC = () => {
           </div>
         </div>
         <div
-          className={`container mx-auto px-4 ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'} transition-all`}
+          className={`container mx-auto px-4 ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'} transition-all`}
           style={{ paddingTop: 16 - 12 * shrink, paddingBottom: 16 - 12 * shrink }}
         >
           <div className="flex justify-between items-center">
@@ -684,14 +692,14 @@ const Header: React.FC = () => {
             <img
               src="/logo.png?v=2025"
               alt="The Age Of GenZ - Home"
-              className={`${isCompact ? 'h-6 md:h-8' : 'h-12 md:h-14'} w-auto transition-transform ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'}`}
+              className={`${isCompact ? 'h-6 md:h-8' : 'h-12 md:h-14'} w-auto transition-transform ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'}`}
               style={{
                 transform: `scale(${logoScale})`,
                 transformOrigin: 'left center',
               }}
             />
             <span
-              className={`${isCompact ? 'text-lg md:text-xl' : 'text-3xl md:text-4xl'} font-bold tracking-normal leading-tight font-serif text-white whitespace-nowrap transition-transform ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'}`}
+              className={`${isCompact ? 'text-lg md:text-xl' : 'text-3xl md:text-4xl'} font-bold tracking-normal leading-tight font-serif text-white whitespace-nowrap transition-transform ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'}`}
               style={{
                 transform: `scale(${titleScale})`,
                 transformOrigin: 'left center',
@@ -700,7 +708,7 @@ const Header: React.FC = () => {
               The Age of GenZ
             </span>
             <span
-              className={`hidden lg:inline ml-4 text-gray-500 font-light transition-opacity ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'} text-xs tracking-wider`}
+              className={`hidden lg:inline ml-4 text-gray-500 font-light transition-opacity ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'} text-xs tracking-wider`}
               style={{ opacity: 1 - shrink }}
             >
               EST. 2025 â€¢
@@ -710,14 +718,9 @@ const Header: React.FC = () => {
           {/* Desktop Navigation - Force styles to prevent conflicts */}
           <nav className="hidden lg:block header-desktop-nav">
             <ul
-              className={`flex items-center transition-all ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'}`}
-              style={{ gap: `${(isDesktop ? 12 : 10) + ((isDesktop ? 20 : 14) - (isDesktop ? 12 : 10)) * (1 - shrink)}px` }}
+              className={`flex items-center transition-all ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'}`}
+              style={{ gap: `calc(var(--nav-gap-base) + (var(--nav-gap-expanded) - var(--nav-gap-base)) * ${1 - shrink})` }}
             >
-              <li>
-                <NavLink to="/home" className={navLinkClasses}>
-                  Latest
-                </NavLink>
-              </li>
               {navItems.map((node) => renderDesktopNavItem(node))}
               {isLive && (
                 <li className="flex items-center gap-2 px-3 py-1.5 bg-red-600/10 rounded-md border border-red-600/20">
@@ -731,33 +734,71 @@ const Header: React.FC = () => {
                 </li>
               )}
               {navLoading && (
-                <li className="flex items-center gap-2 text-xs text-white/70">
+                <li className="ml-2 flex items-center gap-1.5 text-xs text-white/70">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   Updating
                 </li>
               )}
 
-              <li>
-                <NavLink
-                  to="/subscribe"
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
+              <li
+                className="relative"
+                onMouseEnter={() => setOpenMenu('account')}
+                onFocus={() => setOpenMenu('account')}
+              >
+                <button
+                  type="button"
+                  className={`${navLinkClasses({ isActive: false })} inline-flex items-center gap-1 px-2.5 py-1`}
+                  aria-haspopup="true"
+                  aria-expanded={openMenu === 'account'}
+                  aria-controls="mega-account"
+                  onClick={() => setOpenMenu((current) => (current === 'account' ? null : 'account'))}
+                  onKeyDown={onMegaKeyDown('account', 'mega-account')}
                 >
-                  Subscribe
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/login"
-                  className="border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
-                >
-                  Login
-                </NavLink>
+                  Account <ChevronDown size={14} />
+                </button>
+                {openMenu === 'account' && (
+                  <div
+                    id="mega-account"
+                    className="absolute right-0 mt-2 w-52 overflow-hidden rounded-2xl border border-white/10 bg-black/40 text-gray-50 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl"
+                    role="menu"
+                  >
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-white/5 to-transparent opacity-80" />
+                    <div className="relative flex flex-col gap-1 p-4">
+                      <NavLink
+                        to="/subscribe"
+                        className={({ isActive }) =>
+                          `block rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
+                            isActive
+                              ? 'bg-white/15 text-white shadow-inner shadow-white/15'
+                              : 'text-white/85 hover:bg-white/10 hover:text-white'
+                          }`
+                        }
+                        onClick={() => setOpenMenu(null)}
+                      >
+                        Subscribe
+                      </NavLink>
+                      <NavLink
+                        to="/login"
+                        className={({ isActive }) =>
+                          `block rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
+                            isActive
+                              ? 'bg-white/15 text-white shadow-inner shadow-white/15'
+                              : 'text-white/85 hover:bg-white/10 hover:text-white'
+                          }`
+                        }
+                        onClick={() => setOpenMenu(null)}
+                      >
+                        Login
+                      </NavLink>
+                    </div>
+                  </div>
+                )}
               </li>
               {/* Search icon + expandable */}
               <li className="relative" ref={searchBoxRef}>
                 <button
                   type="button"
-                  className={`group relative ml-2 flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 ${
+                  className={`group relative ml-4 flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200 ${
                     showSearch ? 'text-orange-400' : 'text-white hover:text-orange-400'
                   } hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black`}
                   aria-label={showSearch ? 'Close search' : 'Search'}
@@ -766,8 +807,8 @@ const Header: React.FC = () => {
                   {showSearch ? <X size={18} /> : renderSearchGlyph(searchVisualState, 'button')}
                 </button>
                 {showSearch && (
-                    <div className="absolute right-0 mt-2 w-[480px] overflow-hidden rounded-2xl border border-white/10 bg-black/50 text-gray-100 shadow-[0_30px_70px_rgba(15,23,42,0.6)] backdrop-blur-xl p-4 z-50">
-                    <div className="group flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 transition duration-300 focus-within:border-orange-500/60 focus-within:bg-white/10 focus-within:shadow-[0_0_30px_rgba(249,115,22,0.25)]">
+                    <div className="absolute right-0 mt-2 w-[400px] overflow-hidden rounded-2xl border border-white/10 bg-black/50 text-gray-100 shadow-[0_30px_70px_rgba(15,23,42,0.6)] backdrop-blur-xl p-4 z-50">
+                    <div className="group flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 transition duration-200 focus-within:border-orange-500/60 focus-within:bg-white/10 focus-within:shadow-[0_0_30px_rgba(249,115,22,0.25)]">
                       {renderSearchGlyph(searchVisualState, 'inline')}
                         <input
                           autoFocus
@@ -785,7 +826,7 @@ const Header: React.FC = () => {
                           }
                         }}
                           placeholder="Search articles..."
-                          className="flex-1 bg-transparent px-4 py-3 text-sm text-white placeholder:text-white/50 outline-none transition duration-300 focus:text-white"
+                          className="flex-1 bg-transparent px-4 py-3 text-sm text-white placeholder:text-white/50 outline-none transition duration-200 focus:text-white"
                         />
                         {query && (
                           <button
@@ -822,7 +863,7 @@ const Header: React.FC = () => {
                                 {suggestions.map((s) => (
                                   <li key={s.id}>
                                     <button
-                                      className="w-full text-left px-2 py-2 rounded-lg text-sm text-white flex items-start gap-3 transition-colors duration-200 hover:bg-white/10"
+                                      className="w-full text-left px-2 py-1.5 rounded-lg text-sm text-white flex items-start gap-3 transition-colors duration-200 hover:bg-white/10"
                                       onClick={() => { navigate(`/article/${s.slug}`); setShowSuggest(false); setShowSearch(false); }}
                                     >
                                       {s.image && (
@@ -852,7 +893,7 @@ const Header: React.FC = () => {
                             )}
                           </div>
                         ) : (
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             <div>
                               <div className="text-xs text-white/70 mb-2">Recent searches</div>
                               {loadingRecent ? (
@@ -915,7 +956,7 @@ const Header: React.FC = () => {
         {isMenuOpen && (
           <nav ref={mobileNavRef} className="lg:hidden pt-3 pb-3 border-t border-gray-800 bg-black text-white header-mobile-nav" aria-label="Mobile menu">
             <div className="px-2 space-y-3">
-              <form onSubmit={handleMobileSearchSubmit} className="group flex items-center gap-2 rounded-lg border border-gray-800 bg-gray-900 px-4 py-3 shadow-sm">
+              <form onSubmit={handleMobileSearchSubmit} className="group flex items-center gap-2 rounded-lg border border-gray-800 bg-gray-900 px-4 py-2 shadow-sm">
                 {renderSearchGlyph(mobileSearchVisualState, 'inline')}
                 <input
                   type="search"
@@ -933,13 +974,7 @@ const Header: React.FC = () => {
                 </button>
               </form>
               {/* Main Navigation */}
-              <div className="space-y-2">
-                <NavLink to="/home" className={mobileNavLinkClasses} onClick={() => setIsMenuOpen(false)}>
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Latest</span>
-                    <ChevronRight size={16} className="text-gray-500" />
-                  </div>
-                </NavLink>
+              <div className="space-y-3">
                 {navItems.map((node) => renderMobileNavNode(node))}
                 {navLoading && (
                   <div className="flex items-center gap-2 px-3 py-2 text-xs text-gray-400">
