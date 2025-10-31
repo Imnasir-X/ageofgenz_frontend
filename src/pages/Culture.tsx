@@ -1,18 +1,9 @@
 import React from 'react';
-import CategoryPage from '../components/CategoryPage';
-import { CATEGORY_SLUGS } from '../constants/categories';
+import { Navigate } from 'react-router-dom';
+import { resolveCategorySlug } from '../constants/categories';
 
-const Culture: React.FC = () => {
-  return (
-    <CategoryPage
-      slug={CATEGORY_SLUGS.culture}
-      title="Culture Unleashed"
-      description="Art, music, fashion, and the trends defining Gen Z. This is where culture gets loud and proud."
-      metaTitle="Culture | The Age of GenZ"
-      metaDescription="Latest culture stories: music, fashion, art, and internet trends."
-      emptyMessage="No culture articles available yet."
-    />
-  );
-};
+const target = resolveCategorySlug('culture');
+
+const Culture: React.FC = () => <Navigate to={`/category/${target.slug}`} replace />;
 
 export default Culture;

@@ -1,17 +1,21 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { ChevronDown, ChevronRight, Search as SearchIcon, X, Loader2 } from 'lucide-react';
-import { getArticlesBySearch, getLatestArticles } from '../utils/api';
-// ✅ REMOVED: import Logo from '../assets/images/logo.png';
+import { getArticlesBySearch, getLatestArticles, getCategories } from '../utils/api';
+import { buildNavTreeFromCategories, getFallbackNavTree, type NavNode } from '../utils/categoryHelpers';
+// REMOVED: import Logo from '../assets/images/logo.png';
 
 type SearchVisualState = 'idle' | 'typing' | 'loading';
 
 const Header: React.FC = () => {
+  const [navItems, setNavItems] = useState<NavNode[]>(() => getFallbackNavTree());
+  const [navLoading, setNavLoading] = useState(false);
+  const [navError, setNavError] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null); // desktop mega menu key
   const [isCompact, setIsCompact] = useState(false);
   const [hasShadow, setHasShadow] = useState(false);
-  const [shrink, setShrink] = useState(0); // 0 (full) → 1 (compact)
+  const [shrink, setShrink] = useState(0); // 0 (full) -> 1 (compact)
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [isDesktop, setIsDesktop] = useState<boolean>(() => (typeof window !== 'undefined' ? window.matchMedia('(min-width: 768px)').matches : true));
 
@@ -27,6 +31,39 @@ const Header: React.FC = () => {
   const recentKey = 'recentSearches';
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [loadingRecent, setLoadingRecent] = useState(false);
+  const [mobileExpandedSections, setMobileExpandedSections] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    let cancelled = false;
+
+    const hydrateNavigation = async () => {
+      setNavLoading(true);
+      try {
+        const response = await getCategories({ flat: true });
+        if (cancelled) return;
+
+        const payload = Array.isArray(response.data) ? response.data : [];
+        const nextTree = buildNavTreeFromCategories(payload);
+        setNavItems(nextTree.length > 0 ? nextTree : getFallbackNavTree());
+        setNavError(null);
+      } catch (error: any) {
+        if (cancelled) return;
+        setNavItems(getFallbackNavTree());
+        setNavError(error?.message || 'Failed to load categories');
+        console.error('Header navigation failed to load categories', error);
+      } finally {
+        if (!cancelled) {
+          setNavLoading(false);
+        }
+      }
+    };
+
+    hydrateNavigation();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   useEffect(() => {
     if (!showSearch) return;
     setLoadingRecent(true);
@@ -51,6 +88,12 @@ const Header: React.FC = () => {
     () => (mobileQuery.trim().length > 0 ? 'typing' : 'idle'),
     [mobileQuery],
   );
+
+  useEffect(() => {
+    if (!isMenuOpen) {
+      setMobileExpandedSections({});
+    }
+  }, [isMenuOpen]);
 
   const getIconVisuals = useCallback(
     (state: SearchVisualState, variant: 'button' | 'inline') => {
@@ -324,6 +367,215 @@ const Header: React.FC = () => {
     }
   };
 
+  const navStatusMessage = useMemo(() => {
+    if (navLoading) return 'Loading categories...';
+    if (navError) return 'Using fallback categories.';
+    return null;
+  }, [navLoading, navError]);
+
+  const getCategoryPath = (slug: string) => {
+    if (!slug) return '/';
+    switch (slug) {
+      case 'trending':
+        return '/trending';
+      default:
+        return `/category/${slug}`;
+    }
+  };
+
+  const toggleMobileSection = (slug: string) => {
+    setMobileExpandedSections((prev) => ({
+      ...prev,
+      [slug]: !prev[slug],
+    }));
+  };
+
+  const renderMobileNavBranch = (node: NavNode, depth: number): React.ReactNode => (
+    <div key={`mobile-${node.slug}-${depth}`} className="space-y-1">
+      <NavLink
+        to={getCategoryPath(node.slug)}
+        className={({ isActive }) =>
+          `block rounded px-3 py-1.5 text-sm transition-colors ${
+            isActive
+              ? 'bg-white/10 text-orange-400 font-semibold'
+              : 'text-gray-200 hover:bg-white/5 hover:text-orange-400'
+          }`
+        }
+        style={{ paddingLeft: depth * 16 }}
+        onClick={() => setIsMenuOpen(false)}
+      >
+        {node.name}
+      </NavLink>
+      {node.children.length > 0 && (
+        <div className="space-y-1 border-l border-gray-800 pl-3">
+          {node.children.map((child) => renderMobileNavBranch(child, depth + 1))}
+        </div>
+      )}
+    </div>
+  );
+
+  const renderMobileNavNode = (node: NavNode): React.ReactNode => {
+    const hasChildren = node.children.length > 0;
+    if (!hasChildren) {
+      return (
+        <NavLink
+          key={`mobile-root-${node.slug}`}
+          to={getCategoryPath(node.slug)}
+          className={mobileNavLinkClasses}
+          onClick={() => setIsMenuOpen(false)}
+        >
+          <div className="flex items-center justify-between">
+            <span className="font-medium">{node.name}</span>
+            <ChevronRight size={16} className="text-gray-500" />
+          </div>
+        </NavLink>
+      );
+    }
+
+    const expanded = !!mobileExpandedSections[node.slug];
+    const sectionId = `mobile-section-${node.slug}`;
+
+    return (
+      <div
+        key={`mobile-root-${node.slug}`}
+        className="rounded-lg border border-gray-800 bg-gray-900/40"
+      >
+        <button
+          type="button"
+          className="flex w-full items-center justify-between px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-800"
+          onClick={() => toggleMobileSection(node.slug)}
+          aria-expanded={expanded}
+          aria-controls={sectionId}
+        >
+          <span>{node.name}</span>
+          <ChevronDown
+            size={16}
+            className={`transition-transform ${expanded ? 'rotate-180' : ''}`}
+          />
+        </button>
+        {expanded && (
+          <div id={sectionId} className="space-y-1 pb-2">
+            <NavLink
+              to={getCategoryPath(node.slug)}
+              className={({ isActive }) =>
+                `block px-3 py-1.5 text-sm font-medium transition ${
+                  isActive
+                    ? 'text-orange-400'
+                    : 'text-gray-300 hover:text-orange-400 hover:bg-white/5'
+                }`
+              }
+              onClick={() => setIsMenuOpen(false)}
+            >
+              View all {node.name}
+            </NavLink>
+            {node.children.map((child) => renderMobileNavBranch(child, 2))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderDesktopNavItem = (node: NavNode): React.ReactNode => {
+    const hasChildren = node.children.length > 0;
+    if (!hasChildren) {
+      return (
+        <li key={node.slug}>
+          <NavLink
+            to={getCategoryPath(node.slug)}
+            className={navLinkClasses}
+            onClick={() => setOpenMenu(null)}
+          >
+            {node.name}
+          </NavLink>
+        </li>
+      );
+    }
+
+    const menuId = `mega-${node.slug}`;
+
+    return (
+      <li
+        key={node.slug}
+        className="relative"
+        onMouseEnter={() => setOpenMenu(node.slug)}
+        onFocus={() => setOpenMenu(node.slug)}
+      >
+        <button
+          type="button"
+          className={`${navLinkClasses({ isActive: false })} inline-flex items-center gap-1`}
+          aria-haspopup="true"
+          aria-expanded={openMenu === node.slug}
+          aria-controls={menuId}
+          onClick={() => setOpenMenu((current) => (current === node.slug ? null : node.slug))}
+          onKeyDown={onMegaKeyDown(node.slug, menuId)}
+        >
+          {node.name} <ChevronDown size={14} />
+        </button>
+        {openMenu === node.slug && (
+          <div
+            id={menuId}
+            className="absolute left-0 mt-2 w-80 overflow-hidden rounded-2xl border border-white/10 bg-black/40 text-gray-50 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl"
+            role="menu"
+          >
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-white/5 to-transparent opacity-80" />
+            <div className="relative flex flex-col gap-1 p-4">
+              <NavLink
+                to={getCategoryPath(node.slug)}
+                className={({ isActive }) =>
+                  `block rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
+                    isActive
+                      ? 'bg-white/15 text-white shadow-inner shadow-white/15'
+                      : 'text-white/85 hover:bg-white/10 hover:text-white'
+                  }`
+                }
+                onClick={() => setOpenMenu(null)}
+              >
+                View all {node.name}
+              </NavLink>
+              {node.children.map((child) => (
+                <div key={child.slug} className="rounded-lg pl-1">
+                  <NavLink
+                    to={getCategoryPath(child.slug)}
+                    className={({ isActive }) =>
+                      `block rounded-lg px-3 py-1.5 text-sm leading-snug transition duration-200 ${
+                        isActive
+                          ? 'bg-white/15 text-white shadow-inner shadow-white/15'
+                          : 'text-white/80 hover:bg-white/10 hover:text-white'
+                      }`
+                    }
+                    onClick={() => setOpenMenu(null)}
+                  >
+                    {child.name}
+                  </NavLink>
+                  {child.children.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-1 pl-3">
+                      {child.children.map((grandchild) => (
+                        <NavLink
+                          key={grandchild.slug}
+                          to={getCategoryPath(grandchild.slug)}
+                          className={({ isActive }) =>
+                            `inline-flex items-center rounded-full px-2 py-0.5 text-xs transition ${
+                              isActive
+                                ? 'bg-orange-500/30 text-orange-200'
+                                : 'text-white/70 hover:bg-white/10 hover:text-white'
+                            }`
+                          }
+                          onClick={() => setOpenMenu(null)}
+                        >
+                          {grandchild.name}
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </li>
+    );
+  };
+
   // Focus trap for mobile menu
   const mobileNavRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -367,7 +619,7 @@ const Header: React.FC = () => {
             </div>
             <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
               <Link to={`/article/${breakingNews.slug}`} className="text-white underline hover:text-gray-200 whitespace-nowrap">
-                Read more →
+                Read more â†’
               </Link>
               <button
                 onClick={() => setBreakingDismissed(true)}
@@ -401,7 +653,7 @@ const Header: React.FC = () => {
         >
           <div className="text-xs uppercase tracking-wider font-medium">
             {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()}
-            {isLive ? ' • LIVE' : ''}
+            {isLive ? ' â€¢ LIVE' : ''}
           </div>
           <div className="flex items-center gap-4">
             <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-orange-500 transition-colors">
@@ -428,7 +680,7 @@ const Header: React.FC = () => {
           <div className="flex justify-between items-center">
           {/* Logo and Title - Force white text */}
           <Link to="/" className="flex items-center space-x-2">
-            {/* ✅ FIXED: Use public folder logo with cache-busting */}
+            {/* âœ… FIXED: Use public folder logo with cache-busting */}
             <img
               src="/logo.png?v=2025"
               alt="The Age Of GenZ - Home"
@@ -451,7 +703,7 @@ const Header: React.FC = () => {
               className={`hidden lg:inline ml-4 text-gray-500 font-light transition-opacity ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'} text-xs tracking-wider`}
               style={{ opacity: 1 - shrink }}
             >
-              EST. 2025 •
+              EST. 2025 â€¢
             </span>
           </Link>
 
@@ -461,8 +713,12 @@ const Header: React.FC = () => {
               className={`flex items-center transition-all ${prefersReducedMotion ? 'duration-0' : 'duration-300 ease-out'}`}
               style={{ gap: `${(isDesktop ? 12 : 10) + ((isDesktop ? 20 : 14) - (isDesktop ? 12 : 10)) * (1 - shrink)}px` }}
             >
-              <li><NavLink to="/home" className={navLinkClasses}>Latest</NavLink></li>
-              <li><NavLink to="/trending" className={navLinkClasses}>Trending</NavLink></li>
+              <li>
+                <NavLink to="/home" className={navLinkClasses}>
+                  Latest
+                </NavLink>
+              </li>
+              {navItems.map((node) => renderDesktopNavItem(node))}
               {isLive && (
                 <li className="flex items-center gap-2 px-3 py-1.5 bg-red-600/10 rounded-md border border-red-600/20">
                   <div className="relative flex items-center">
@@ -474,98 +730,12 @@ const Header: React.FC = () => {
                   </Link>
                 </li>
               )}
-              <li><NavLink to="/ai" className={navLinkClasses}>Tech</NavLink></li>
-              <li><NavLink to="/opinion" className={navLinkClasses}>Opinion</NavLink></li>
-              {/* World Mega Menu */}
-              <li className="relative" onMouseEnter={() => setOpenMenu('world')}>
-                <button
-                  type="button"
-                  className={`${navLinkClasses({ isActive: false })} inline-flex items-center gap-1`}
-                  aria-haspopup="true"
-                  aria-expanded={openMenu === 'world'}
-                  onClick={() => setOpenMenu(openMenu === 'world' ? null : 'world')}
-                  onKeyDown={onMegaKeyDown('world', 'mega-world')}
-                >
-                  Global <ChevronDown size={14} />
-                </button>
-                {openMenu === 'world' && (
-                  <div
-                    id="mega-world"
-                    className="absolute left-0 mt-2 w-72 overflow-hidden rounded-2xl border border-white/10 bg-black/40 text-gray-50 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl"
-                  >
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-white/5 to-transparent opacity-80" />
-                    <div className="relative flex flex-col gap-1 p-4">
-                      {[
-                        { label: 'Europe', to: '/category/europe' },
-                        { label: 'Asia', to: '/category/asia' },
-                        { label: 'Middle East', to: '/category/middle-east' },
-                        { label: 'Africa', to: '/category/africa' },
-                        { label: 'Americas', to: '/category/americas' },
-                        { label: 'Australia', to: '/category/australia' },
-                      ].map((item) => (
-                        <NavLink
-                          key={item.label}
-                          to={item.to}
-                          className={({ isActive }) =>
-                            `block rounded-lg px-3 py-1.5 text-sm leading-snug transition duration-200 ${
-                              isActive
-                                ? 'bg-white/15 text-white shadow-inner shadow-white/15'
-                                : 'text-white/85 hover:bg-white/10 hover:text-white'
-                            }`
-                          }
-                        >
-                          {item.label}
-                        </NavLink>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </li>
-              {/* Politics Mega Menu */}
-              <li className="relative" onMouseEnter={() => setOpenMenu('politics')}>
-                <button
-                  type="button"
-                  className={`${navLinkClasses({ isActive: false })} inline-flex items-center gap-1`}
-                  aria-haspopup="true"
-                  aria-expanded={openMenu==='politics'}
-                  onClick={() => setOpenMenu(openMenu === 'politics' ? null : 'politics')}
-                  onKeyDown={onMegaKeyDown('politics', 'mega-politics')}
-                >
-                  Politics <ChevronDown size={14} />
-                </button>
-                {openMenu === 'politics' && (
-                  <div
-                    id="mega-politics"
-                    className="absolute left-0 mt-2 w-72 overflow-hidden rounded-2xl border border-white/10 bg-black/40 text-gray-50 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl"
-                  >
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-white/5 to-transparent opacity-80" />
-                    <div className="relative flex flex-col gap-1 p-4">
-                      {[
-                        { label: 'U.S. Politics', to: '/politics' },
-                        { label: 'World Politics', to: '/world' },
-                        { label: 'Elections', to: '/category/elections' },
-                        { label: 'Congress', to: '/category/congress' },
-                        { label: 'Supreme Court', to: '/category/supreme-court' },
-                        { label: 'Opinion', to: '/opinion' },
-                      ].map((item) => (
-                        <NavLink
-                          key={item.label}
-                          to={item.to}
-                          className={({ isActive }) =>
-                            `block rounded-lg px-3 py-1.5 text-sm leading-snug transition duration-200 ${
-                              isActive
-                                ? 'bg-white/15 text-white shadow-inner shadow-white/15'
-                                : 'text-white/85 hover:bg-white/10 hover:text-white'
-                            }`
-                          }
-                        >
-                          {item.label}
-                        </NavLink>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </li>
+              {navLoading && (
+                <li className="flex items-center gap-2 text-xs text-white/70">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Updating
+                </li>
+              )}
 
               <li>
                 <NavLink
@@ -646,7 +816,7 @@ const Header: React.FC = () => {
                           <div>
                             <div className="text-xs text-white/70 mb-2">Suggestions</div>
                             {loadingSuggest ? (
-                              <div className="text-sm text-white/70">Searching…</div>
+                              <div className="text-sm text-white/70">Searchingâ€¦</div>
                             ) : suggestions.length > 0 ? (
                               <ul className="divide-y divide-white/10">
                                 {suggestions.map((s) => (
@@ -686,7 +856,7 @@ const Header: React.FC = () => {
                             <div>
                               <div className="text-xs text-white/70 mb-2">Recent searches</div>
                               {loadingRecent ? (
-                                <div className="text-sm text-white/70">Loading…</div>
+                                <div className="text-sm text-white/70">Loadingâ€¦</div>
                               ) : recentSearches.length === 0 ? (
                                   <div className="text-sm text-white/70">No recent searches</div>
                               ) : (
@@ -717,6 +887,11 @@ const Header: React.FC = () => {
                 )}
               </li>
             </ul>
+            {navStatusMessage && (
+              <span className="sr-only" role="status" aria-live="polite">
+                {navStatusMessage}
+              </span>
+            )}
           </nav>
 
           {/* Mobile Menu Button - Force white color */}
@@ -758,75 +933,27 @@ const Header: React.FC = () => {
                 </button>
               </form>
               {/* Main Navigation */}
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <NavLink to="/home" className={mobileNavLinkClasses} onClick={() => setIsMenuOpen(false)}>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m2.25-13.5h.75c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-2.25M3.75 5.25h.75c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.75m0 0h-.375c-.621 0-1.125-.504-1.125-1.125V5.625c0-.621.504-1.125 1.125-1.125H3.75z" />
-                      </svg>
-                      <span className="font-medium">Latest</span>
-                    </div>
+                    <span className="font-medium">Latest</span>
                     <ChevronRight size={16} className="text-gray-500" />
                   </div>
                 </NavLink>
-                <NavLink to="/trending" className={mobileNavLinkClasses} onClick={() => setIsMenuOpen(false)}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
-                      </svg>
-                      <span className="font-medium">Trending</span>
-                    </div>
-                    <ChevronRight size={16} className="text-gray-500" />
+                {navItems.map((node) => renderMobileNavNode(node))}
+                {navLoading && (
+                  <div className="flex items-center gap-2 px-3 py-2 text-xs text-gray-400">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Updating categories...
                   </div>
-                </NavLink>
-                <NavLink to="/ai" className={mobileNavLinkClasses} onClick={() => setIsMenuOpen(false)}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />
-                      </svg>
-                      <span className="font-medium">Tech</span>
-                    </div>
-                    <ChevronRight size={16} className="text-gray-500" />
+                )}
+                {navError && !navLoading && (
+                  <div className="px-3 text-xs text-orange-400">
+                    Showing fallback categories.
                   </div>
-                </NavLink>
-                <NavLink to="/opinion" className={mobileNavLinkClasses} onClick={() => setIsMenuOpen(false)}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
-                      </svg>
-                      <span className="font-medium">Opinion</span>
-                    </div>
-                    <ChevronRight size={16} className="text-gray-500" />
-                  </div>
-                </NavLink>
-                <NavLink to="/world" className={mobileNavLinkClasses} onClick={() => setIsMenuOpen(false)}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
-                      </svg>
-                      <span className="font-medium">Global</span>
-                    </div>
-                    <ChevronRight size={16} className="text-gray-500" />
-                  </div>
-                </NavLink>
-                <NavLink to="/politics" className={mobileNavLinkClasses} onClick={() => setIsMenuOpen(false)}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15l-.75 18h-13.5L4.5 3z" />
-                      </svg>
-                      <span className="font-medium">Politics</span>
-                    </div>
-                    <ChevronRight size={16} className="text-gray-500" />
-                  </div>
-                </NavLink>
+                )}
               </div>
-              
+
               {/* Action Buttons */}
               <div className="border-t border-gray-700 pt-3 mt-3 space-y-2">
                 <Link
@@ -886,3 +1013,7 @@ const Header: React.FC = () => {
 };
 
 export default Header;
+
+
+
+

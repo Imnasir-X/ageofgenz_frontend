@@ -1,11 +1,10 @@
 import React from 'react';
 import CategoryPage from '../components/CategoryPage';
-import { CATEGORY_SLUGS } from '../constants/categories';
 
 const Sports: React.FC = () => {
   return (
     <CategoryPage
-      slug={CATEGORY_SLUGS.sports}
+      slug="sports"
       title="Sports Central"
       description="From game-changing plays to athlete activism — covering sports that matter to the next generation."
       metaTitle="Sports | The Age of GenZ"

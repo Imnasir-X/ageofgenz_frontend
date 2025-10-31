@@ -1,5 +1,5 @@
 ﻿import axios, { AxiosResponse, AxiosError } from 'axios';
-import type { Article, Category } from '../types';
+import type { Article, Category, PaginatedResponse, CategoryListMeta } from '../types';
 
 // âœ… FIXED: Use production backend URL as fallback
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://ageofgenz-backend.onrender.com';
@@ -431,24 +431,77 @@ export const getArticleBySlug = async (slug: string) => {
   }
 };
 
-export const getCategories = async () => {
-  console.log('ðŸ“‚ Fetching categories from backend');
-  
+type CategoriesApiPayload = PaginatedResponse<Category> | Category[];
+
+interface GetCategoriesOptions {
+  flat?: boolean;
+  page?: number | string;
+  params?: Record<string, string | number | boolean | undefined>;
+}
+
+const normalizeCategoriesPayload = (payload: CategoriesApiPayload) => {
+  if (Array.isArray(payload)) {
+    return {
+      items: payload,
+      meta: {
+        count: payload.length,
+        next: null,
+        previous: null,
+      } as CategoryListMeta,
+    };
+  }
+
+  const results = payload?.results ?? [];
+  return {
+    items: results,
+    meta: {
+      count: payload?.count ?? results.length,
+      next: payload?.next ?? null,
+      previous: payload?.previous ?? null,
+    } as CategoryListMeta,
+  };
+};
+
+export const getCategories = async (options: GetCategoriesOptions = {}) => {
+  console.log('📂 Fetching categories from backend', options);
+
+  const params: Record<string, string> = {};
+
+  if (options.flat) {
+    params.flat = 'true';
+  }
+  if (options.page !== undefined) {
+    params.page = String(options.page);
+  }
+  if (options.params) {
+    Object.entries(options.params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        params[key] = String(value);
+      }
+    });
+  }
+
   try {
-    const response = await retryRequest<Category[]>(() =>
-      api.get('/api/categories/')
+    const response = await retryRequest<CategoriesApiPayload>(() =>
+      api.get('/api/categories/', { params })
     );
-    
-    console.log('ðŸ“‚ Categories fetched:', response.data);
+
+    const { items, meta } = normalizeCategoriesPayload(response.data);
+
+    console.log('📂 Categories fetched:', { count: meta.count, flat: options.flat });
+
     return {
       ...response,
-      data: response.data
-    } as AxiosResponse<Category[]>;
+      data: items,
+      meta,
+      raw: response.data,
+    } as AxiosResponse<Category[]> & { meta: CategoryListMeta; raw: CategoriesApiPayload };
   } catch (error) {
     console.error('Failed to fetch categories:', error);
     throw error;
   }
 };
+
 
 // FIXED: Simplified category filtering using Django backend first
 export const getArticlesByCategory = async (categorySlug: string, page: number = 1) => {

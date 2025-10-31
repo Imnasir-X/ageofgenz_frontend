@@ -28,6 +28,13 @@ export interface Category {
   description?: string;
   color?: string;
   is_active?: boolean;
+  parent_slug?: string | null;
+  children?: Category[];
+}
+export interface CategoryListMeta {
+  count: number;
+  next: string | null;
+  previous: string | null;
 }
 
 // Tag type (not in backend but kept for compatibility)

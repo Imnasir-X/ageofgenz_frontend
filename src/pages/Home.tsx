@@ -13,6 +13,7 @@ import {
 } from '../utils/api';
 import { RefreshCw, Search, X, TrendingUp, Clock, BookOpen, Pause, Play, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import type { Article, Category } from '../types';
+import { buildHomeCategories } from '../utils/categoryHelpers';
 
 const HERO_ROTATE_INTERVAL = 7000;
 
@@ -45,7 +46,12 @@ const Home: React.FC = () => {
   const [latestArticles, setLatestArticles] = useState<Article[]>([]);
   
   const [searchResults, setSearchResults] = useState<Article[]>([]);
-  const [popularCategories, setPopularCategories] = useState<Category[]>([]);
+  const [rawCategoryData, setRawCategoryData] = useState<Category[] | null>(null);
+  const [usingFallbackCategories, setUsingFallbackCategories] = useState<boolean>(true);
+  const popularCategories = useMemo(
+    () => buildHomeCategories(rawCategoryData ?? undefined),
+    [rawCategoryData],
+  );
   const [activeCategory, setActiveCategory] = useState<string>('all');
   
   // Infinite scroll state for Latest
@@ -98,6 +104,49 @@ const Home: React.FC = () => {
     const formatted = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
     return formatted;
   };
+
+  const tabListId = 'home-category-tabs';
+  const tabPanelId = 'home-category-tabpanel';
+  const getTabId = useCallback((slug: string) => `home-category-tab-${slug}`, []);
+  const activeTabId = getTabId(activeCategory);
+  const tabOrder = useMemo(
+    () => ['all', ...popularCategories.map((cat) => cat.slug)],
+    [popularCategories],
+  );
+  const handleTabKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLButtonElement>, currentSlug: string) => {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
+        return;
+      }
+      event.preventDefault();
+      const currentIndex = tabOrder.indexOf(currentSlug);
+      if (currentIndex === -1) return;
+      let nextIndex = currentIndex;
+      if (event.key === 'ArrowRight') {
+        nextIndex = (currentIndex + 1) % tabOrder.length;
+      } else if (event.key === 'ArrowLeft') {
+        nextIndex = (currentIndex - 1 + tabOrder.length) % tabOrder.length;
+      } else if (event.key === 'Home') {
+        nextIndex = 0;
+      } else {
+        nextIndex = tabOrder.length - 1;
+      }
+      const nextSlug = tabOrder[nextIndex];
+      setActiveCategory(nextSlug);
+      if (typeof document !== 'undefined') {
+        const nextTab = document.getElementById(getTabId(nextSlug));
+        nextTab?.focus();
+      }
+    },
+    [getTabId, setActiveCategory, tabOrder],
+  );
+
+  useEffect(() => {
+    if (activeCategory === 'all') return;
+    if (!popularCategories.some((cat) => cat.slug === activeCategory)) {
+      setActiveCategory('all');
+    }
+  }, [activeCategory, popularCategories]);
 
   const getCategoryButtonClasses = (isActive: boolean) =>
     `inline-flex items-center whitespace-nowrap rounded-full border border-transparent px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 ${
@@ -571,22 +620,23 @@ const Home: React.FC = () => {
     const fetchCategories = async () => {
       setLoadingCategories(true);
       try {
-        console.log('🏠 Fetching popular categories...');
-        const response = await getCategories();
+        console.log('?? Fetching popular categories...');
+        const response = await getCategories({ flat: true });
         console.log('Categories Response:', response.data);
-        
-        const categories = response.data.slice(0, 6) || [];
-        setPopularCategories(categories);
-      } catch (err: any) {
+        const categories = Array.isArray(response.data) ? (response.data as Category[]) : [];
+        setRawCategoryData(categories);
+        setUsingFallbackCategories(categories.length === 0);
+      } catch (err) {
         console.error('Categories Error:', err);
-        setPopularCategories([
-          { id: 1, name: 'Culture', slug: 'culture' },
-          { id: 2, name: 'Sports', slug: 'sports' },
-          { id: 3, name: 'Insights', slug: 'insights' },
-          { id: 4, name: 'Memes', slug: 'memes' },
-          { id: 5, name: 'World', slug: 'world' },
-          { id: 6, name: 'Politics', slug: 'politics' },
-        ]);
+        console.warn('Using fallback category list due to API error.');
+        if (typeof window !== 'undefined') {
+          const sentry = (window as typeof window & {
+            Sentry?: { captureException?: (error: unknown) => void };
+          }).Sentry;
+          sentry?.captureException?.(err);
+        }
+        setRawCategoryData(null);
+        setUsingFallbackCategories(true);
       } finally {
         setLoadingCategories(false);
       }
@@ -1221,23 +1271,40 @@ const Home: React.FC = () => {
                 </div>
               ) : (
                 <div className="relative -mx-2 overflow-hidden rounded-full bg-orange-50/60 px-2 py-2 shadow-inner">
-                  <div className="flex gap-2 overflow-x-auto pb-1 pl-1 pr-4 md:justify-center" role="tablist" aria-label="Article categories">
+                  <div
+                    id={tabListId}
+                    className="flex gap-2 overflow-x-auto pb-1 pl-1 pr-4 md:justify-center"
+                    role="tablist"
+                    aria-label="Article categories"
+                    aria-orientation="horizontal"
+                  >
                     <button
                       type="button"
+                      role="tab"
+                      id={getTabId('all')}
+                      aria-controls={tabPanelId}
+                      aria-selected={activeCategory === 'all'}
+                      tabIndex={activeCategory === 'all' ? 0 : -1}
                       onClick={() => setActiveCategory('all')}
-                      aria-pressed={activeCategory === 'all'}
+                      onKeyDown={(event) => handleTabKeyDown(event, 'all')}
                       className={getCategoryButtonClasses(activeCategory === 'all')}
                     >
                       All
                     </button>
                     {popularCategories.map((cat) => {
                       const isActive = activeCategory === cat.slug;
+                      const tabId = getTabId(cat.slug);
                       return (
                         <button
                           key={cat.slug}
                           type="button"
+                          role="tab"
+                          id={tabId}
+                          aria-controls={tabPanelId}
+                          aria-selected={isActive}
+                          tabIndex={isActive ? 0 : -1}
                           onClick={() => setActiveCategory(cat.slug)}
-                          aria-pressed={isActive}
+                          onKeyDown={(event) => handleTabKeyDown(event, cat.slug)}
                           className={getCategoryButtonClasses(isActive)}
                         >
                           {formatCategoryName(cat.name)}
@@ -1245,6 +1312,11 @@ const Home: React.FC = () => {
                       );
                     })}
                   </div>
+                  {usingFallbackCategories && (
+                    <span className="sr-only" role="status">
+                      Showing cached categories due to a temporary network issue.
+                    </span>
+                  )}
                 </div>
               )}
             </section>
@@ -1336,7 +1408,7 @@ const Home: React.FC = () => {
             </div>
 
             {/* Enhanced Latest News Section */}
-            <section role="region" aria-label="Latest news articles" aria-labelledby="latest-heading">
+            <section role="tabpanel" id={tabPanelId} aria-labelledby={`${activeTabId} latest-heading`}>
               <div className="flex items-center gap-3 mb-6">
                 <Clock size={28} className="text-blue-500" aria-hidden="true" />
                 <div>
