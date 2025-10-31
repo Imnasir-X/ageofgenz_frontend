@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { subscribeToNewsletter } from '../utils/api';
 
 import { Mail, Globe, Sparkles, Clock, Users, Check, Star, Shield } from 'lucide-react';
+import { resolveCategorySlug } from '../constants/categories';
 
 // Common email domains used for fast suggestion checks
 const COMMON_DOMAINS = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com'] as const;
@@ -27,6 +28,8 @@ const [frequency, setFrequency] = React.useState<'daily' | 'weekly' | 'breaking'
 
 // Removed language selector (not used)
 const successTimeoutRef = React.useRef<number | undefined>(undefined);
+const techCategoryLink = React.useMemo(() => `/category/${resolveCategorySlug('tech').slug}`, []);
+const globalCategoryLink = React.useMemo(() => `/category/${resolveCategorySlug('global').slug}`, []);
 
 // Email suggestion using closest domain match
 
@@ -718,8 +721,8 @@ contact@theageofgenz.com
       <h4 className="text-white font-semibold mb-2">Popular</h4>
       <ul className="space-y-1 text-gray-400">
         <li><Link to="/popular" className="hover:text-orange-600 transition-colors" aria-label="Read popular stories">Most Read</Link></li>
-        <li><Link to="/topics/technology" className="hover:text-orange-600 transition-colors" aria-label="Technology coverage">Technology</Link></li>
-        <li><Link to="/topics/world" className="hover:text-orange-600 transition-colors" aria-label="World coverage">World</Link></li>
+        <li><Link to={techCategoryLink} className="hover:text-orange-600 transition-colors" aria-label="Tech coverage">Tech</Link></li>
+        <li><Link to={globalCategoryLink} className="hover:text-orange-600 transition-colors" aria-label="Global coverage">Global</Link></li>
       </ul>
     </div>
     <div>

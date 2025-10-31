@@ -97,6 +97,7 @@ const ArticleDetail: React.FC = () => {
   const shareMenuRef = useRef<HTMLDivElement | null>(null);
   const shareMenuContentRef = useRef<HTMLDivElement | null>(null);
   const shareTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const [shareMenuReady, setShareMenuReady] = useState(false);
   const [bookmarkMessage, setBookmarkMessage] = useState<string | null>(null);
   const bookmarkToastTimeoutRef = useRef<number | null>(null);
 
@@ -163,6 +164,14 @@ const ArticleDetail: React.FC = () => {
     }
   }, [slug]);
 
+  const dismissBookmarkToast = useCallback(() => {
+    if (typeof window !== 'undefined' && bookmarkToastTimeoutRef.current) {
+      window.clearTimeout(bookmarkToastTimeoutRef.current);
+      bookmarkToastTimeoutRef.current = null;
+    }
+    setBookmarkMessage(null);
+  }, []);
+
   const closeShareMenu = useCallback(
     (focusTrigger = false) => {
       setShowShareMenu(false);
@@ -173,15 +182,25 @@ const ArticleDetail: React.FC = () => {
     [],
   );
 
-  const showBookmarkToast = useCallback((message: string) => {
-    if (bookmarkToastTimeoutRef.current) {
-      window.clearTimeout(bookmarkToastTimeoutRef.current);
-    }
-    setBookmarkMessage(message);
-    bookmarkToastTimeoutRef.current = window.setTimeout(() => {
-      setBookmarkMessage(null);
-    }, 2400);
-  }, []);
+  const showBookmarkToast = useCallback(
+    (message: string) => {
+      if (typeof window === 'undefined') {
+        setBookmarkMessage(message);
+        return;
+      }
+      if (bookmarkToastTimeoutRef.current) {
+        window.clearTimeout(bookmarkToastTimeoutRef.current);
+        bookmarkToastTimeoutRef.current = null;
+      }
+
+      setBookmarkMessage(message);
+      bookmarkToastTimeoutRef.current = window.setTimeout(() => {
+        bookmarkToastTimeoutRef.current = null;
+        setBookmarkMessage(null);
+      }, 2400);
+    },
+    [],
+  );
 
   const handleToggleShareMenu = useCallback(() => {
     setShowShareMenu((prev) => {
@@ -192,6 +211,20 @@ const ArticleDetail: React.FC = () => {
       return next;
     });
   }, []);
+
+  useEffect(() => {
+    if (!showShareMenu) {
+      setShareMenuReady(false);
+      return;
+    }
+    const raf = window.requestAnimationFrame(() => {
+      setShareMenuReady(true);
+    });
+    return () => {
+      window.cancelAnimationFrame(raf);
+      setShareMenuReady(false);
+    };
+  }, [showShareMenu]);
 
   useEffect(() => {
     if (!showShareMenu) {
@@ -251,12 +284,26 @@ const ArticleDetail: React.FC = () => {
   }, [closeShareMenu, showShareMenu]);
 
   useEffect(() => {
-    return () => {
-      if (bookmarkToastTimeoutRef.current) {
-        window.clearTimeout(bookmarkToastTimeoutRef.current);
+    if (!bookmarkMessage) {
+      return;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        dismissBookmarkToast();
       }
     };
-  }, []);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [bookmarkMessage, dismissBookmarkToast]);
+
+  useEffect(() => {
+    return () => {
+      dismissBookmarkToast();
+    };
+  }, [dismissBookmarkToast]);
 
   // Memoized date formatter
   const formatDate = useCallback((dateString: string) => {
@@ -699,6 +746,11 @@ const ArticleDetail: React.FC = () => {
     if (!slug || typeof window === 'undefined') return;
 
     try {
+      if (typeof window.localStorage === 'undefined') {
+        showBookmarkToast('Bookmarks unavailable in this browser');
+        return;
+      }
+
       const raw = window.localStorage.getItem('aoz_bookmarks');
       const parsed = raw ? JSON.parse(raw) : [];
       const sanitizedItems = Array.isArray(parsed)
@@ -715,6 +767,10 @@ const ArticleDetail: React.FC = () => {
       }
 
       const trimmedItems = nextItems.slice(-50);
+      const removedCount = nextItems.length - trimmedItems.length;
+      if (removedCount > 0) {
+        console.info(`Bookmark list trimmed to the latest 50 entries (removed ${removedCount}).`);
+      }
       window.localStorage.setItem('aoz_bookmarks', JSON.stringify(trimmedItems));
       setIsBookmarked(nextState);
       showBookmarkToast(nextState ? 'Added to bookmarks' : 'Removed from bookmarks');
@@ -751,14 +807,19 @@ const ArticleDetail: React.FC = () => {
     <ErrorBoundary>
     <div className="min-h-screen bg-gray-50">
       {bookmarkMessage && (
-        <div className="pointer-events-none fixed inset-x-0 top-20 z-50 flex justify-center px-4">
-          <div
-            className="pointer-events-auto rounded-full bg-gray-900/90 px-4 py-2 text-sm font-medium text-white shadow-lg"
-            role="status"
-            aria-live="polite"
+        <div
+          className="pointer-events-none fixed inset-x-0 top-20 z-50 flex justify-center px-4"
+          role="status"
+          aria-live="polite"
+        >
+          <button
+            type="button"
+            onClick={dismissBookmarkToast}
+            className="pointer-events-auto rounded-full bg-gray-900/90 px-4 py-2 text-sm font-medium text-white shadow-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+            aria-label="Dismiss bookmark message"
           >
             {bookmarkMessage}
-          </div>
+          </button>
         </div>
       )}
       {/* Enhanced SEO and Social Meta Tags */}
@@ -936,13 +997,15 @@ const ArticleDetail: React.FC = () => {
                         <span>Share</span>
                       </button>
                       {showShareMenu && (
-                        <div
-                          id="article-share-menu"
-                          role="menu"
-                          aria-labelledby="article-share-trigger"
-                          ref={shareMenuContentRef}
-                          className="absolute right-0 top-full z-40 mt-2 w-64 max-md:left-0 max-md:right-auto overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl divide-y divide-gray-100 transition-transform duration-150 ease-out"
-                        >
+                          <div
+                            id="article-share-menu"
+                            role="menu"
+                            aria-labelledby="article-share-trigger"
+                            ref={shareMenuContentRef}
+                            className={`absolute right-0 top-full z-40 mt-2 w-64 max-md:left-0 max-md:right-auto overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl divide-y divide-gray-100 origin-top-right transition-transform transition-opacity duration-150 ease-out transform ${
+                              shareMenuReady ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-1 scale-95'
+                            }`}
+                          >
                           <div className="px-4 py-3">
                             <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Share</p>
                             <p className="text-sm text-gray-500">Spread this story</p>

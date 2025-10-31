@@ -13,6 +13,7 @@ import {
   type CategoryAccent,
   type FlatCategory,
 } from '../utils/categoryHelpers';
+import { CATEGORY_LOOKUP } from '../constants/categories';
 
 type CategoryArticle = Article & {
   formattedDate?: string;
@@ -49,17 +50,15 @@ const CategoryPage: React.FC = () => {
   const [usingFallbackCategory, setUsingFallbackCategory] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!slug) {
-      return;
-    }
-
-    const normalized = resolveCategoryMeta({ slug });
+    const normalized = resolveCategoryMeta(slug ? { slug } : undefined);
     setCategoryMeta(normalized);
 
-    if (normalized.isLegacy && normalized.slug !== slug) {
+    if (slug && normalized.isLegacy && normalized.slug !== slug) {
       navigate(`/category/${normalized.slug}`, { replace: true });
       return;
     }
+
+    let isCancelled = false;
 
     const fetchCategoryData = async () => {
       setLoading(true);
@@ -73,25 +72,24 @@ const CategoryPage: React.FC = () => {
         description: undefined,
         is_active: true,
       };
-      let accentTheme = getCategoryAccent(canonicalCategory);
+      let fallbackCategoryUsed = true;
+      let fetchError: string | null = null;
+      let accentTheme = getCategoryAccent({ slug: normalized.slug, name: normalized.name });
       let breadcrumbList: Breadcrumb[] = getCategoryPath(normalized.slug).map((pathSlug) => ({
         slug: pathSlug,
         name: getFallbackCategoryDisplayName(pathSlug),
       }));
       let childList: Breadcrumb[] = [];
-      let fallbackCategoryUsed = true;
-      let fetchError: string | null = null;
 
       try {
         const categoriesResponse = await getCategories({ flat: true });
         const payload = categoriesResponse.data as Category[] | PaginatedResponse<Category> | undefined;
 
-        let categoriesPayload: Category[] = [];
-        if (Array.isArray(payload)) {
-          categoriesPayload = payload;
-        } else if (payload && Array.isArray(payload.results)) {
-          categoriesPayload = payload.results;
-        }
+        const categoriesPayload: Category[] = Array.isArray(payload)
+          ? payload
+          : payload && Array.isArray(payload.results)
+            ? (payload.results as Category[])
+            : [];
 
         if (categoriesPayload.length > 0) {
           const flatList = flattenCategoryTree(categoriesPayload);
@@ -110,26 +108,20 @@ const CategoryPage: React.FC = () => {
               description: currentEntry.category?.description,
               is_active: currentEntry.category?.is_active ?? true,
             };
+            fallbackCategoryUsed = false;
           }
 
-          const computedBreadcrumbs: Breadcrumb[] = [];
-          const visited = new Set<string>();
-          let cursor: string | null = normalized.slug;
-
-          while (cursor && !visited.has(cursor)) {
-            visited.add(cursor);
-            const entry = flatMap.get(cursor);
+          const resolvedBreadcrumbs = getCategoryPath(normalized.slug).map((pathSlug) => {
+            const entry = flatMap.get(pathSlug);
             const displayName =
               entry?.category?.name?.trim() ||
               entry?.name ||
-              getFallbackCategoryDisplayName(cursor);
-            computedBreadcrumbs.push({ slug: cursor, name: displayName });
-            cursor = entry?.parentSlug ?? null;
-          }
+              getFallbackCategoryDisplayName(pathSlug);
+            return { slug: pathSlug, name: displayName };
+          });
 
-          if (computedBreadcrumbs.length > 0) {
-            computedBreadcrumbs.reverse();
-            breadcrumbList = computedBreadcrumbs;
+          if (resolvedBreadcrumbs.length > 0) {
+            breadcrumbList = resolvedBreadcrumbs;
           }
 
           childList = flatList
@@ -145,7 +137,19 @@ const CategoryPage: React.FC = () => {
         }
       } catch (err) {
         console.error('Category metadata fetch error:', err);
-        fetchError = 'Could not load category details. Showing fallback information.';
+        fetchError = `Could not load category details for ${normalized.name}. Showing fallback information.`;
+      }
+
+      if (childList.length === 0) {
+        const fallbackDescriptor = CATEGORY_LOOKUP[normalized.slug];
+        if (fallbackDescriptor?.node?.children && fallbackDescriptor.node.children.length > 0) {
+          childList = fallbackDescriptor.node.children
+            .map((child) => ({
+              slug: child.slug,
+              name: child.name,
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+        }
       }
 
       accentTheme = getCategoryAccent(canonicalCategory);
@@ -166,7 +170,7 @@ const CategoryPage: React.FC = () => {
           const stripped = stripHtml(article.description || article.excerpt).trim();
           const sanitizedExcerpt =
             stripped.length > 0
-              ? `${stripped.slice(0, 140)}${stripped.length > 140 ? '…' : ''}`
+              ? `${stripped.slice(0, 140)}${stripped.length > 140 ? '\u2026' : ''}`
               : 'Stay tuned for updates from this category.';
           return {
             ...article,
@@ -178,7 +182,11 @@ const CategoryPage: React.FC = () => {
         console.error('Category articles fetch error:', err);
         fetchError =
           fetchError ??
-          'Could not load articles for this category. Please try again later.';
+          `Could not load articles for ${normalized.name}. Please try again later.`;
+      }
+
+      if (isCancelled) {
+        return;
       }
 
       setCategory(canonicalCategory);
@@ -192,20 +200,37 @@ const CategoryPage: React.FC = () => {
     };
 
     void fetchCategoryData();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [slug, navigate]);
+
 
   const accentTheme = accent ?? getCategoryAccent(categoryMeta ?? undefined);
   const badgeClass = accentTheme.badge;
   const borderClass = accentTheme.border;
   const textAccentClass = accentTheme.text;
 
-  const categoryName =
-    category?.name ?? categoryMeta?.name ?? 'Category'.toUpperCase();
+  const fallbackSlug = categoryMeta?.slug ?? 'trending';
+  const fallbackName = getFallbackCategoryDisplayName(fallbackSlug);
+  const resolvedCategoryName =
+    (category?.name && category.name.trim().length > 0 ? category.name.trim() : null) ??
+    categoryMeta?.name ??
+    fallbackName;
+  const categoryHeading = resolvedCategoryName || fallbackName;
+  const topLevelName = categoryMeta?.topLevelName || categoryHeading;
+  const badgeLabel = topLevelName.toUpperCase();
+  const isChildCategory =
+    Boolean(categoryMeta && categoryMeta.slug !== categoryMeta.topLevelSlug);
+  const parentCategorySlug = isChildCategory ? categoryMeta?.topLevelSlug ?? null : null;
+  const parentCategoryName = isChildCategory ? categoryMeta?.topLevelName ?? null : null;
   const categoryDescription =
-    category?.description ??
-    (categoryName
-      ? `Explore the latest in ${categoryName.toLowerCase()}.`
-      : 'Explore the latest stories from this category.');
+    (category?.description && category.description.trim().length > 0
+      ? category.description.trim()
+      : categoryHeading
+        ? `Explore the latest in ${categoryHeading.toLowerCase()}.`
+        : 'Explore the latest stories from this category.');
 
   if (loading) {
     return (
@@ -278,8 +303,16 @@ const CategoryPage: React.FC = () => {
 
         <section className="mb-8 text-center md:text-left">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-            {categoryName}
+            {categoryHeading}
           </h1>
+          {isChildCategory && parentCategorySlug && parentCategoryName && (
+            <div className="text-sm text-gray-500">
+              Part of{' '}
+              <Link to={`/category/${parentCategorySlug}`} className="font-medium text-gray-700 hover:text-gray-900 underline-offset-4 hover:underline">
+                {parentCategoryName}
+              </Link>
+            </div>
+          )}
           <p className="text-gray-600 max-w-3xl">{categoryDescription}</p>
           {error && (
             <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
@@ -316,7 +349,7 @@ const CategoryPage: React.FC = () => {
         <div className="rounded-lg border border-gray-900/20 bg-gray-900 p-6 shadow-xl shadow-gray-900/10">
           <div className="mb-6 flex items-center justify-between gap-3">
             <h2 className={`text-xl font-bold text-white pb-2 border-b-2 ${borderClass}`}>
-              Latest in {categoryName}
+              Latest in {categoryHeading}
             </h2>
             <span className="text-xs uppercase tracking-wide text-white/70">
               {articles.length} article{articles.length === 1 ? '' : 's'}
@@ -348,7 +381,7 @@ const CategoryPage: React.FC = () => {
                         <div className="flex items-center justify-between gap-2 mb-2">
                           <div className="flex items-center gap-2">
                             <span className={`${badgeClass} text-xs font-semibold uppercase tracking-wide text-white px-2 py-0.5 rounded`}>
-                              {categoryName.toUpperCase()}
+                              {badgeLabel}
                             </span>
                             <span className="flex items-center gap-1 text-xs text-gray-300">
                               <Clock size={12} aria-hidden="true" />
@@ -376,7 +409,7 @@ const CategoryPage: React.FC = () => {
             <div className="text-center py-12 text-gray-300">
               <p className="mb-2 font-semibold">No articles yet</p>
               <p className="text-sm text-gray-400">
-                Articles may need to be assigned to the {categoryName} category in the admin panel.
+                Articles may need to be assigned to the {categoryHeading} category in the admin panel.
               </p>
             </div>
           )}
@@ -388,7 +421,7 @@ const CategoryPage: React.FC = () => {
                 onClick={() => window.location.reload()}
                 className={`inline-flex items-center gap-2 rounded-full border ${borderClass} bg-white/10 px-5 py-2 text-sm font-semibold text-white transition hover:bg-white/20`}
               >
-                Refresh {categoryName} stories
+                Refresh {categoryHeading} stories
               </button>
             </div>
           )}

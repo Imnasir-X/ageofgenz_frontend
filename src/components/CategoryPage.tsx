@@ -20,8 +20,13 @@ import type { Article } from '../types';
 
 const CATEGORY_ICON_MAP: Record<string, (className: string) => ReactElement> = {
   politics: (className) => <Flame className={className} aria-hidden="true" />,
-  world: (className) => <Compass className={className} aria-hidden="true" />,
-  technology: (className) => <Sparkles className={className} aria-hidden="true" />,
+  opinion: (className) => <Flame className={className} aria-hidden="true" />,
+  global: (className) => <Compass className={className} aria-hidden="true" />,
+  tech: (className) => <Sparkles className={className} aria-hidden="true" />,
+  'science-discovery': (className) => <Sparkles className={className} aria-hidden="true" />,
+  'business-economy': (className) => <LayoutGrid className={className} aria-hidden="true" />,
+  sports: (className) => <Rows className={className} aria-hidden="true" />,
+  trending: (className) => <Flame className={className} aria-hidden="true" />,
   default: (className) => <Sparkles className={className} aria-hidden="true" />,
 };
 const STORAGE_PREFIX = 'category-preferences';
@@ -188,22 +193,22 @@ const CategoryPage: React.FC<Props> = ({
     () =>
       [
         {
-          name: 'Trending Now',
+          name: 'Trending',
           slug: 'trending',
           description: 'Big conversations curated daily.',
         },
         {
-          name: 'Global Briefing',
-          slug: 'world',
+          name: 'Global',
+          slug: 'global',
           description: 'Updates from every continent.',
         },
         {
-          name: 'Tech & Innovation',
-          slug: 'technology',
+          name: 'Tech',
+          slug: 'tech',
           description: 'Signals from the future.',
         },
         {
-          name: 'Politics & Policy',
+          name: 'Politics',
           slug: 'politics',
           description: 'Power plays decoded.',
         },

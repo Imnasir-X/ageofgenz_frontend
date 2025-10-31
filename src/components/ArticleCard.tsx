@@ -3,19 +3,7 @@ import { Link } from 'react-router-dom';
 import { Clock } from 'lucide-react';
 import type { Article } from '../types';
 import { getArticleBySlug } from '../utils/api';
-
-const CATEGORY_ACCENTS: Record<string, string> = {
-  politics: 'bg-blue-600',
-  world: 'bg-emerald-600',
-  culture: 'bg-rose-600',
-  sports: 'bg-red-600',
-  business: 'bg-amber-600',
-  technology: 'bg-indigo-600',
-  science: 'bg-cyan-600',
-  opinion: 'bg-purple-600',
-  insights: 'bg-sky-600',
-  default: 'bg-orange-500',
-};
+import { getCategoryAccent } from '../utils/categoryHelpers';
 
 interface ArticleCardProps {
   article: Article;
@@ -56,9 +44,19 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
   });
 
   const imgSrc = article.featured_image_url || article.image || article.featured_image || '/api/placeholder/400/250';
-  const categoryKey = (article.category?.slug || article.category?.name || 'default').toLowerCase();
-  const categoryAccent = CATEGORY_ACCENTS[categoryKey] || CATEGORY_ACCENTS.default;
-  const categoryTextAccent = categoryAccent.replace('bg-', 'text-');
+  const resolvedAccent = getCategoryAccent(
+    article.category && (article.category.slug || article.category.name)
+      ? {
+          slug: article.category.slug || article.category.name,
+          name: article.category.name || article.category_name || undefined,
+          parent_slug: article.category.parent_slug ?? null,
+        }
+      : article.category_name
+      ? { slug: article.category_name, name: article.category_name }
+      : undefined,
+  );
+  const categoryAccent = resolvedAccent.badge;
+  const categoryTextAccent = resolvedAccent.text;
 
   const onHoverPrefetch = async () => {
     if (!prefetchOnHover || !article.slug || prefetched.has(article.slug)) return;

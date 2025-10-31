@@ -220,7 +220,7 @@ const Home: React.FC = () => {
     if (category.includes('sport')) return 'center';
     if (category.includes('politic') || category.includes('opinion')) return 'top';
     if (category.includes('meme') || category.includes('culture')) return 'center';
-    if (category.includes('world')) return 'center';
+    if (category.includes('world') || category.includes('global')) return 'center';
     
     return 'center';
   }, []);
