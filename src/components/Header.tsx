@@ -163,13 +163,13 @@ const Header: React.FC = () => {
 
   const logoScale = useMemo(() => {
     const base = isDesktop ? 1 - 0.7 * shrink : 1 - 0.55 * shrink;
-    const min = isDesktop ? 0.7 : 0.6;
+    const min = isDesktop ? 0.8 : 0.7;
     return Math.max(min, base);
   }, [isDesktop, shrink]);
 
   const titleScale = useMemo(() => {
     const base = isDesktop ? 1 - 0.55 * shrink : 1 - 0.45 * shrink;
-    const min = isDesktop ? 0.75 : 0.65;
+    const min = isDesktop ? 0.85 : 0.75;
     return Math.max(min, base);
   }, [isDesktop, shrink]);
 
@@ -700,7 +700,7 @@ const Header: React.FC = () => {
         >
           <div className="flex justify-between items-center">
           {/* Logo and Title - Force white text */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to="/" className="flex items-center space-x-2 mr-4">
             {/* âœ… FIXED: Use public folder logo with cache-busting */}
             <img
               src="/logo.png?v=2025"
@@ -721,7 +721,7 @@ const Header: React.FC = () => {
               The Age of GenZ
             </span>
             <span
-              className={`hidden lg:inline ml-4 text-gray-500 font-light transition-opacity ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'} text-xs tracking-wider`}
+              className={`hidden lg:inline ml-4 text-gray-500 font-light transition-opacity ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'} text-[10px] tracking-widest`}
               style={{ opacity: 1 - shrink }}
             >
               EST. 2025 â€¢
