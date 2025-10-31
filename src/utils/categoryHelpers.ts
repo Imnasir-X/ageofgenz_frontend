@@ -1,6 +1,11 @@
 import type { Category } from '../types';
-import { CATEGORY_TREE } from '../constants/categories';
-import type { CategoryNode } from '../constants/categories';
+import {
+  CATEGORY_TREE,
+  CATEGORY_DESCRIPTORS,
+  CATEGORY_LOOKUP,
+  resolveCategorySlug,
+  type CategoryNode,
+} from '../constants/categories';
 
 export type NavNode = {
   slug: string;
@@ -54,6 +59,10 @@ const buildNameMap = (
 const FALLBACK_NAV_TREE = CATEGORY_TREE.map(cloneCategoryBranch);
 const FALLBACK_ORDER_MAP = buildOrderMap(CATEGORY_TREE);
 const FALLBACK_NAME_MAP = buildNameMap(CATEGORY_TREE);
+const FALLBACK_NAME_TO_SLUG = CATEGORY_DESCRIPTORS.reduce<Record<string, string>>((map, descriptor) => {
+  map[descriptor.name.toLowerCase()] = descriptor.slug;
+  return map;
+}, {});
 
 const getFallbackCategoryName = (slug: string): string | undefined =>
   FALLBACK_NAME_MAP.get(slug);
@@ -242,3 +251,94 @@ export const FALLBACK_HOME_CATEGORIES = buildHomeCategories();
 
 export const getFallbackCategoryDisplayName = (slug: string): string =>
   getFallbackCategoryName(slug) || slug;
+
+const getTopLevelSlugInternal = (slug: string): string => {
+  const descriptor = CATEGORY_LOOKUP[slug];
+  if (!descriptor || descriptor.path.length === 0) {
+    return slug;
+  }
+  return descriptor.path[0];
+};
+
+const toSlugLike = (value: string): string => value.trim().toLowerCase().replace(/\s+/g, '-');
+
+export type CategoryMeta = {
+  slug: string;
+  name: string;
+  topLevelSlug: string;
+  topLevelName: string;
+  isLegacy: boolean;
+};
+
+type CategoryLike = Partial<Pick<Category, 'slug' | 'name' | 'parent_slug'>>;
+
+const getNormalizedSlugFromName = (name: string): string | null => {
+  const lookup = FALLBACK_NAME_TO_SLUG[name.trim().toLowerCase()];
+  if (lookup) {
+    return lookup;
+  }
+  const approximated = toSlugLike(name);
+  if (!approximated) {
+    return null;
+  }
+  return resolveCategorySlug(approximated).slug;
+};
+
+export const resolveCategoryMeta = (input?: CategoryLike | null): CategoryMeta => {
+  const slugCandidate = input?.slug ?? null;
+  const nameCandidate = input?.name ?? null;
+  const parentCandidate = input?.parent_slug ?? null;
+
+  let normalizedSlug: string | null = null;
+  let isLegacy = false;
+
+  if (slugCandidate) {
+    const resolution = resolveCategorySlug(slugCandidate);
+    normalizedSlug = resolution.slug;
+    isLegacy = resolution.isLegacy;
+  } else if (nameCandidate) {
+    const fromName = getNormalizedSlugFromName(nameCandidate);
+    if (fromName) {
+      const resolution = resolveCategorySlug(fromName);
+      normalizedSlug = resolution.slug;
+      isLegacy = isLegacy || resolution.isLegacy;
+    }
+  }
+
+  if (!normalizedSlug && parentCandidate) {
+    const resolution = resolveCategorySlug(parentCandidate);
+    normalizedSlug = resolution.slug;
+    isLegacy = isLegacy || resolution.isLegacy;
+  }
+
+  const fallbackSlug = normalizedSlug ?? 'trending';
+  const descriptor = CATEGORY_LOOKUP[fallbackSlug];
+  const candidateTopLevelSlug = descriptor?.path?.[0];
+  const topLevelSlug = getTopLevelSlugInternal(candidateTopLevelSlug ?? fallbackSlug);
+  const topLevelDescriptor = CATEGORY_LOOKUP[topLevelSlug];
+
+  const nameFromDescriptor =
+    descriptor?.name ??
+    (normalizedSlug ? getFallbackCategoryDisplayName(normalizedSlug) : undefined);
+
+  const topLevelName =
+    topLevelDescriptor?.name ??
+    getFallbackCategoryDisplayName(topLevelSlug);
+
+  const displayName =
+    nameFromDescriptor ??
+    (nameCandidate ? nameCandidate.trim() : getFallbackCategoryDisplayName('trending'));
+
+  return {
+    slug: fallbackSlug,
+    name: displayName,
+    topLevelSlug,
+    topLevelName,
+    isLegacy,
+  };
+};
+
+export const getTopLevelCategorySlug = (slug: string): string => {
+  const normalized = resolveCategorySlug(slug).slug;
+  return getTopLevelSlugInternal(normalized);
+};

@@ -13,7 +13,8 @@ import {
 } from '../utils/api';
 import { RefreshCw, Search, X, TrendingUp, Clock, BookOpen, Pause, Play, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import type { Article, Category } from '../types';
-import { buildHomeCategories } from '../utils/categoryHelpers';
+import { buildHomeCategories, resolveCategoryMeta } from '../utils/categoryHelpers';
+import type { CategoryMeta } from '../utils/categoryHelpers';
 
 const HERO_ROTATE_INTERVAL = 7000;
 
@@ -23,22 +24,31 @@ type AccentTheme = {
   text: string;
 };
 
-const BREAKING_ACCENTS: Record<string, AccentTheme> = {
+const CATEGORY_ACCENTS: Record<string, AccentTheme> = {
+  trending: { badge: 'bg-orange-500', divider: 'bg-orange-400', text: 'text-orange-500' },
+  tech: { badge: 'bg-indigo-600', divider: 'bg-indigo-600', text: 'text-indigo-600' },
+  'pop-media': { badge: 'bg-rose-600', divider: 'bg-rose-600', text: 'text-rose-600' },
+  'science-discovery': { badge: 'bg-cyan-600', divider: 'bg-cyan-600', text: 'text-cyan-600' },
+  global: { badge: 'bg-emerald-600', divider: 'bg-emerald-600', text: 'text-emerald-600' },
   politics: { badge: 'bg-blue-600', divider: 'bg-blue-600', text: 'text-blue-600' },
-  world: { badge: 'bg-emerald-600', divider: 'bg-emerald-600', text: 'text-emerald-600' },
-  culture: { badge: 'bg-rose-600', divider: 'bg-rose-600', text: 'text-rose-600' },
+  'business-economy': { badge: 'bg-amber-600', divider: 'bg-amber-600', text: 'text-amber-600' },
+  'crime-justice': { badge: 'bg-purple-600', divider: 'bg-purple-600', text: 'text-purple-600' },
   sports: { badge: 'bg-red-600', divider: 'bg-red-600', text: 'text-red-600' },
-  business: { badge: 'bg-amber-600', divider: 'bg-amber-600', text: 'text-amber-600' },
-  technology: { badge: 'bg-indigo-600', divider: 'bg-indigo-600', text: 'text-indigo-600' },
-  science: { badge: 'bg-cyan-600', divider: 'bg-cyan-600', text: 'text-cyan-600' },
-  opinion: { badge: 'bg-purple-600', divider: 'bg-purple-600', text: 'text-purple-600' },
-  insights: { badge: 'bg-sky-600', divider: 'bg-sky-600', text: 'text-sky-600' },
   default: { badge: 'bg-orange-500', divider: 'bg-orange-400', text: 'text-orange-500' },
 };
 
-const getBreakingAccent = (slug?: string | null, name?: string | null): AccentTheme => {
-  const key = (slug || name || 'default').toLowerCase();
-  return BREAKING_ACCENTS[key] || BREAKING_ACCENTS.default;
+const getCategoryAccent = (input?: Partial<Category> | null): AccentTheme => {
+  const meta = resolveCategoryMeta(input ?? undefined);
+  return CATEGORY_ACCENTS[meta.topLevelSlug] || CATEGORY_ACCENTS[meta.slug] || CATEGORY_ACCENTS.default;
+};
+
+type HomeCategoryEntry = {
+  slug: string;
+  name: string;
+  topLevelSlug: string;
+  topLevelName: string;
+  isLegacy: boolean;
+  source: Category;
 };
 
 const Home: React.FC = () => {
@@ -52,6 +62,31 @@ const Home: React.FC = () => {
     () => buildHomeCategories(rawCategoryData ?? undefined),
     [rawCategoryData],
   );
+  const homeCategories = useMemo<HomeCategoryEntry[]>(() => {
+    const seen = new Set<string>();
+    const entries: HomeCategoryEntry[] = [];
+
+    popularCategories.forEach((category) => {
+      if (!category || !category.slug) {
+        return;
+      }
+      const meta = resolveCategoryMeta(category);
+      if (seen.has(meta.slug)) {
+        return;
+      }
+      seen.add(meta.slug);
+      entries.push({
+        slug: meta.slug,
+        name: meta.name,
+        topLevelSlug: meta.topLevelSlug,
+        topLevelName: meta.topLevelName,
+        isLegacy: meta.isLegacy,
+        source: category,
+      });
+    });
+
+    return entries;
+  }, [popularCategories]);
   const [activeCategory, setActiveCategory] = useState<string>('all');
   
   // Infinite scroll state for Latest
@@ -99,19 +134,26 @@ const Home: React.FC = () => {
 
   // Font size adjuster removed per request
 
-  // Function to format category names professionally
-  const formatCategoryName = (name: string): string => {
-    const formatted = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-    return formatted;
-  };
-
   const tabListId = 'home-category-tabs';
   const tabPanelId = 'home-category-tabpanel';
   const getTabId = useCallback((slug: string) => `home-category-tab-${slug}`, []);
   const activeTabId = getTabId(activeCategory);
   const tabOrder = useMemo(
-    () => ['all', ...popularCategories.map((cat) => cat.slug)],
-    [popularCategories],
+    () => ['all', ...homeCategories.map((cat) => cat.slug)],
+    [homeCategories],
+  );
+  const getArticleCategoryMeta = useCallback(
+    (article: Article): CategoryMeta =>
+      resolveCategoryMeta(
+        article?.category
+          ? {
+              slug: article.category.slug,
+              name: article.category.name,
+              parent_slug: article.category.parent_slug ?? null,
+            }
+          : { name: article?.category_name },
+      ),
+    [],
   );
   const handleTabKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLButtonElement>, currentSlug: string) => {
@@ -143,10 +185,10 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     if (activeCategory === 'all') return;
-    if (!popularCategories.some((cat) => cat.slug === activeCategory)) {
+    if (!homeCategories.some((cat) => cat.slug === activeCategory)) {
       setActiveCategory('all');
     }
-  }, [activeCategory, popularCategories]);
+  }, [activeCategory, homeCategories]);
 
   const getCategoryButtonClasses = (isActive: boolean) =>
     `inline-flex items-center whitespace-nowrap rounded-full border border-transparent px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 ${
@@ -309,9 +351,9 @@ const Home: React.FC = () => {
     }
     const current = breakingItems[breakingIndex];
     if (!current) return;
-    const categoryName = formatCategoryName(current.category?.name || current.category_name || 'Breaking');
-    setBreakingAnnouncement(`${categoryName}: ${current.title || 'Breaking update available'}`);
-  }, [breakingItems, breakingIndex]);
+    const categoryMeta = getArticleCategoryMeta(current);
+    setBreakingAnnouncement(`${categoryMeta.topLevelName}: ${current.title || 'Breaking update available'}`);
+  }, [breakingItems, breakingIndex, getArticleCategoryMeta]);
 
   // Enhanced Skeleton Loader Component with Professional Styling
   const ArticleCardSkeleton = () => (
@@ -525,8 +567,11 @@ const Home: React.FC = () => {
 
   const displayedFeatured = useMemo(() => {
     if (activeCategory === 'all') return featuredArticles;
-    return featuredArticles.filter(a => (a.category?.slug || a.category?.name?.toLowerCase()) === activeCategory);
-  }, [featuredArticles, activeCategory]);
+    return featuredArticles.filter((article) => {
+      const meta = getArticleCategoryMeta(article);
+      return meta.slug === activeCategory || meta.topLevelSlug === activeCategory;
+    });
+  }, [featuredArticles, activeCategory, getArticleCategoryMeta]);
 
   const secondaryFeatured = useMemo(() => displayedFeatured.slice(1, 4), [displayedFeatured]);
 
@@ -1001,6 +1046,8 @@ const Home: React.FC = () => {
                 const isNavigable = Boolean(article.slug);
                 const displayTitle = article.title?.trim() || 'Untitled story';
                 const displayExcerpt = article.excerpt?.trim() || 'Stay tuned for more details as this story develops.';
+                const categoryMeta = getArticleCategoryMeta(article);
+                const accent = getCategoryAccent(article.category ?? { name: article.category_name });
                 return (
                   <div
                     key={`hero-${article.id}`}
@@ -1015,8 +1062,8 @@ const Home: React.FC = () => {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                     <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 md:p-8">
                       <div className="flex flex-wrap items-center gap-2 mb-3 text-xs text-white/90">
-                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-orange-500 text-white">
-                          {formatCategoryName(article.category?.name || 'General')}
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${accent.badge} text-white`}>
+                          {categoryMeta.name}
                         </span>
                         <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-white/60" aria-hidden="true" />
                         <span>By {article.author?.name || 'Staff'}</span>
@@ -1133,9 +1180,10 @@ const Home: React.FC = () => {
 
           const href = current.slug ? `/article/${current.slug}` : '#';
           const dateText = new Date(current.date || current.published_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-          const categoryText = (current.category?.name || current.category_name || 'World').toUpperCase();
+          const categoryMeta = getArticleCategoryMeta(current);
+          const categoryText = categoryMeta.topLevelName.toUpperCase();
           const img = current.featured_image_url || current.image || current.featured_image || '/api/placeholder/1200/675';
-          const accent = getBreakingAccent(current.category?.slug, current.category?.name);
+          const accent = getCategoryAccent(current.category ?? { name: current.category_name });
           const authorName = current.author?.name || 'Staff';
 
           return (
@@ -1291,7 +1339,7 @@ const Home: React.FC = () => {
                     >
                       All
                     </button>
-                    {popularCategories.map((cat) => {
+                    {homeCategories.map((cat) => {
                       const isActive = activeCategory === cat.slug;
                       const tabId = getTabId(cat.slug);
                       return (
@@ -1307,7 +1355,7 @@ const Home: React.FC = () => {
                           onKeyDown={(event) => handleTabKeyDown(event, cat.slug)}
                           className={getCategoryButtonClasses(isActive)}
                         >
-                          {formatCategoryName(cat.name)}
+                          {cat.name}
                         </button>
                       );
                     })}
