@@ -171,7 +171,14 @@ const transformArticle = (backendArticle: any): Article => {
     
     category_name: backendArticle.category?.name || backendArticle.category || 'General',
     
-    tags: backendArticle.tags || [],
+    tags: Array.isArray(backendArticle.tags)
+      ? backendArticle.tags
+      : typeof backendArticle.tags === 'string'
+        ? backendArticle.tags
+            .split(',')
+            .map((tag: string) => tag.trim())
+            .filter((tag: string) => tag.length > 0)
+        : [],
     status: backendArticle.is_published ? 'PUBLISHED' as const : 'DRAFT' as const,
     is_featured: Boolean(backendArticle.is_featured),
     view_count: Number(backendArticle.view_count) || 0,
