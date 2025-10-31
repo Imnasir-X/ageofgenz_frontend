@@ -1,10 +1,18 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async'; 
+import { Helmet } from 'react-helmet-async';
 import { getArticleBySlug, getArticles } from '../utils/api';
 import DonationPlaceholder from '../components/DonationPlaceholder';
-import { Eye, Calendar, Tag, BookOpen, Facebook, Mail, Link2, Linkedin, MessageCircle } from 'lucide-react';
+import { Eye, Tag, BookOpen, Facebook, Mail, Link2, Linkedin, MessageCircle } from 'lucide-react';
 import { Article } from '../types';
+import {
+  resolveCategoryMeta,
+  getCategoryAccent,
+  getCategoryPath,
+  getFallbackCategoryDisplayName,
+  type CategoryMeta,
+  type CategoryAccent,
+} from '../utils/categoryHelpers';
 
 // Cache for articles to avoid refetching
 const articleCache = new Map<string, Article>();
@@ -26,6 +34,44 @@ const ArticleDetail: React.FC = () => {
   const [readingProgress, setReadingProgress] = useState<number>(0);
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
   const [showProgressBar, setShowProgressBar] = useState<boolean>(true);
+
+  const categoryMeta: CategoryMeta | null = useMemo(() => {
+    if (!article) return null;
+    const source = article.category
+      ? {
+          slug: article.category.slug,
+          name: article.category.name,
+          parent_slug: article.category.parent_slug ?? null,
+        }
+      : {
+          slug: article.category?.slug,
+          name: article.category_name,
+        };
+    return resolveCategoryMeta(source);
+  }, [article]);
+
+  const categoryAccent: CategoryAccent = useMemo(
+    () =>
+      categoryMeta
+        ? getCategoryAccent({ slug: categoryMeta.slug, name: categoryMeta.name })
+        : getCategoryAccent(),
+    [categoryMeta],
+  );
+
+  const categoryBreadcrumbs = useMemo(
+    () =>
+      categoryMeta
+        ? getCategoryPath(categoryMeta.slug).map((slug) => ({
+            slug,
+            name: getFallbackCategoryDisplayName(slug),
+          }))
+        : [],
+    [categoryMeta],
+  );
+
+  const categoryLink = categoryMeta ? `/category/${categoryMeta.slug}` : '/category/trending';
+  const categoryDisplayName = categoryMeta?.name ?? 'Trending';
+  const topLevelCategoryName = categoryMeta?.topLevelName ?? categoryDisplayName;
 
   // Memoized date formatter
   const formatDate = useCallback((dateString: string) => {
@@ -449,7 +495,7 @@ const ArticleDetail: React.FC = () => {
       <Helmet>
         <title>{article.title} - The Age of GenZ</title>
         <meta name="description" content={article.excerpt || article.title} />
-        <meta name="keywords" content={`${article.category?.name || 'news'}, gen z, ${article.tags?.join(', ') || 'trending'}`} />
+        <meta name="keywords" content={`${categoryDisplayName || 'news'}, gen z, ${article.tags?.join(', ') || 'trending'}`} />
         
         <meta property="og:title" content={article.title} />
         <meta property="og:description" content={article.excerpt || article.title} />
@@ -468,7 +514,7 @@ const ArticleDetail: React.FC = () => {
         <meta property="article:published_time" content={article.published_at || article.created_at} />
         <meta property="article:modified_time" content={article.updated_at || article.created_at} />
         <meta property="article:author" content={article.author?.name || 'The Age Of GenZ'} />
-        <meta property="article:section" content={article.category?.name || 'News'} />
+        <meta property="article:section" content={categoryDisplayName || 'News'} />
         {article.tags?.map((tag, index) => (
           <meta key={index} property="article:tag" content={tag} />
         ))}
@@ -514,28 +560,33 @@ const ArticleDetail: React.FC = () => {
       )}
 
       {/* Breadcrumb Navigation */}
-      <nav className="article-breadcrumb">
+      <nav className="article-breadcrumb" aria-label="Breadcrumb">
         <div className="article-breadcrumb__inner">
-          <div className="article-breadcrumb__trail" aria-label="Breadcrumb">
-            <Link
-              to={`/${article.category?.slug || ''}`}
-              className="article-breadcrumb__category text-xs sm:text-sm hover:underline"
-            >
-              {(article.category?.name || 'News').toUpperCase()}
-            </Link>
-            <span className="article-breadcrumb__separator" aria-hidden="true">
-              &bull;
-            </span>
-            <span className="article-breadcrumb__date text-xs sm:text-sm">
-              {publishedDate}
-            </span>
-            <span className="article-breadcrumb__separator" aria-hidden="true">
-              &bull;
-            </span>
-            <Link to="/" className="article-breadcrumb__brand text-xs sm:text-sm hover:underline">
-              TheAgeOfGenZ.com
-            </Link>
-          </div>
+          <ol className="article-breadcrumb__trail">
+            <li className="article-breadcrumb__item">
+              <Link to="/" className="article-breadcrumb__link">
+                Home
+              </Link>
+            </li>
+            {categoryBreadcrumbs.map((crumb, index) => (
+              <li key={crumb.slug} className="article-breadcrumb__item">
+                <span className="article-breadcrumb__separator" aria-hidden="true">
+                  /
+                </span>
+                <Link to={`/category/${crumb.slug}`} className="article-breadcrumb__link">
+                  {crumb.name}
+                </Link>
+              </li>
+            ))}
+            <li className="article-breadcrumb__item">
+              <span className="article-breadcrumb__separator" aria-hidden="true">
+                /
+              </span>
+              <span className="article-breadcrumb__link article-breadcrumb__link--muted">
+                {publishedDate}
+              </span>
+            </li>
+          </ol>
         </div>
       </nav>
 
@@ -546,17 +597,17 @@ const ArticleDetail: React.FC = () => {
             <div className="bg-white rounded-2xl shadow-sm px-6 py-8 md:px-12 md:py-12 lg:px-14 lg:py-16">
               {/* Article Header */}
               <header className="mb-12">
-                <div className="mb-5 text-xs md:text-sm uppercase tracking-[0.28em] text-orange-600 font-semibold flex flex-wrap items-center gap-3">
+                <div className="mb-5 flex flex-wrap items-center gap-3 text-xs md:text-sm font-semibold">
                   <Link
-                    to={`/${article.category?.slug}`}
-                    className="hover:text-orange-500 transition-colors"
+                    to={categoryLink}
+                    className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[0.7rem] uppercase tracking-[0.28em] text-white shadow-sm ${categoryAccent.badge}`}
                   >
-                    {article.category?.name || 'News'}
+                    {topLevelCategoryName.toUpperCase()}
                   </Link>
                   <span className="text-gray-400" aria-hidden="true">&bull;</span>
-                  <span className="text-gray-500">{publishedDate}</span>
+                  <span className="text-gray-500 tracking-normal">{publishedDate}</span>
                   <span className="text-gray-400" aria-hidden="true">&bull;</span>
-                  <span className="text-gray-500">The Age of GenZ</span>
+                  <span className="text-gray-500 tracking-normal">The Age of GenZ</span>
                 </div>
                 
                 {/* Article Title */}
@@ -684,11 +735,11 @@ const ArticleDetail: React.FC = () => {
 
               <div className="mt-12">
                 <Link
-                  to={`/${article.category?.slug || ''}`}
-                  className="inline-flex items-center gap-2 rounded-full border border-orange-300 bg-orange-50 px-5 py-2 text-sm font-semibold text-orange-600 transition hover:bg-orange-100 hover:text-orange-700"
+                  to={categoryLink}
+                  className={`inline-flex items-center gap-2 rounded-full border ${categoryAccent.border} bg-white px-5 py-2 text-sm font-semibold ${categoryAccent.text} transition hover:bg-white/80`}
                 >
                   <span aria-hidden="true" className="text-base font-semibold">{'\u2190'}</span>
-                  <span>More in {article.category?.name || 'News'}</span>
+                  <span>More in {categoryDisplayName}</span>
                 </Link>
               </div>
 
@@ -704,35 +755,49 @@ const ArticleDetail: React.FC = () => {
                 <div className="trending-widget">
                   <h3 className="trending-title">Trending Articles</h3>
                   <div className="trending-list">
-                    {relatedArticles.map((relatedArticle) => (
-                      <article key={relatedArticle.id} className="trending-item">
-                        <Link to={`/article/${relatedArticle.slug}`} className="trending-link group">
-                          <div className="trending-image-wrap">
-                            <img
-                              src={relatedArticle.featured_image_url || relatedArticle.featured_image || '/api/placeholder/420/240'}
-                              alt={relatedArticle.title}
-                              className="trending-image transition-transform duration-300 group-hover:scale-105"
-                              loading="lazy"
-                              onError={(e) => {
-                                e.currentTarget.src = '/api/placeholder/420/240';
-                              }}
-                            />
-                          </div>
-                          <div className="trending-meta">
-                            <span className="trending-meta-pill">
-                              {relatedArticle.category?.name?.toUpperCase() || 'TRENDING'}
-                            </span>
-                            <span className="trending-meta-separator" aria-hidden="true">&bull;</span>
-                            <span className="trending-meta-date">
-                              {formatDate(relatedArticle.published_at || relatedArticle.created_at)}
-                            </span>
-                          </div>
-                          <h4 className="trending-headline">
-                            {relatedArticle.title}
-                          </h4>
-                        </Link>
-                      </article>
-                    ))}
+                    {relatedArticles.map((relatedArticle) => {
+                      const relatedMeta = resolveCategoryMeta(
+                        relatedArticle.category
+                          ? {
+                              slug: relatedArticle.category.slug,
+                              name: relatedArticle.category.name,
+                              parent_slug: relatedArticle.category.parent_slug ?? null,
+                            }
+                          : {
+                              slug: relatedArticle.category?.slug,
+                              name: relatedArticle.category_name,
+                            },
+                      );
+                      return (
+                        <article key={relatedArticle.id} className="trending-item">
+                          <Link to={`/article/${relatedArticle.slug}`} className="trending-link group">
+                            <div className="trending-image-wrap">
+                              <img
+                                src={relatedArticle.featured_image_url || relatedArticle.featured_image || '/api/placeholder/420/240'}
+                                alt={relatedArticle.title}
+                                className="trending-image transition-transform duration-300 group-hover:scale-105"
+                                loading="lazy"
+                                onError={(e) => {
+                                  e.currentTarget.src = '/api/placeholder/420/240';
+                                }}
+                              />
+                            </div>
+                            <div className="trending-meta">
+                              <span className="trending-meta-pill">
+                                {relatedMeta.topLevelName.toUpperCase()}
+                              </span>
+                              <span className="trending-meta-separator" aria-hidden="true">&bull;</span>
+                              <span className="trending-meta-date">
+                                {formatDate(relatedArticle.published_at || relatedArticle.created_at)}
+                              </span>
+                            </div>
+                            <h4 className="trending-headline">
+                              {relatedArticle.title}
+                            </h4>
+                          </Link>
+                        </article>
+                      );
+                    })}
                   </div>
                 </div>
               )}
