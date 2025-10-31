@@ -39,12 +39,12 @@ const ArticleDetail: React.FC = () => {
     if (!article) return null;
     const source = article.category
       ? {
-          slug: article.category.slug,
+          slug: (article.category?.slug ?? article.category_name?.toLowerCase().replace(/[^a-z0-9]+/g, '-')),
           name: article.category.name,
           parent_slug: article.category.parent_slug ?? null,
         }
       : {
-          slug: article.category?.slug,
+          slug: article.category?.slug ?? article.category_name?.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
           name: article.category_name,
         };
     return resolveCategoryMeta(source);
@@ -759,12 +759,12 @@ const ArticleDetail: React.FC = () => {
                       const relatedMeta = resolveCategoryMeta(
                         relatedArticle.category
                           ? {
-                              slug: relatedArticle.category.slug,
+                              slug: (relatedArticle.category?.slug ?? relatedArticle.category_name?.toLowerCase().replace(/[^a-z0-9]+/g, '-')),
                               name: relatedArticle.category.name,
                               parent_slug: relatedArticle.category.parent_slug ?? null,
                             }
                           : {
-                              slug: relatedArticle.category?.slug,
+                              slug: relatedArticle.category?.slug ?? relatedArticle.category_name?.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
                               name: relatedArticle.category_name,
                             },
                       );
@@ -810,3 +810,4 @@ const ArticleDetail: React.FC = () => {
 };
 
 export default ArticleDetail;
+
