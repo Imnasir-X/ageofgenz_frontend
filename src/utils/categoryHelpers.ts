@@ -13,6 +13,13 @@ export type NavNode = {
   children: NavNode[];
 };
 
+export type CategoryAccent = {
+  badge: string;
+  divider: string;
+  text: string;
+  border: string;
+};
+
 const ROOT_ORDER_KEY = '__root__';
 
 const cloneCategoryBranch = (node: CategoryNode): NavNode => ({
@@ -70,8 +77,8 @@ const getFallbackCategoryName = (slug: string): string | undefined =>
 const flattenCategories = (
   categories: Category[],
   parentSlug: string | null = null,
-  acc: Array<{ slug: string; name: string; parentSlug: string | null }> = [],
-): Array<{ slug: string; name: string; parentSlug: string | null }> => {
+  acc: Array<{ slug: string; name: string; parentSlug: string | null; category?: Category }> = [],
+): Array<{ slug: string; name: string; parentSlug: string | null; category?: Category }> => {
   categories.forEach((category) => {
     if (!category || !category.slug) {
       return;
@@ -87,6 +94,7 @@ const flattenCategories = (
       slug,
       name,
       parentSlug: category.parent_slug ?? parentSlug ?? null,
+      category,
     });
 
     if (Array.isArray(category.children) && category.children.length > 0) {
@@ -272,6 +280,19 @@ export type CategoryMeta = {
 
 type CategoryLike = Partial<Pick<Category, 'slug' | 'name' | 'parent_slug'>>;
 
+const CATEGORY_ACCENT_MAP: Record<string, CategoryAccent> = {
+  trending: { badge: 'bg-orange-500', divider: 'bg-orange-400', text: 'text-orange-500', border: 'border-orange-500' },
+  tech: { badge: 'bg-indigo-600', divider: 'bg-indigo-500', text: 'text-indigo-500', border: 'border-indigo-500' },
+  'pop-media': { badge: 'bg-rose-600', divider: 'bg-rose-500', text: 'text-rose-500', border: 'border-rose-500' },
+  'science-discovery': { badge: 'bg-cyan-600', divider: 'bg-cyan-500', text: 'text-cyan-500', border: 'border-cyan-500' },
+  global: { badge: 'bg-emerald-600', divider: 'bg-emerald-500', text: 'text-emerald-500', border: 'border-emerald-500' },
+  politics: { badge: 'bg-blue-600', divider: 'bg-blue-500', text: 'text-blue-500', border: 'border-blue-500' },
+  'business-economy': { badge: 'bg-amber-600', divider: 'bg-amber-500', text: 'text-amber-600', border: 'border-amber-500' },
+  'crime-justice': { badge: 'bg-purple-600', divider: 'bg-purple-500', text: 'text-purple-500', border: 'border-purple-500' },
+  sports: { badge: 'bg-red-600', divider: 'bg-red-500', text: 'text-red-500', border: 'border-red-500' },
+  default: { badge: 'bg-orange-500', divider: 'bg-orange-400', text: 'text-orange-500', border: 'border-orange-500' },
+};
+
 const getNormalizedSlugFromName = (name: string): string | null => {
   const lookup = FALLBACK_NAME_TO_SLUG[name.trim().toLowerCase()];
   if (lookup) {
@@ -338,7 +359,36 @@ export const resolveCategoryMeta = (input?: CategoryLike | null): CategoryMeta =
   };
 };
 
+export const getCategoryAccent = (input?: CategoryLike | null): CategoryAccent => {
+  const meta = resolveCategoryMeta(input);
+  return CATEGORY_ACCENT_MAP[meta.topLevelSlug] || CATEGORY_ACCENT_MAP[meta.slug] || CATEGORY_ACCENT_MAP.default;
+};
+
 export const getTopLevelCategorySlug = (slug: string): string => {
   const normalized = resolveCategorySlug(slug).slug;
   return getTopLevelSlugInternal(normalized);
+};
+
+export type FlatCategory = {
+  slug: string;
+  name: string;
+  parentSlug: string | null;
+  category?: Category;
+};
+
+export const flattenCategoryTree = (categories: Category[]): FlatCategory[] =>
+  flattenCategories(categories).map((item) => ({
+    slug: item.slug,
+    name: item.name,
+    parentSlug: item.parentSlug,
+    category: item.category,
+  }));
+
+export const getCategoryPath = (slug: string): string[] => {
+  const normalized = resolveCategorySlug(slug).slug;
+  const descriptor = CATEGORY_LOOKUP[normalized];
+  if (!descriptor) {
+    return [normalized];
+  }
+  return descriptor.path;
 };

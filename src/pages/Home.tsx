@@ -13,34 +13,10 @@ import {
 } from '../utils/api';
 import { RefreshCw, Search, X, TrendingUp, Clock, BookOpen, Pause, Play, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import type { Article, Category } from '../types';
-import { buildHomeCategories, resolveCategoryMeta } from '../utils/categoryHelpers';
+import { buildHomeCategories, resolveCategoryMeta, getCategoryAccent } from '../utils/categoryHelpers';
 import type { CategoryMeta } from '../utils/categoryHelpers';
 
 const HERO_ROTATE_INTERVAL = 7000;
-
-type AccentTheme = {
-  badge: string;
-  divider: string;
-  text: string;
-};
-
-const CATEGORY_ACCENTS: Record<string, AccentTheme> = {
-  trending: { badge: 'bg-orange-500', divider: 'bg-orange-400', text: 'text-orange-500' },
-  tech: { badge: 'bg-indigo-600', divider: 'bg-indigo-600', text: 'text-indigo-600' },
-  'pop-media': { badge: 'bg-rose-600', divider: 'bg-rose-600', text: 'text-rose-600' },
-  'science-discovery': { badge: 'bg-cyan-600', divider: 'bg-cyan-600', text: 'text-cyan-600' },
-  global: { badge: 'bg-emerald-600', divider: 'bg-emerald-600', text: 'text-emerald-600' },
-  politics: { badge: 'bg-blue-600', divider: 'bg-blue-600', text: 'text-blue-600' },
-  'business-economy': { badge: 'bg-amber-600', divider: 'bg-amber-600', text: 'text-amber-600' },
-  'crime-justice': { badge: 'bg-purple-600', divider: 'bg-purple-600', text: 'text-purple-600' },
-  sports: { badge: 'bg-red-600', divider: 'bg-red-600', text: 'text-red-600' },
-  default: { badge: 'bg-orange-500', divider: 'bg-orange-400', text: 'text-orange-500' },
-};
-
-const getCategoryAccent = (input?: Partial<Category> | null): AccentTheme => {
-  const meta = resolveCategoryMeta(input ?? undefined);
-  return CATEGORY_ACCENTS[meta.topLevelSlug] || CATEGORY_ACCENTS[meta.slug] || CATEGORY_ACCENTS.default;
-};
 
 type HomeCategoryEntry = {
   slug: string;
