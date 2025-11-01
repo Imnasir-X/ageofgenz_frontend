@@ -102,6 +102,15 @@ const ArticleDetail: React.FC = () => {
   const [bookmarkMessage, setBookmarkMessage] = useState<string | null>(null);
   const bookmarkToastTimeoutRef = useRef<number | null>(null);
 
+  if (import.meta.env.DEV) {
+    console.debug('ArticleDetail render', {
+      slug,
+      loading,
+      hasArticle: Boolean(article),
+      error,
+    });
+  }
+
   const categoryMeta: CategoryMeta | null = useMemo(() => {
     if (!article) return null;
 
@@ -151,8 +160,18 @@ const ArticleDetail: React.FC = () => {
     if (typeof window === 'undefined' || !slug) {
       return;
     }
+
+    let storage: Storage | null = null;
     try {
-      const raw = window.localStorage.getItem('aoz_bookmarks');
+      storage = window.localStorage;
+    } catch (error) {
+      console.warn('Bookmarks unavailable (read)', error);
+      setIsBookmarked(false);
+      return;
+    }
+
+    try {
+      const raw = storage.getItem('aoz_bookmarks');
       if (!raw) {
         setIsBookmarked(false);
         return;
@@ -371,15 +390,12 @@ const ArticleDetail: React.FC = () => {
 
     const transformKeyTakeaways = (markup: string) => {
       let updatedMarkup = markup;
-      const markerPattern = /<p>\s*\[\[key-takeaways\]\]\s*<\/p>([\s\S]*?)(<p>\s*\[\[\/key-takeaways\]\]\s*<\/p>)/i;
+      const markerPattern = /<p>\s*\[\[key-takeaways\]\]\s*<\/p>([\s\S]*?)(<p>\s*\[\[\/key-takeaways\]\]\s*<\/p>)/gi;
 
-      let match = markerPattern.exec(updatedMarkup);
-      while (match) {
-        const innerContent = enhanceInlineMarkup(match[1].trim());
-        const sectionHTML = `<section class="article-key-takeaways"><div class="article-key-takeaways__label">Key Takeaways</div><div class="article-key-takeaways__body">${innerContent}</div></section>`;
-        updatedMarkup = updatedMarkup.replace(match[0], sectionHTML);
-        match = markerPattern.exec(updatedMarkup);
-      }
+      updatedMarkup = updatedMarkup.replace(markerPattern, (_match, body) => {
+        const innerContent = enhanceInlineMarkup(String(body).trim());
+        return `<section class="article-key-takeaways"><div class="article-key-takeaways__label">Key Takeaways</div><div class="article-key-takeaways__body">${innerContent}</div></section>`;
+      });
 
       return updatedMarkup;
     };
@@ -498,6 +514,141 @@ const ArticleDetail: React.FC = () => {
 
     return { __html: htmlPieces.join('') };
   }, [article?.content]);
+
+  const articleSlug = article?.slug ?? '';
+  const articleUrl = `https://theageofgenz.com/article/${articleSlug}`;
+  const rawPublishedDate = article?.published_at || article?.created_at || '';
+  const publishedDate = rawPublishedDate ? formatDate(rawPublishedDate) : '';
+  const imageUrl =
+    article?.featured_image_url ||
+    article?.featured_image ||
+    'https://theageofgenz.com/og-image.jpg';
+  const viewCount = article?.view_count ?? article?.views ?? null;
+  const encodedShareUrl = encodeURIComponent(articleUrl);
+  const encodedShareTitle = encodeURIComponent(article?.title ?? 'The Age of GenZ');
+  const shareMenuItemClass =
+    'flex items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white';
+
+  const shareLinks = useMemo(
+    () => [
+      {
+        name: 'Email',
+        href: `mailto:?subject=${encodedShareTitle}&body=${encodedShareTitle}%0A%0A${encodedShareUrl}`,
+        Icon: Mail,
+        iconClass: 'text-gray-500',
+      },
+      {
+        name: 'Facebook',
+        href: `https://www.facebook.com/sharer/sharer.php?u=${encodedShareUrl}`,
+        Icon: Facebook,
+        iconClass: 'text-blue-600',
+      },
+      {
+        name: 'Bluesky',
+        href: `https://bsky.app/intent/compose?text=${encodedShareTitle}%20${encodedShareUrl}`,
+        Icon: Bird,
+        iconClass: 'text-sky-500',
+      },
+      {
+        name: 'X',
+        href: `https://x.com/intent/tweet?url=${encodedShareUrl}&text=${encodedShareTitle}`,
+        Icon: XIcon,
+        iconClass: 'text-gray-900',
+      },
+      {
+        name: 'Telegram',
+        href: `https://t.me/share/url?url=${encodedShareUrl}&text=${encodedShareTitle}`,
+        Icon: Send,
+        iconClass: 'text-sky-400',
+      },
+      {
+        name: 'LinkedIn',
+        href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedShareUrl}`,
+        Icon: Linkedin,
+        iconClass: 'text-sky-600',
+      },
+      {
+        name: 'WhatsApp',
+        href: `https://wa.me/?text=${encodedShareTitle}%20${encodedShareUrl}`,
+        Icon: MessageCircle,
+        iconClass: 'text-green-500',
+      },
+      {
+        name: 'Reddit',
+        href: `https://www.reddit.com/submit?url=${encodedShareUrl}&title=${encodedShareTitle}`,
+        Icon: RedditIcon,
+        iconClass: 'text-orange-500',
+      },
+    ],
+    [encodedShareTitle, encodedShareUrl],
+  );
+
+  const shareLinkItems = useMemo(() => shareLinks.filter((item) => Boolean(item.href)), [shareLinks]);
+
+  const toggleBookmark = useCallback(() => {
+    if (!slug || typeof window === 'undefined') return;
+
+    let storage: Storage | null = null;
+    try {
+      storage = window.localStorage;
+    } catch (error) {
+      console.warn('Bookmarks unavailable (toggle)', error);
+      showBookmarkToast('Bookmarks unavailable in this browser');
+      return;
+    }
+
+    try {
+      const raw = storage.getItem('aoz_bookmarks');
+      const parsed = raw ? JSON.parse(raw) : [];
+      const sanitizedItems = Array.isArray(parsed)
+        ? (parsed as unknown[]).filter((entry): entry is string => typeof entry === 'string')
+        : [];
+      let nextItems: string[];
+      let nextState = false;
+
+      if (sanitizedItems.includes(slug)) {
+        nextItems = sanitizedItems.filter((entry) => entry !== slug);
+      } else {
+        nextItems = [...sanitizedItems, slug];
+        nextState = true;
+      }
+
+      const trimmedItems = nextItems.slice(-50);
+      const removedCount = nextItems.length - trimmedItems.length;
+      if (removedCount > 0) {
+        console.info(`Bookmark list trimmed to the latest 50 entries (removed ${removedCount}).`);
+      }
+      storage.setItem('aoz_bookmarks', JSON.stringify(trimmedItems));
+      setIsBookmarked(nextState);
+      showBookmarkToast(nextState ? 'Added to bookmarks' : 'Removed from bookmarks');
+    } catch (error) {
+      console.error('Failed to toggle bookmark', error);
+      showBookmarkToast('Could not update bookmark');
+    }
+  }, [showBookmarkToast, slug]);
+
+  const handleCopyShare = useCallback(async (): Promise<boolean> => {
+    try {
+      if (typeof window === 'undefined') {
+        return false;
+      }
+
+      if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        await navigator.clipboard.writeText(articleUrl);
+      } else {
+        const fallback = window.prompt('Copy this link', articleUrl);
+        if (fallback === null) {
+          return false;
+        }
+      }
+      setCopySuccess(true);
+      window.setTimeout(() => setCopySuccess(false), 3000);
+      return true;
+    } catch (err) {
+      console.error('Failed to copy link', err);
+      return false;
+    }
+  }, [articleUrl]);
 
   // Reading progress tracking
   useEffect(() => {
@@ -687,137 +838,6 @@ const ArticleDetail: React.FC = () => {
       </div>
     );
   }
-
-  const articleSlug = article?.slug ?? '';
-  const articleUrl = `https://theageofgenz.com/article/${articleSlug}`;
-  const rawPublishedDate = article?.published_at || article?.created_at || '';
-  const publishedDate = rawPublishedDate ? formatDate(rawPublishedDate) : '';
-  const imageUrl =
-    article?.featured_image_url ||
-    article?.featured_image ||
-    'https://theageofgenz.com/og-image.jpg';
-  const viewCount = article?.view_count ?? article?.views ?? null;
-  const encodedShareUrl = encodeURIComponent(articleUrl);
-  const encodedShareTitle = encodeURIComponent(article?.title ?? 'The Age of GenZ');
-  const shareMenuItemClass =
-    'flex items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white';
-
-  const shareLinks = useMemo(
-    () => [
-      {
-        name: 'Email',
-        href: `mailto:?subject=${encodedShareTitle}&body=${encodedShareTitle}%0A%0A${encodedShareUrl}`,
-        Icon: Mail,
-        iconClass: 'text-gray-500',
-      },
-      {
-        name: 'Facebook',
-        href: `https://www.facebook.com/sharer/sharer.php?u=${encodedShareUrl}`,
-        Icon: Facebook,
-        iconClass: 'text-blue-600',
-      },
-      {
-        name: 'Bluesky',
-        href: `https://bsky.app/intent/compose?text=${encodedShareTitle}%20${encodedShareUrl}`,
-        Icon: Bird,
-        iconClass: 'text-sky-500',
-      },
-      {
-        name: 'X',
-        href: `https://x.com/intent/tweet?url=${encodedShareUrl}&text=${encodedShareTitle}`,
-        Icon: XIcon,
-        iconClass: 'text-gray-900',
-      },
-      {
-        name: 'Telegram',
-        href: `https://t.me/share/url?url=${encodedShareUrl}&text=${encodedShareTitle}`,
-        Icon: Send,
-        iconClass: 'text-sky-400',
-      },
-      {
-        name: 'LinkedIn',
-        href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedShareUrl}`,
-        Icon: Linkedin,
-        iconClass: 'text-sky-600',
-      },
-      {
-        name: 'WhatsApp',
-        href: `https://wa.me/?text=${encodedShareTitle}%20${encodedShareUrl}`,
-        Icon: MessageCircle,
-        iconClass: 'text-green-500',
-      },
-      {
-        name: 'Reddit',
-        href: `https://www.reddit.com/submit?url=${encodedShareUrl}&title=${encodedShareTitle}`,
-        Icon: RedditIcon,
-        iconClass: 'text-orange-500',
-      },
-    ],
-    [encodedShareTitle, encodedShareUrl],
-  );
-
-  const shareLinkItems = useMemo(() => shareLinks.filter((item) => Boolean(item.href)), [shareLinks]);
-
-  const toggleBookmark = useCallback(() => {
-    if (!slug || typeof window === 'undefined') return;
-
-    try {
-      if (typeof window.localStorage === 'undefined') {
-        showBookmarkToast('Bookmarks unavailable in this browser');
-        return;
-      }
-
-      const raw = window.localStorage.getItem('aoz_bookmarks');
-      const parsed = raw ? JSON.parse(raw) : [];
-      const sanitizedItems = Array.isArray(parsed)
-        ? (parsed as unknown[]).filter((entry): entry is string => typeof entry === 'string')
-        : [];
-      let nextItems: string[];
-      let nextState = false;
-
-      if (sanitizedItems.includes(slug)) {
-        nextItems = sanitizedItems.filter((entry) => entry !== slug);
-      } else {
-        nextItems = [...sanitizedItems, slug];
-        nextState = true;
-      }
-
-      const trimmedItems = nextItems.slice(-50);
-      const removedCount = nextItems.length - trimmedItems.length;
-      if (removedCount > 0) {
-        console.info(`Bookmark list trimmed to the latest 50 entries (removed ${removedCount}).`);
-      }
-      window.localStorage.setItem('aoz_bookmarks', JSON.stringify(trimmedItems));
-      setIsBookmarked(nextState);
-      showBookmarkToast(nextState ? 'Added to bookmarks' : 'Removed from bookmarks');
-    } catch (error) {
-      console.error('Failed to toggle bookmark', error);
-      showBookmarkToast('Could not update bookmark');
-    }
-  }, [showBookmarkToast, slug]);
-
-  const handleCopyShare = useCallback(async (): Promise<boolean> => {
-    try {
-      if (typeof window === 'undefined') {
-        return false;
-      }
-
-      if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-        await navigator.clipboard.writeText(articleUrl);
-      } else {
-        const fallback = window.prompt('Copy this link', articleUrl);
-        if (fallback === null) {
-          return false;
-        }
-      }
-      setCopySuccess(true);
-      window.setTimeout(() => setCopySuccess(false), 3000);
-      return true;
-    } catch (err) {
-      console.error('Failed to copy link', err);
-      return false;
-    }
-  }, [articleUrl]);
 
   return (
     <ErrorBoundary>
