@@ -203,27 +203,47 @@ const ArticleDetail: React.FC = () => {
     [],
   );
 
-  const showBookmarkToast = useCallback(
-    (message: string) => {
-      if (typeof window === 'undefined') {
-        setBookmarkMessage(message);
-        return;
-      }
-      if (bookmarkToastTimeoutRef.current) {
-        window.clearTimeout(bookmarkToastTimeoutRef.current);
-        bookmarkToastTimeoutRef.current = null;
-      }
+ const showBookmarkToast = useCallback(
+   (message: string) => {
+     if (typeof window === 'undefined') {
+       setBookmarkMessage(message);
+       return;
+     }
+     if (bookmarkToastTimeoutRef.current) {
+       window.clearTimeout(bookmarkToastTimeoutRef.current);
+       bookmarkToastTimeoutRef.current = null;
+     }
 
-      setBookmarkMessage(message);
-      bookmarkToastTimeoutRef.current = window.setTimeout(() => {
-        bookmarkToastTimeoutRef.current = null;
-        setBookmarkMessage(null);
-      }, 2400);
-    },
-    [],
-  );
+     setBookmarkMessage(message);
+     bookmarkToastTimeoutRef.current = window.setTimeout(() => {
+       bookmarkToastTimeoutRef.current = null;
+       setBookmarkMessage(null);
+     }, 2400);
+   },
+   [],
+ );
 
-  const handleToggleShareMenu = useCallback(() => {
+  const handleToggleShareMenu = () => {
+    const shareTitle = article?.title ?? 'The Age of GenZ';
+    const shareSlug = article?.slug ?? slug ?? '';
+    const fallbackUrl =
+      typeof window !== 'undefined' ? window.location.href : 'https://theageofgenz.com';
+    const shareTargetUrl = shareSlug
+      ? `https://theageofgenz.com/article/${shareSlug}`
+      : fallbackUrl;
+
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      void navigator
+        .share({
+          title: shareTitle,
+          url: shareTargetUrl,
+        })
+        .catch(() => {
+          setShowShareMenu(true);
+        });
+      return;
+    }
+
     setShowShareMenu((prev) => {
       const next = !prev;
       if (!next && shareTriggerRef.current) {
@@ -231,7 +251,7 @@ const ArticleDetail: React.FC = () => {
       }
       return next;
     });
-  }, []);
+  };
 
   useEffect(() => {
     if (!showShareMenu) {
@@ -923,7 +943,7 @@ const ArticleDetail: React.FC = () => {
 
       {/* Reading progress bar */}
       {showProgressBar && (
-        <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 z-50">
+        <div className="fixed top-0 left-0 z-50 h-1 w-full bg-gray-200 shadow-[0_2px_4px_rgba(0,0,0,0.1)]">
           <div 
             className="h-full bg-orange-500 transition-all duration-300 shadow-[0_0_10px_rgba(249,115,22,0.3)]" 
             style={{ width: `${readingProgress}%` }}
@@ -963,18 +983,20 @@ const ArticleDetail: React.FC = () => {
                   </p>
                 )}
 
-                <div className="mb-8 flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                  <span className="inline-flex items-center gap-2">
-                    <BookOpen size={16} className="text-orange-500" aria-hidden="true" />
-                    <span>{estimatedReadTime} min read</span>
-                  </span>
-                  {viewCount !== null && (
-                    <span className="inline-flex items-center gap-2">
-                      <Eye size={16} className="text-orange-400" aria-hidden="true" />
-                      <span>{viewCount.toLocaleString()} views</span>
+                <div className="mb-8 flex flex-wrap items-center justify-between gap-4 text-sm text-gray-500">
+                 <div className="flex items-center gap-4">
+                    <span className="inline-flex items-center gap-2" title="Estimated read time">
+                      <BookOpen size={16} className="text-orange-500" aria-hidden="true" />
+                      <span>{estimatedReadTime} min read</span>
                     </span>
-                  )}
-                  <div className="ml-auto flex items-center gap-3">
+                    {viewCount !== null && (
+                      <span className="inline-flex items-center gap-2" title="View count">
+                        <Eye size={16} className="text-orange-400" aria-hidden="true" />
+                        <span>{viewCount.toLocaleString()} views</span>
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
                     <button
                       type="button"
                       onClick={toggleBookmark}
@@ -1140,7 +1162,7 @@ const ArticleDetail: React.FC = () => {
                         <Link
                           key={`${tag}-${index}`}
                           to={`/search?q=${encodeURIComponent(tag)}`}
-                          className="bg-gray-100 hover:bg-orange-50 text-gray-700 hover:text-orange-700 px-3 py-2 rounded-full text-sm font-medium transition-colors transition-shadow border border-gray-200 hover:border-orange-200 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                          className="bg-gray-100 hover:bg-orange-50 text-gray-700 hover:text-orange-700 px-3 py-2 rounded-full text-sm font-medium transition-colors transition-shadow border border-gray-200 hover:border-orange-200 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white line-clamp-1"
                           title={`View more stories about ${tag}`}
                         >
                           #{tag}
@@ -1150,6 +1172,7 @@ const ArticleDetail: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => setShowAllTags((prev) => !prev)}
+                          aria-expanded={showAllTags}
                           className="px-3 py-2 text-sm font-semibold text-orange-600 border border-orange-200 rounded-full hover:bg-orange-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                         >
                           {showAllTags ? 'Show less' : `+${article.tags.length - 5} more`}
@@ -1174,10 +1197,10 @@ const ArticleDetail: React.FC = () => {
           </article>
 
           {/* Enhanced Sidebar */}
-          <aside className="mt-12 xl:mt-0 xl:w-1/3">
+          <aside className="mt-12 xl:mt-0 xl:w-1/3" aria-label="Related articles">
             <div className="sticky top-24 space-y-8">
               <DonationPlaceholder />
-              
+
               {relatedArticles.length > 0 && (
                 <div className="trending-widget">
                   <h3 className="trending-title">Trending Articles</h3>
