@@ -100,6 +100,7 @@ const ArticleDetail: React.FC = () => {
   const shareTriggerRef = useRef<HTMLButtonElement | null>(null);
   const [shareMenuReady, setShareMenuReady] = useState(false);
   const [bookmarkMessage, setBookmarkMessage] = useState<string | null>(null);
+  const [showAllTags, setShowAllTags] = useState(false);
   const bookmarkToastTimeoutRef = useRef<number | null>(null);
 
   if (import.meta.env.DEV) {
@@ -345,6 +346,10 @@ const ArticleDetail: React.FC = () => {
     });
     return () => window.cancelAnimationFrame(raf);
   }, [article]);
+
+  useEffect(() => {
+    setShowAllTags(false);
+  }, [article?.slug]);
 
   // Calculate reading time based on word count
   const estimatedReadTime = useMemo(() => {
@@ -662,7 +667,7 @@ const ArticleDetail: React.FC = () => {
 
       setReadingProgress(Math.min(100, Math.max(0, progress)));
 
-      const shouldShow = scrollableHeight > 24;
+      const shouldShow = scrollableHeight > 200;
       setShowProgressBar(prev => (prev === shouldShow ? prev : shouldShow));
     };
 
@@ -781,7 +786,7 @@ const ArticleDetail: React.FC = () => {
               </div>
             </article>
 
-            <aside className="lg:w-1/3 mt-8 lg:mt-0">
+            <aside className="mt-12 lg:mt-0 lg:w-1/3">
               <div className="sticky top-24 space-y-6">
                 <div className="bg-white rounded-xl shadow-sm p-6 animate-pulse">
                   <div className="w-32 h-6 bg-gray-200 rounded mb-4"></div>
@@ -926,37 +931,6 @@ const ArticleDetail: React.FC = () => {
         </div>
       )}
 
-      {/* Breadcrumb Navigation */}
-      <nav className="article-breadcrumb" aria-label="Breadcrumb">
-        <div className="article-breadcrumb__inner">
-          <ol className="article-breadcrumb__trail">
-            <li className="article-breadcrumb__item">
-              <Link to="/" className="article-breadcrumb__link">
-                Home
-              </Link>
-            </li>
-            {categoryBreadcrumbs.map((crumb, index) => (
-              <li key={crumb.slug} className="article-breadcrumb__item">
-                <span className="article-breadcrumb__separator" aria-hidden="true">
-                  /
-                </span>
-                <Link to={`/category/${crumb.slug}`} className="article-breadcrumb__link">
-                  {crumb.name}
-                </Link>
-              </li>
-            ))}
-            <li className="article-breadcrumb__item">
-              <span className="article-breadcrumb__separator" aria-hidden="true">
-                /
-              </span>
-              <span className="article-breadcrumb__link article-breadcrumb__link--muted">
-                {publishedDate}
-              </span>
-            </li>
-          </ol>
-        </div>
-      </nav>
-
       <div className="mx-auto max-w-5xl px-5 py-8 md:px-12 md:py-12 lg:px-16 lg:py-16">
         <div className="space-y-12 xl:flex xl:gap-12 xl:space-y-0">
           {/* Main Article Content */}
@@ -1004,6 +978,7 @@ const ArticleDetail: React.FC = () => {
                     <button
                       type="button"
                       onClick={toggleBookmark}
+                      title={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
                       className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white ${
                         isBookmarked
                           ? 'border-orange-300 bg-orange-50 text-orange-600 hover:bg-orange-100'
@@ -1021,13 +996,14 @@ const ArticleDetail: React.FC = () => {
                       <button
                         type="button"
                         id="article-share-trigger"
-                        ref={shareTriggerRef}
-                        className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-                        aria-haspopup="true"
-                        aria-expanded={showShareMenu}
-                        aria-controls="article-share-menu"
-                        aria-label={showShareMenu ? 'Close share menu' : 'Open share menu'}
-                        onClick={handleToggleShareMenu}
+                      ref={shareTriggerRef}
+                      className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                      aria-haspopup="true"
+                      aria-expanded={showShareMenu}
+                      aria-controls="article-share-menu"
+                      aria-label={showShareMenu ? 'Close share menu' : 'Open share menu'}
+                      title="Share this article"
+                      onClick={handleToggleShareMenu}
                       >
                         <Share2 size={16} aria-hidden="true" />
                         <span>Share</span>
@@ -1038,7 +1014,7 @@ const ArticleDetail: React.FC = () => {
                             role="menu"
                             aria-labelledby="article-share-trigger"
                             ref={shareMenuContentRef}
-                            className={`absolute right-0 top-full z-40 mt-2 w-64 max-md:left-0 max-md:right-auto overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl divide-y divide-gray-100 origin-top-right transition-transform transition-opacity duration-150 ease-out transform ${
+                            className={`absolute right-0 top-full z-40 mt-2 w-64 max-md:left-1/2 max-md:right-auto max-md:-translate-x-1/2 overflow-hidden max-h-[50vh] overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-xl divide-y divide-gray-100 origin-top-right transition-transform transition-opacity duration-150 ease-out transform ${
                               shareMenuReady ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-1 scale-95'
                             }`}
                           >
@@ -1118,24 +1094,11 @@ const ArticleDetail: React.FC = () => {
               )}
 
               <div className="-mx-6 md:-mx-12 lg:-mx-14 border-t border-b border-orange-200 bg-white/90 mt-0">
-                <div className="article-share-wrap px-6 md:px-12 lg:px-14 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                  <span className="sr-only">Share this article</span>
-                  <div className="article-share-grid flex flex-col items-stretch gap-3 md:flex-row md:items-center md:gap-6">
-                    {shareLinkItems.map(({ name, href, Icon, iconClass }) => (
-                      <a
-                        key={name}
-                        href={href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={`Share on ${name}`}
-                        className="article-share-button focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-                      >
-                        <Icon className={`article-share-icon ${iconClass}`} size={16} />
-                        <span className="sr-only">Share on {name}</span>
-                      </a>
-                    ))}
+                <div className="article-share-wrap px-6 md:px-12 lg:px-14 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div className="text-sm font-semibold text-gray-700">
+                    Share this article using the menu or copy the link below.
                   </div>
-                  <div className="article-share-copy md:flex md:items-center md:gap-3">
+                  <div className="article-share-copy flex items-center gap-3">
                     <button
                       type="button"
                       onClick={() => {
@@ -1167,20 +1130,31 @@ const ArticleDetail: React.FC = () => {
               {/* Tags */}
               {article.tags && article.tags.length > 0 && (
                 <div className="mt-16 pt-10 border-t border-gray-200">
-                  <div className="flex items-start flex-wrap gap-3">
+                  <div className="flex flex-wrap items-start gap-3">
                     <div className="flex items-center gap-2 mb-2">
                       <Tag size={18} className="text-gray-500" />
                       <span className="text-sm font-medium text-gray-700">Related Topics:</span>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {article.tags.map((tag, index) => (
-                        <span 
-                          key={index}
-                          className="bg-gray-100 hover:bg-orange-50 text-gray-700 hover:text-orange-700 px-3 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer border border-gray-200 hover:border-orange-200"
+                    <div className="flex flex-wrap items-center gap-2">
+                      {(showAllTags ? article.tags : article.tags.slice(0, 5)).map((tag, index) => (
+                        <Link
+                          key={`${tag}-${index}`}
+                          to={`/search?q=${encodeURIComponent(tag)}`}
+                          className="bg-gray-100 hover:bg-orange-50 text-gray-700 hover:text-orange-700 px-3 py-2 rounded-full text-sm font-medium transition-colors transition-shadow border border-gray-200 hover:border-orange-200 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                          title={`View more stories about ${tag}`}
                         >
                           #{tag}
-                        </span>
+                        </Link>
                       ))}
+                      {article.tags.length > 5 && (
+                        <button
+                          type="button"
+                          onClick={() => setShowAllTags((prev) => !prev)}
+                          className="px-3 py-2 text-sm font-semibold text-orange-600 border border-orange-200 rounded-full hover:bg-orange-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                        >
+                          {showAllTags ? 'Show less' : `+${article.tags.length - 5} more`}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1200,7 +1174,7 @@ const ArticleDetail: React.FC = () => {
           </article>
 
           {/* Enhanced Sidebar */}
-          <aside className="xl:w-1/3 xl:mt-0">
+          <aside className="mt-12 xl:mt-0 xl:w-1/3">
             <div className="sticky top-24 space-y-8">
               <DonationPlaceholder />
               
