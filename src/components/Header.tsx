@@ -32,6 +32,7 @@ const Header: React.FC = () => {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [loadingRecent, setLoadingRecent] = useState(false);
   const [mobileExpandedSections, setMobileExpandedSections] = useState<Record<string, boolean>>({});
+  const lastScrollTimeRef = useRef<number>(0);
   useEffect(() => {
     let cancelled = false;
 
@@ -161,27 +162,25 @@ const Header: React.FC = () => {
     [getIconVisuals],
   );
 
-  const logoScale = useMemo(() => {
-    const base = isDesktop ? 1 - 0.7 * shrink : 1 - 0.55 * shrink;
-    const min = isDesktop ? 0.8 : 0.7;
-    return Math.max(min, base);
-  }, [isDesktop, shrink]);
+  const cappedShrink = Math.min(Math.max(shrink, 0), 1);
 
-  const titleScale = useMemo(() => {
-    const base = isDesktop ? 1 - 0.55 * shrink : 1 - 0.45 * shrink;
+  const logoScale = useMemo(() => {
+    const base = isDesktop ? 1 - 0.7 * cappedShrink : 1 - 0.55 * cappedShrink;
     const min = isDesktop ? 0.85 : 0.75;
     return Math.max(min, base);
-  }, [isDesktop, shrink]);
+  }, [isDesktop, cappedShrink]);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      const raw = localStorage.getItem(recentKey);
-      setRecentSearches(raw ? JSON.parse(raw) : []);
-    } catch {
-      setRecentSearches([]);
-    }
-  }, []);
+  const titleScale = useMemo(() => {
+    const base = isDesktop ? 1 - 0.55 * cappedShrink : 1 - 0.45 * cappedShrink;
+    const min = isDesktop ? 0.9 : 0.8;
+    return Math.max(min, base);
+  }, [isDesktop, cappedShrink]);
+
+  const logoMargin = useMemo(() => {
+    const base = isDesktop ? 32 : 24;
+    const min = isDesktop ? 16 : 12;
+    return Math.max(min, base - (base - min) * cappedShrink);
+  }, [isDesktop, cappedShrink]);
 
   const saveRecentSearch = useCallback((value: string) => {
     const term = value.trim();
@@ -264,22 +263,35 @@ const Header: React.FC = () => {
       rafId = null;
       const y = window.scrollY || 0;
       const start = 0;
-      const end = isDesktop ? 140 : 100; // mobile-specific threshold
-      const s = Math.max(0, Math.min(1, (y - start) / (end - start)));
-      setShrink(s);
-      setIsCompact(y > 80);
+      const end = isDesktop ? 160 : 120;
+      let s = Math.max(0, Math.min(1, (y - start) / (end - start)));
+      const viewportWidth = window.innerWidth || 0;
+      if (viewportWidth < 1280 && viewportWidth >= 1024) {
+        s = Math.min(s, 0.5);
+      }
+      const nextShrink = prefersReducedMotion ? (s > 0 ? 1 : 0) : s;
+      setShrink(nextShrink);
+      setIsCompact(prefersReducedMotion ? y > 0 : y > 80);
       setHasShadow(y > 0);
     };
     const onScroll = () => {
-      if (rafId == null) rafId = window.requestAnimationFrame(handle);
+      const now = performance.now();
+      if (now - lastScrollTimeRef.current < 16) {
+        return;
+      }
+      lastScrollTimeRef.current = now;
+      if (rafId == null) {
+        rafId = window.requestAnimationFrame(handle);
+      }
     };
     window.addEventListener('scroll', onScroll, { passive: true } as AddEventListenerOptions);
+    lastScrollTimeRef.current = performance.now();
     handle();
     return () => {
       window.removeEventListener('scroll', onScroll as any);
       if (rafId) cancelAnimationFrame(rafId);
     };
-  }, [isDesktop]);
+  }, [isDesktop, prefersReducedMotion]);
 
   // Close mega menu when leaving header area
   const closeMenus = () => setOpenMenu(null);
@@ -336,13 +348,30 @@ const Header: React.FC = () => {
     return () => document.removeEventListener('mousedown', onClick);
   }, [showSearch]);
 
-  // Desktop nav link styles - responsive to compact state
-  const navLinkClasses = ({ isActive }: { isActive: boolean }): string =>
-    `transition-colors ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'} font-semibold uppercase tracking-wide line-clamp-1 ${isActive ? 'text-orange-500' : 'text-white'} hover:text-orange-500`;
+  // Navigation link classes shared between desktop/mobile variants
+  const navLinkClassName = useCallback(
+    (isActive: boolean, variant: 'desktop' | 'mobile') => {
+      if (variant === 'desktop') {
+        return `transition-colors ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'} font-semibold uppercase tracking-wide line-clamp-1 ${
+          isActive ? 'text-orange-500' : 'text-white'
+        } hover:text-orange-500`;
+      }
+      return `block rounded py-2 px-3 text-sm ${
+        isActive ? 'text-orange-500 font-semibold bg-gray-800' : 'text-white'
+      } hover:text-orange-500 hover:bg-gray-800 transition-all ${prefersReducedMotion ? 'duration-0' : 'duration-200'}`;
+    },
+    [prefersReducedMotion],
+  );
 
-  // Mobile nav link styles - with explicit colors
-  const mobileNavLinkClasses = ({ isActive }: { isActive: boolean }): string =>
-    `block py-2 px-3 text-sm ${isActive ? 'text-orange-500 font-semibold bg-gray-800 rounded' : 'text-white'} hover:text-orange-500 hover:bg-gray-800 rounded transition-all duration-200`;
+  const desktopNavLinkClasses = useCallback(
+    ({ isActive }: { isActive: boolean }) => navLinkClassName(isActive, 'desktop'),
+    [navLinkClassName],
+  );
+
+  const mobileNavLinkClasses = useCallback(
+    ({ isActive }: { isActive: boolean }) => navLinkClassName(isActive, 'mobile'),
+    [navLinkClassName],
+  );
 
   // Delayed close for mega menus
   const closeMenuDelayed = useRef<number | undefined>(undefined);
@@ -373,7 +402,7 @@ const Header: React.FC = () => {
     return null;
   }, [navLoading, navError]);
 
-  const getCategoryPath = (slug: string) => {
+  const getCategoryPath = useCallback((slug: string) => {
     if (!slug) return '/';
     switch (slug) {
       case 'trending':
@@ -381,217 +410,228 @@ const Header: React.FC = () => {
       default:
         return `/category/${slug}`;
     }
-  };
+  }, []);
 
-  const toggleMobileSection = (slug: string) => {
+  const toggleMobileSection = useCallback((slug: string) => {
     setMobileExpandedSections((prev) => ({
       ...prev,
       [slug]: !prev[slug],
     }));
-  };
+  }, []);
 
-  const renderMobileNavBranch = (node: NavNode, depth: number): React.ReactNode => {
-    const shouldRenderChildren = depth < 2 && node.children.length > 0;
+  const renderMobileNavBranch = useCallback(
+    (node: NavNode, depth: number): React.ReactNode => {
+      const shouldRenderChildren = depth < 2 && node.children.length > 0;
 
-    return (
-      <div key={`mobile-${node.slug}-${depth}`} className="space-y-1">
-        <NavLink
-          to={getCategoryPath(node.slug)}
-          className={({ isActive }) =>
-            `block rounded px-3 py-2 text-sm transition-colors ${
-              isActive
-                ? 'bg-white/10 text-orange-400 font-semibold'
-                : 'text-gray-200 hover:bg-white/5 hover:text-orange-400'
-            }`
-          }
-          style={{ paddingLeft: depth * 16 }}
-          onClick={() => setIsMenuOpen(false)}
-        >
-          {node.name}
-        </NavLink>
-        {shouldRenderChildren && (
-          <div className="space-y-1 border-l border-gray-800 pl-3">
-            {node.children.map((child) => renderMobileNavBranch(child, depth + 1))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const renderMobileNavNode = (node: NavNode): React.ReactNode => {
-    const hasChildren = node.children.length > 0;
-    if (!hasChildren) {
       return (
-        <NavLink
-          key={`mobile-root-${node.slug}`}
-          to={getCategoryPath(node.slug)}
-          className={mobileNavLinkClasses}
-          onClick={() => setIsMenuOpen(false)}
-        >
-          <div className="flex items-center justify-between">
-            <span className="font-medium">{node.name}</span>
-            <ChevronRight size={16} className="text-gray-500" />
-          </div>
-        </NavLink>
-      );
-    }
-
-    const expanded = !!mobileExpandedSections[node.slug];
-    const sectionId = `mobile-section-${node.slug}`;
-
-    return (
-      <div
-        key={`mobile-root-${node.slug}`}
-        className="rounded-lg border border-gray-800 bg-gray-900/40"
-      >
-        <button
-          type="button"
-          className="flex w-full items-center justify-between px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-800"
-          onClick={() => toggleMobileSection(node.slug)}
-          aria-expanded={expanded}
-          aria-controls={sectionId}
-        >
-          <span>{node.name}</span>
-          <ChevronDown
-            size={16}
-            className={`transition-transform ${expanded ? 'rotate-180' : ''}`}
-          />
-        </button>
-        {expanded && (
-          <div id={sectionId} className="space-y-1 pb-2">
-            <NavLink
-              to={getCategoryPath(node.slug)}
-              className={({ isActive }) =>
-                `block px-3 py-2 text-sm font-medium transition ${
-                  isActive
-                    ? 'text-orange-400'
-                    : 'text-gray-300 hover:text-orange-400 hover:bg-white/5'
-                }`
-              }
-              onClick={() => setIsMenuOpen(false)}
-            >
-              View all {node.name}
-            </NavLink>
-            {node.children.map((child) => renderMobileNavBranch(child, 1))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const renderDesktopNavItem = (node: NavNode): React.ReactNode => {
-    const hasChildren = node.children.length > 0;
-    if (!hasChildren) {
-      return (
-        <li key={node.slug}>
+        <div key={`mobile-${node.slug}-${depth}`} className="space-y-1">
           <NavLink
             to={getCategoryPath(node.slug)}
-            className={navLinkClasses}
-            onClick={() => setOpenMenu(null)}
+            className={({ isActive }) =>
+              `block rounded px-3 py-2 text-sm transition-colors ${
+                isActive
+                  ? 'bg-white/10 text-orange-400 font-semibold'
+                  : 'text-gray-200 hover:bg-white/5 hover:text-orange-400'
+              }`
+            }
+            style={{ paddingLeft: depth * 16 }}
+            onClick={() => setIsMenuOpen(false)}
           >
             {node.name}
           </NavLink>
-        </li>
+          {shouldRenderChildren && (
+            <div className="space-y-1 border-l border-gray-800 pl-3">
+              {node.children.map((child) => renderMobileNavBranch(child, depth + 1))}
+            </div>
+          )}
+        </div>
       );
-    }
+    },
+    [getCategoryPath, setIsMenuOpen],
+  );
 
-    const menuId = `mega-${node.slug}`;
-
-    return (
-      <li
-        key={node.slug}
-        className="relative"
-        onMouseEnter={() => setOpenMenu(node.slug)}
-        onFocus={() => setOpenMenu(node.slug)}
-      >
-        <button
-          type="button"
-          className={`${navLinkClasses({ isActive: false })} inline-flex items-center gap-1`}
-          aria-haspopup="true"
-          aria-expanded={openMenu === node.slug}
-          aria-controls={menuId}
-          onClick={() => setOpenMenu((current) => (current === node.slug ? null : node.slug))}
-          onKeyDown={onMegaKeyDown(node.slug, menuId)}
-        >
-          {node.name} <ChevronDown size={14} />
-        </button>
-        {openMenu === node.slug && (
-          <div
-            id={menuId}
-            className="absolute left-0 mt-2 w-80 overflow-hidden rounded-2xl border border-white/10 bg-black/40 text-gray-50 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl"
-            role="menu"
+  const renderMobileNavNode = useCallback(
+    (node: NavNode): React.ReactNode => {
+      const hasChildren = node.children.length > 0;
+      if (!hasChildren) {
+        return (
+          <NavLink
+            key={`mobile-root-${node.slug}`}
+            to={getCategoryPath(node.slug)}
+            className={mobileNavLinkClasses}
+            onClick={() => setIsMenuOpen(false)}
           >
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-white/5 to-transparent opacity-80" />
-            <div className="relative flex flex-col gap-1 p-4">
+            <div className="flex items-center justify-between">
+              <span className="font-medium">{node.name}</span>
+              <ChevronRight size={16} className="text-gray-500" />
+            </div>
+          </NavLink>
+        );
+      }
+
+      const expanded = !!mobileExpandedSections[node.slug];
+      const sectionId = `mobile-section-${node.slug}`;
+
+      return (
+        <div
+          key={`mobile-root-${node.slug}`}
+          className="rounded-lg border border-gray-800 bg-gray-900/40"
+        >
+          <button
+            type="button"
+            className="flex w-full items-center justify-between px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-800"
+            onClick={() => toggleMobileSection(node.slug)}
+            aria-expanded={expanded}
+            aria-controls={sectionId}
+          >
+            <span>{node.name}</span>
+            <ChevronDown
+              size={16}
+              className={`transition-transform ${expanded ? 'rotate-180' : ''}`}
+            />
+          </button>
+          {expanded && (
+            <div id={sectionId} className="space-y-1 pb-2">
               <NavLink
                 to={getCategoryPath(node.slug)}
                 className={({ isActive }) =>
-                  `block rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
+                  `block px-3 py-2 text-sm font-medium transition ${
                     isActive
-                      ? 'bg-white/15 text-white shadow-inner shadow-white/15'
-                      : 'text-white/85 hover:bg-white/10 hover:text-white'
+                      ? 'text-orange-400'
+                      : 'text-gray-300 hover:text-orange-400 hover:bg-white/5'
                   }`
                 }
-                onClick={() => setOpenMenu(null)}
+                onClick={() => setIsMenuOpen(false)}
               >
                 View all {node.name}
               </NavLink>
-              {node.children.map((child) => (
-                <div key={child.slug} className="rounded-lg pl-1">
-                  <NavLink
-                    to={getCategoryPath(child.slug)}
-                    className={({ isActive }) =>
-                      `block rounded-lg px-3 py-1.5 text-sm leading-snug transition duration-200 ${
-                        isActive
-                          ? 'bg-white/15 text-white shadow-inner shadow-white/15'
-                          : 'text-white/80 hover:bg-white/10 hover:text-white'
-                      }`
-                    }
-                    onClick={() => setOpenMenu(null)}
-                  >
-                    {child.name}
-                  </NavLink>
-                  {child.children.length > 0 && (
-                    <div className="mt-1 flex flex-wrap gap-1 pl-3">
-                      {child.children.map((grandchild) => (
-                        <NavLink
-                          key={grandchild.slug}
-                          to={getCategoryPath(grandchild.slug)}
-                          className={({ isActive }) =>
-                            `inline-flex items-center rounded-full px-2 py-0.5 text-xs transition ${
-                              isActive
-                                ? 'bg-orange-500/30 text-orange-200'
-                                : 'text-white/70 hover:bg-white/10 hover:text-white'
-                            }`
-                          }
-                          onClick={() => setOpenMenu(null)}
-                        >
-                          {grandchild.name}
-                        </NavLink>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+              {node.children.map((child) => renderMobileNavBranch(child, 1))}
             </div>
-          </div>
-        )}
-      </li>
-    );
-  };
+          )}
+        </div>
+      );
+    },
+    [getCategoryPath, mobileExpandedSections, mobileNavLinkClasses, renderMobileNavBranch, setIsMenuOpen, toggleMobileSection],
+  );
+
+  const renderDesktopNavItem = useCallback(
+    (node: NavNode): React.ReactNode => {
+      const hasChildren = node.children.length > 0;
+      if (!hasChildren) {
+        return (
+          <li key={node.slug}>
+            <NavLink
+              to={getCategoryPath(node.slug)}
+              className={desktopNavLinkClasses}
+              onClick={() => setOpenMenu(null)}
+            >
+              {node.name}
+            </NavLink>
+          </li>
+        );
+      }
+
+      const menuId = `mega-${node.slug}`;
+
+      return (
+        <li
+          key={node.slug}
+          className="relative"
+          onMouseEnter={() => setOpenMenu(node.slug)}
+          onFocus={() => setOpenMenu(node.slug)}
+        >
+          <button
+            type="button"
+            className={`${navLinkClassName(false, 'desktop')} inline-flex items-center gap-1`}
+            aria-haspopup="true"
+            aria-expanded={openMenu === node.slug}
+            aria-controls={menuId}
+            onClick={() => setOpenMenu((current) => (current === node.slug ? null : node.slug))}
+            onKeyDown={onMegaKeyDown(node.slug, menuId)}
+          >
+            {node.name} <ChevronDown size={14} />
+          </button>
+          {openMenu === node.slug && (
+            <div
+              id={menuId}
+              className="absolute left-0 mt-2 w-80 overflow-hidden rounded-2xl border border-white/10 bg-black/40 text-gray-50 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl"
+              role="menu"
+            >
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-white/5 to-transparent opacity-80" />
+              <div className="relative flex flex-col gap-1 p-4">
+                <NavLink
+                  to={getCategoryPath(node.slug)}
+                  className={({ isActive }) =>
+                    `block rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
+                      isActive
+                        ? 'bg-white/15 text-white shadow-inner shadow-white/15'
+                        : 'text-white/85 hover:bg-white/10 hover:text-white'
+                    }`
+                  }
+                  onClick={() => setOpenMenu(null)}
+                >
+                  View all {node.name}
+                </NavLink>
+                {node.children.map((child) => (
+                  <div key={child.slug} className="rounded-lg pl-1">
+                    <NavLink
+                      to={getCategoryPath(child.slug)}
+                      className={({ isActive }) =>
+                        `block rounded-lg px-3 py-1.5 text-sm leading-snug transition duration-200 ${
+                          isActive
+                            ? 'bg-white/15 text-white shadow-inner shadow-white/15'
+                            : 'text-white/80 hover:bg-white/10 hover:text-white'
+                        }`
+                      }
+                      onClick={() => setOpenMenu(null)}
+                    >
+                      {child.name}
+                    </NavLink>
+                    {child.children.length > 0 && (
+                      <div className="mt-1 flex flex-wrap gap-1 pl-3">
+                        {child.children.map((grandchild) => (
+                          <NavLink
+                            key={grandchild.slug}
+                            to={getCategoryPath(grandchild.slug)}
+                            className={({ isActive }) =>
+                              `inline-flex items-center rounded-full px-2 py-0.5 text-xs transition ${
+                                isActive
+                                  ? 'bg-orange-500/30 text-orange-200'
+                                  : 'text-white/70 hover:bg-white/10 hover:text-white'
+                              }`
+                            }
+                            onClick={() => setOpenMenu(null)}
+                          >
+                            {grandchild.name}
+                          </NavLink>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </li>
+      );
+    },
+    [desktopNavLinkClasses, getCategoryPath, navLinkClassName, onMegaKeyDown, openMenu, setOpenMenu],
+  );
 
   // Focus trap for mobile menu
   const mobileNavRef = useRef<HTMLDivElement | null>(null);
 
-  const navGapBase = isDesktop ? 16 : 12;
+  const navGapBase = isDesktop ? 24 : 16;
   const navGapExpanded = isDesktop ? 28 : 16;
-  const navFontCompact = 0.75;
-  const navFontExpanded = isDesktop ? 0.85 : 0.75;
+  const navFontCompact = isDesktop ? 0.8 : 0.75;
+  const navFontExpanded = isDesktop ? 0.9 : 0.85;
   const navFontDelta = navFontExpanded - navFontCompact;
   const navFontSizeValue =
     navFontDelta === 0
       ? `${navFontCompact}rem`
-      : `calc(${navFontCompact}rem + ${navFontDelta}rem * ${1 - shrink})`;
+      : `clamp(0.75rem, calc(${navFontCompact}rem + ${navFontDelta}rem * ${1 - cappedShrink}), 0.85rem)`;
+  const headerZIndexClass = breakingNews && !breakingDismissed ? 'z-[55]' : 'z-[60]';
+  const mobileButtonScale = Math.max(0.8, 1 - 0.2 * cappedShrink);
   useEffect(() => {
     if (!isMenuOpen) return;
     const container = mobileNavRef.current;
@@ -647,7 +687,8 @@ const Header: React.FC = () => {
         </div>
       )}
       <header
-        className={`header-nav sticky top-0 z-[55] text-white font-sans ${hasShadow ? 'shadow-md' : ''} ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'} transition-[padding,transform,background-color,backdrop-filter] bg-black backdrop-blur-md`}
+        className={`header-nav sticky top-0 ${headerZIndexClass} overflow-x-hidden text-white font-sans ${hasShadow ? 'shadow-md' : ''} ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'} transition-[padding,transform,background-color,backdrop-filter] bg-black backdrop-blur-md`}
+        aria-live="polite"
         style={
           {
             '--nav-gap-base': `${navGapBase}px`,
@@ -662,11 +703,11 @@ const Header: React.FC = () => {
         <div
           className="hidden md:flex items-center justify-between px-4 border-b text-xs text-gray-300 transition-[opacity,max-height,padding] overflow-visible"
           style={{
-            opacity: 1 - shrink,
-            paddingTop: `${4 * (1 - shrink)}px`,
-            paddingBottom: `${4 * (1 - shrink)}px`,
-            maxHeight: `${28 * (1 - shrink)}px`,
-            borderColor: `rgba(31,41,55,${1 - shrink})`,
+            opacity: 1 - cappedShrink,
+            paddingTop: `${4 * (1 - cappedShrink)}px`,
+            paddingBottom: `${4 * (1 - cappedShrink)}px`,
+            maxHeight: `${28 * (1 - cappedShrink)}px`,
+            borderColor: `rgba(31,41,55,${1 - cappedShrink})`,
             overflow: 'hidden',
             transitionDuration: prefersReducedMotion ? '0ms' : '300ms',
             transitionTimingFunction: 'ease-out',
@@ -674,7 +715,7 @@ const Header: React.FC = () => {
         >
           <div className="text-xs uppercase tracking-wider font-medium">
             {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()}
-            {isLive ? ' â€¢ LIVE' : ''}
+            {isLive ? ' • LIVE' : ''}
           </div>
           <div className="flex items-center gap-4">
             <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-orange-500 transition-colors">
@@ -696,11 +737,19 @@ const Header: React.FC = () => {
         </div>
         <div
           className={`container mx-auto px-4 ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'} transition-all`}
-          style={{ paddingTop: 16 - 12 * shrink, paddingBottom: 16 - 12 * shrink }}
+          style={{
+            paddingTop: 16 - 12 * cappedShrink,
+            paddingBottom: 16 - 12 * cappedShrink,
+            paddingRight: 16 + 8 * (1 - cappedShrink),
+          }}
         >
           <div className="flex justify-between items-center">
           {/* Logo and Title - Force white text */}
-          <Link to="/" className="flex items-center space-x-2 mr-8">
+          <Link
+            to="/"
+            className="flex items-center space-x-2"
+            style={{ marginRight: `${logoMargin}px` }}
+          >
             {/* âœ… FIXED: Use public folder logo with cache-busting */}
             <img
               src="/logo.png?v=2025"
@@ -727,11 +776,12 @@ const Header: React.FC = () => {
             <ul
               className={`flex items-center transition-all ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'}`}
               style={{
-                gap: `calc(var(--nav-gap-base) + (var(--nav-gap-expanded) - var(--nav-gap-base)) * ${1 - shrink})`,
+                gap: `calc(var(--nav-gap-base) + (var(--nav-gap-expanded) - var(--nav-gap-base)) * ${1 - cappedShrink * 0.8})`,
                 fontSize: 'var(--nav-font-size)',
+                maxWidth: 'calc(100% - 300px)',
               }}
             >
-              {navItems.map((node) => renderDesktopNavItem(node))}
+              {navItems.map(renderDesktopNavItem)}
               {isLive && (
                 <li className="flex items-center gap-2 px-3 py-1.5 bg-red-600/10 rounded-md border border-red-600/20">
                   <div className="relative flex items-center">
@@ -751,7 +801,7 @@ const Header: React.FC = () => {
               )}
             </ul>
           </nav>
-          <div className="hidden lg:flex items-center gap-3 pr-4">
+          <div className="hidden lg:flex items-center gap-3 pr-4 flex-shrink-0">
             <div
               className="relative"
               onMouseEnter={() => setOpenMenu('account')}
@@ -759,7 +809,7 @@ const Header: React.FC = () => {
             >
               <button
                 type="button"
-                className={`${navLinkClasses({ isActive: false })} inline-flex items-center gap-1 px-2.5 py-1`}
+                className={`${navLinkClassName(false, 'desktop')} inline-flex items-center gap-1 px-2.5 py-1`}
                 aria-haspopup="true"
                 aria-expanded={openMenu === 'account'}
                 aria-controls="mega-account"
@@ -818,7 +868,10 @@ const Header: React.FC = () => {
                 {showSearch ? <X size={18} /> : renderSearchGlyph(searchVisualState, 'button')}
               </button>
               {showSearch && (
-                <div className="absolute right-0 mt-2 w-[400px] overflow-hidden rounded-2xl border border-white/10 bg-black/50 text-gray-100 shadow-[0_30px_70px_rgba(15,23,42,0.6)] backdrop-blur-xl p-4 z-50">
+                <div
+                  className="absolute mt-2 w-[400px] max-xl:w-[320px] max-sm:w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-white/10 bg-black/50 text-gray-100 shadow-[0_30px_70px_rgba(15,23,42,0.6)] backdrop-blur-xl p-4 z-50"
+                  style={{ right: 'max(0px, calc(50% - 200px))' }}
+                >
                   <div className="group flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 transition duration-200 focus-within:border-orange-500/60 focus-within:bg-white/10 focus-within:shadow-[0_0_30px_rgba(249,115,22,0.25)]">
                     {renderSearchGlyph(searchVisualState, 'inline')}
                     <input
@@ -953,6 +1006,11 @@ const Header: React.FC = () => {
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
             aria-expanded={isMenuOpen}
+            style={{
+              transform: `scale(${mobileButtonScale})`,
+              transformOrigin: 'center',
+              transition: prefersReducedMotion ? 'none' : 'transform 150ms ease-out',
+            }}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {isMenuOpen ? (
@@ -991,7 +1049,7 @@ const Header: React.FC = () => {
               </form>
               {/* Main Navigation */}
               <div className="space-y-3">
-                {navItems.map((node) => renderMobileNavNode(node))}
+                {navItems.map(renderMobileNavNode)}
                 {navLoading && (
                   <div className="flex items-center gap-2 px-3 py-2 text-xs text-gray-400">
                     <Loader2 className="h-4 w-4 animate-spin" />

@@ -983,8 +983,8 @@ const ArticleDetail: React.FC = () => {
                   </p>
                 )}
 
-                <div className="mb-8 flex flex-wrap items-center justify-between gap-4 text-sm text-gray-500">
-                 <div className="flex items-center gap-4">
+                <div className="mb-8 flex items-center justify-between gap-4 text-sm text-gray-500 flex-nowrap md:gap-6">
+                 <div className="flex shrink-0 items-center gap-4 overflow-x-auto whitespace-nowrap md:gap-5 md:overflow-visible">
                     <span className="inline-flex items-center gap-2" title="Estimated read time">
                       <BookOpen size={16} className="text-orange-500" aria-hidden="true" />
                       <span>{estimatedReadTime} min read</span>
@@ -996,7 +996,7 @@ const ArticleDetail: React.FC = () => {
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex shrink-0 items-center gap-3">
                     <button
                       type="button"
                       onClick={toggleBookmark}
@@ -1157,12 +1157,12 @@ const ArticleDetail: React.FC = () => {
                       <Tag size={18} className="text-gray-500" />
                       <span className="text-sm font-medium text-gray-700">Related Topics:</span>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div id="tags-list" className="flex flex-wrap items-center gap-2">
                       {(showAllTags ? article.tags : article.tags.slice(0, 5)).map((tag, index) => (
                         <Link
                           key={`${tag}-${index}`}
                           to={`/search?q=${encodeURIComponent(tag)}`}
-                          className="bg-gray-100 hover:bg-orange-50 text-gray-700 hover:text-orange-700 px-3 py-2 rounded-full text-sm font-medium transition-colors transition-shadow border border-gray-200 hover:border-orange-200 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white line-clamp-1"
+                          className="bg-gray-100 hover:bg-orange-50 text-gray-700 hover:text-orange-700 px-3 py-2 rounded-full text-sm font-medium transition-colors transition-shadow border border-gray-200 hover:border-orange-200 hover:shadow-sm focus:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white line-clamp-1"
                           title={`View more stories about ${tag}`}
                         >
                           #{tag}
@@ -1171,8 +1171,10 @@ const ArticleDetail: React.FC = () => {
                       {article.tags.length > 5 && (
                         <button
                           type="button"
+                          id="tags-toggle"
                           onClick={() => setShowAllTags((prev) => !prev)}
                           aria-expanded={showAllTags}
+                          aria-controls="tags-list"
                           className="px-3 py-2 text-sm font-semibold text-orange-600 border border-orange-200 rounded-full hover:bg-orange-50 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                         >
                           {showAllTags ? 'Show less' : `+${article.tags.length - 5} more`}
@@ -1198,12 +1200,12 @@ const ArticleDetail: React.FC = () => {
 
           {/* Enhanced Sidebar */}
           <aside className="mt-12 xl:mt-0 xl:w-1/3" aria-label="Related articles">
-            <div className="sticky top-24 space-y-8">
+            <div className="sticky top-24 space-y-8 pb-8">
               <DonationPlaceholder />
 
               {relatedArticles.length > 0 && (
                 <div className="trending-widget">
-                  <h3 className="trending-title">Trending Articles</h3>
+                  <h3 className="trending-title">Related in {categoryDisplayName}</h3>
                   <div className="trending-list">
                     {relatedArticles.map((relatedArticle) => {
                       const relatedMeta = resolveCategoryMeta(
