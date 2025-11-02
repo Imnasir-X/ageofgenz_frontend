@@ -963,16 +963,18 @@ const ArticleDetail: React.FC = () => {
                   </p>
                 )}
 
-                <div className="mb-8 flex items-center justify-between gap-3 text-sm text-gray-500 flex-nowrap md:gap-6">
-                  <div className="flex shrink-0 items-center gap-3 overflow-x-auto whitespace-nowrap md:gap-5 md:overflow-visible">
-                    <span className="inline-flex items-center gap-2" title="Estimated read time">
-                      <BookOpen size={16} className="text-orange-500" aria-hidden="true" />
-                      <span>{estimatedReadTime} min read</span>
+                <div className="mb-8 flex items-center justify-between gap-2 text-xs text-gray-500 flex-nowrap overflow-x-auto whitespace-nowrap scrollbar-hide sm:gap-3 sm:text-sm md:gap-6 md:overflow-visible">
+                  <div className="flex shrink-0 items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-hide sm:gap-3 md:gap-5 md:overflow-visible">
+                    <span className="inline-flex items-center gap-1 sm:gap-2" title="Estimated read time">
+                      <BookOpen className="h-3.5 w-3.5 text-orange-500 sm:h-4 sm:w-4" aria-hidden="true" />
+                      <span className="inline sm:hidden">{estimatedReadTime} min</span>
+                      <span className="hidden sm:inline">{estimatedReadTime} min read</span>
                     </span>
                     {viewCount !== null && (
-                      <span className="inline-flex items-center gap-2" title="View count">
-                        <Eye size={16} className="text-orange-400" aria-hidden="true" />
-                        <span>{viewCount.toLocaleString()} views</span>
+                      <span className="inline-flex items-center gap-1 sm:gap-2" title="View count">
+                        <Eye className="h-3.5 w-3.5 text-orange-400 sm:h-4 sm:w-4" aria-hidden="true" />
+                        <span className="inline sm:hidden">{viewCount.toLocaleString()}</span>
+                        <span className="hidden sm:inline">{viewCount.toLocaleString()} views</span>
                       </span>
                     )}
                   </div>
@@ -981,25 +983,27 @@ const ArticleDetail: React.FC = () => {
                       type="button"
                       onClick={toggleBookmark}
                       title={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
-                      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.7rem] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white md:gap-2 md:px-3 md:py-1.5 md:text-xs ${
+                      aria-label={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
+                      className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[0.65rem] font-semibold transform transition-colors transition-transform duration-150 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-[0.7rem] md:gap-2 md:px-3 md:py-1.5 md:text-xs ${
                         isBookmarked
                           ? 'border-orange-300 bg-orange-50 text-orange-600 hover:bg-orange-100'
                           : 'border-gray-300 text-gray-600 hover:bg-gray-100'
                       }`}
                     >
                       {isBookmarked ? (
-                        <BookmarkCheck size={16} aria-hidden="true" />
+                        <BookmarkCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
                       ) : (
-                        <Bookmark size={16} aria-hidden="true" />
+                        <Bookmark className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
                       )}
-                      <span>{isBookmarked ? 'Bookmarked' : 'Bookmark'}</span>
+                      <span className="sr-only sm:hidden">{isBookmarked ? 'Remove bookmark' : 'Add bookmark'}</span>
+                      <span className="hidden sm:inline">{isBookmarked ? 'Bookmarked' : 'Bookmark'}</span>
                     </button>
                     <div className="relative" ref={shareMenuRef}>
                       <button
                         type="button"
                         id="article-share-trigger"
                         ref={shareTriggerRef}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-gray-300 px-2.5 py-1 text-[0.7rem] font-semibold text-gray-600 transition hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white md:gap-2 md:px-3 md:py-1.5 md:text-xs"
+                        className="inline-flex items-center gap-1 rounded-full border border-gray-300 px-2 py-1 text-[0.65rem] font-semibold text-gray-600 transform transition-colors transition-transform duration-150 hover:scale-105 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white sm:gap-1.5 sm:px-2.5 sm:py-1 sm:text-[0.7rem] md:gap-2 md:px-3 md:py-1.5 md:text-xs"
                         aria-haspopup="true"
                         aria-expanded={showShareMenu}
                         aria-controls="article-share-menu"
@@ -1007,8 +1011,9 @@ const ArticleDetail: React.FC = () => {
                         title="Share this article"
                         onClick={handleToggleShareMenu}
                       >
-                        <Share2 size={16} aria-hidden="true" />
-                        <span>Share</span>
+                        <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
+                        <span className="sr-only sm:hidden">Share</span>
+                        <span className="hidden sm:inline">Share</span>
                       </button>
                       {showShareMenu && (
                           <div
