@@ -963,8 +963,8 @@ const ArticleDetail: React.FC = () => {
                   </p>
                 )}
 
-                <div className="mb-8 flex items-center justify-between gap-4 text-sm text-gray-500 flex-nowrap md:gap-6">
-                 <div className="flex shrink-0 items-center gap-4 overflow-x-auto whitespace-nowrap md:gap-5 md:overflow-visible">
+                <div className="mb-8 flex items-center justify-between gap-3 text-sm text-gray-500 flex-nowrap md:gap-6">
+                  <div className="flex shrink-0 items-center gap-3 overflow-x-auto whitespace-nowrap md:gap-5 md:overflow-visible">
                     <span className="inline-flex items-center gap-2" title="Estimated read time">
                       <BookOpen size={16} className="text-orange-500" aria-hidden="true" />
                       <span>{estimatedReadTime} min read</span>
@@ -976,12 +976,12 @@ const ArticleDetail: React.FC = () => {
                       </span>
                     )}
                   </div>
-                  <div className="flex shrink-0 items-center gap-3">
+                  <div className="flex shrink-0 items-center gap-2 sm:gap-3">
                     <button
                       type="button"
                       onClick={toggleBookmark}
                       title={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
-                      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white ${
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.7rem] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white md:gap-2 md:px-3 md:py-1.5 md:text-xs ${
                         isBookmarked
                           ? 'border-orange-300 bg-orange-50 text-orange-600 hover:bg-orange-100'
                           : 'border-gray-300 text-gray-600 hover:bg-gray-100'
@@ -998,14 +998,14 @@ const ArticleDetail: React.FC = () => {
                       <button
                         type="button"
                         id="article-share-trigger"
-                      ref={shareTriggerRef}
-                      className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-                      aria-haspopup="true"
-                      aria-expanded={showShareMenu}
-                      aria-controls="article-share-menu"
-                      aria-label={showShareMenu ? 'Close share menu' : 'Open share menu'}
-                      title="Share this article"
-                      onClick={handleToggleShareMenu}
+                        ref={shareTriggerRef}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-gray-300 px-2.5 py-1 text-[0.7rem] font-semibold text-gray-600 transition hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white md:gap-2 md:px-3 md:py-1.5 md:text-xs"
+                        aria-haspopup="true"
+                        aria-expanded={showShareMenu}
+                        aria-controls="article-share-menu"
+                        aria-label={showShareMenu ? 'Close share menu' : 'Open share menu'}
+                        title="Share this article"
+                        onClick={handleToggleShareMenu}
                       >
                         <Share2 size={16} aria-hidden="true" />
                         <span>Share</span>
