@@ -676,7 +676,7 @@ const Header: React.FC = () => {
                 </span>
               )}
               <ul
-                className={`flex items-center overflow-x-auto transition-all ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'}`}
+                className={`flex items-center transition-all ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'}`}
                 style={{
                   gap: `calc(var(--nav-gap-base) + (var(--nav-gap-expanded) - var(--nav-gap-base)) * ${1 - shrink * 0.8})`,
                   fontSize: 'var(--nav-font-size)',
