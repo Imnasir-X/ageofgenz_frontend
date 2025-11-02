@@ -450,6 +450,7 @@ const Header: React.FC = () => {
           onClick={() => toggleMobileSection(node.slug)}
           aria-expanded={expanded}
           aria-controls={sectionId}
+          title="View subcategories"
         >
           <span>{node.name}</span>
           <ChevronDown
@@ -518,7 +519,7 @@ const Header: React.FC = () => {
         {openMenu === node.slug && (
           <div
             id={menuId}
-            className="absolute left-0 mt-2 w-80 overflow-hidden rounded-2xl border border-white/10 bg-black/40 text-gray-50 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl"
+            className="absolute left-0 mt-2 w-96 min-w-[20rem] max-w-[50vw] overflow-hidden rounded-2xl border border-white/10 bg-black/40 text-gray-50 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl max-h-[60vh] overflow-y-auto"
             role="menu"
           >
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-white/5 to-transparent opacity-80" />
@@ -536,8 +537,8 @@ const Header: React.FC = () => {
               >
                 View all {node.name}
               </NavLink>
-              {node.children.map((child) => (
-                <div key={child.slug} className="rounded-lg pl-1">
+                {node.children.map((child) => (
+                  <div key={child.slug} className="rounded-lg pl-2">
                   <NavLink
                     to={getCategoryPath(child.slug)}
                     className={({ isActive }) =>
@@ -551,8 +552,8 @@ const Header: React.FC = () => {
                   >
                     {child.name}
                   </NavLink>
-                  {child.children.length > 0 && (
-                    <div className="mt-1 flex flex-wrap gap-1 pl-3">
+                    {child.children.length > 0 && (
+                      <div className="mt-1 flex flex-wrap gap-2 pl-4">
                       {child.children.map((grandchild) => (
                         <NavLink
                           key={grandchild.slug}
@@ -730,7 +731,7 @@ const Header: React.FC = () => {
               </span>
             )}
             <ul
-              className={`flex items-center transition-all ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'}`}
+              className={`flex items-center overflow-x-auto transition-all ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'}`}
               style={{
                 gap: `calc(var(--nav-gap-base) + (var(--nav-gap-expanded) - var(--nav-gap-base)) * ${1 - shrink * 0.8})`,
                 fontSize: 'var(--nav-font-size)',
@@ -825,7 +826,7 @@ const Header: React.FC = () => {
                 {showSearch ? <X size={18} /> : renderSearchGlyph(searchVisualState, 'button')}
               </button>
               {showSearch && (
-                <div className="absolute right-0 mt-2 w-[400px] overflow-hidden rounded-2xl border border-white/10 bg-black/50 text-gray-100 shadow-[0_30px_70px_rgba(15,23,42,0.6)] backdrop-blur-xl p-4 z-50">
+                <div className="absolute right-0 mt-2 w-full md:w-[400px] overflow-hidden rounded-2xl border border-white/10 bg-black/50 text-gray-100 shadow-[0_30px_70px_rgba(15,23,42,0.6)] backdrop-blur-xl p-4 z-50">
                   <div className="group flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 transition duration-200 focus-within:border-orange-500/60 focus-within:bg-white/10 focus-within:shadow-[0_0_30px_rgba(249,115,22,0.25)]">
                     {renderSearchGlyph(searchVisualState, 'inline')}
                     <input
