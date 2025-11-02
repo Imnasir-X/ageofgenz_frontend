@@ -255,11 +255,9 @@ const Header: React.FC = () => {
       if (rafId == null) rafId = window.requestAnimationFrame(handle);
     };
     window.addEventListener('scroll', onScroll, { passive: true } as AddEventListenerOptions);
-    window.addEventListener('popstate', handle);
     handle();
     return () => {
       window.removeEventListener('scroll', onScroll as any);
-      window.removeEventListener('popstate', handle);
       if (rafId) cancelAnimationFrame(rafId);
     };
   }, [isDesktop]);
@@ -318,7 +316,7 @@ const Header: React.FC = () => {
   }, [showSearch]);
 
   const navLinkClasses = ({ isActive }: { isActive: boolean }): string =>
-    `transition-colors ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'} font-semibold uppercase tracking-wide line-clamp-1 whitespace-nowrap ${isActive ? 'text-orange-500' : 'text-white'} hover:text-orange-500`;
+    `transition-colors ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'} font-semibold uppercase tracking-wide line-clamp-1 ${isActive ? 'text-orange-500' : 'text-white'} hover:text-orange-500`;
 
   const mobileNavLinkClasses = ({ isActive }: { isActive: boolean }): string => `block py-2 px-3 text-sm ${isActive ? 'text-orange-500 font-semibold bg-gray-800 rounded' : 'text-white'} hover:text-orange-500 hover:bg-gray-800 rounded transition-all duration-200`;
 
@@ -472,7 +470,7 @@ const Header: React.FC = () => {
         {openMenu === node.slug && (
           <div
             id={menuId}
-            className="absolute left-0 mt-2 w-96 min-w-[20rem] rounded-2xl border border-white/10 bg-black/40 text-gray-50 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl"
+            className="absolute left-0 mt-2 w-96 min-w-[20rem] max-w-[50vw] rounded-2xl border border-white/10 bg-black/40 text-gray-50 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl"
             role="menu"
           >
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-white/5 to-transparent opacity-80" />
@@ -482,25 +480,23 @@ const Header: React.FC = () => {
                 className={({ isActive }) => `block rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
                   isActive ? 'bg-white/15 text-white shadow-inner shadow-white/15' : 'text-white/85 hover:bg-white/10 hover:text-white'
                 }`}
-                role="menuitem"
                 onClick={() => setOpenMenu(null)}
               >
                 View all {node.name}
               </NavLink>
               {node.children.map((child) => (
-                <div key={child.slug} className="rounded-lg pl-2">
+                <div key={child.slug} className="rounded-lg pl-1">
                   <NavLink
                     to={getCategoryPath(child.slug)}
                     className={({ isActive }) => `block rounded-lg px-3 py-1.5 text-sm leading-snug transition duration-200 ${
                       isActive ? 'bg-white/15 text-white shadow-inner shadow-white/15' : 'text-white/80 hover:bg-white/10 hover:text-white'
                     }`}
-                    role="menuitem"
                     onClick={() => setOpenMenu(null)}
                   >
                     {child.name}
                   </NavLink>
                   {child.children.length > 0 && (
-                    <div className="mt-1 flex flex-wrap gap-2 pl-4">
+                    <div className="mt-1 flex flex-wrap gap-1 pl-3">
                       {child.children.map((grandchild) => (
                         <NavLink
                           key={grandchild.slug}
@@ -508,7 +504,6 @@ const Header: React.FC = () => {
                           className={({ isActive }) => `inline-flex items-center rounded-full px-2 py-0.5 text-xs transition ${
                             isActive ? 'bg-orange-500/30 text-orange-200' : 'text-white/70 hover:bg-white/10 hover:text-white'
                           }`}
-                          role="menuitem"
                           onClick={() => setOpenMenu(null)}
                         >
                           {grandchild.name}
@@ -674,14 +669,14 @@ const Header: React.FC = () => {
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden lg:flex flex-1 justify-center overflow-x-hidden header-desktop-nav">
+            <nav className="hidden lg:flex flex-1 min-w-0 justify-center header-desktop-nav">
               {navStatusMessage && (
                 <span className="sr-only" aria-live="polite">
                   {navStatusMessage}
                 </span>
               )}
               <ul
-                className={`flex items-center transition-all ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'}`}
+                className={`flex items-center overflow-x-auto transition-all ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'}`}
                 style={{
                   gap: `calc(var(--nav-gap-base) + (var(--nav-gap-expanded) - var(--nav-gap-base)) * ${1 - shrink * 0.8})`,
                   fontSize: 'var(--nav-font-size)',
