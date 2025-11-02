@@ -507,7 +507,7 @@ const Header: React.FC = () => {
               role="menu"
             >
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-white/5 to-transparent opacity-80" />
-              <div className="relative flex flex-col gap-3 p-4">
+              <div className="relative flex flex-col gap-3 px-2 py-4">
                 {node.children.map((child) => {
                   const expanded = openMoreChild === child.slug;
                   return (
@@ -517,7 +517,7 @@ const Header: React.FC = () => {
                     >
                       <button
                         type="button"
-                        className="flex w-full items-center justify-between px-4 py-2 text-sm font-semibold uppercase tracking-wide text-white hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                        className="flex w-full items-center justify-between px-3 py-2 text-sm font-semibold uppercase tracking-wide text-white hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                         onClick={(event) => {
                           event.preventDefault();
                           event.stopPropagation();
@@ -531,7 +531,7 @@ const Header: React.FC = () => {
                         />
                       </button>
                       <div className={`overflow-hidden transition-all ${expanded ? 'max-h-96' : 'max-h-0'}`}>
-                        <div className="space-y-2 px-4 pb-4 pt-2 text-sm text-white/80">
+                        <div className="space-y-2 px-3 pb-4 pt-2 text-sm text-white/80">
                           <NavLink
                             to={getCategoryPath(child.slug)}
                             className="block rounded-lg px-3 py-1.5 font-semibold text-white transition hover:bg-white/10"
