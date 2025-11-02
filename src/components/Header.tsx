@@ -584,14 +584,14 @@ const Header: React.FC = () => {
   const mobileNavRef = useRef<HTMLDivElement | null>(null);
 
   const navGapBase = isDesktop ? 16 : 12;
-  const navGapExpanded = isDesktop ? 28 : 16;
+  const navGapExpanded = isDesktop ? 24 : 16;
   const navFontCompact = 0.75;
-  const navFontExpanded = isDesktop ? 0.85 : 0.75;
+  const navFontExpanded = isDesktop ? 0.8 : 0.75;
   const navFontDelta = navFontExpanded - navFontCompact;
   const navFontSizeValue =
     navFontDelta === 0
       ? `${navFontCompact}rem`
-      : `calc(${navFontCompact}rem + ${navFontDelta}rem * ${1 - shrink})`;
+      : `clamp(0.75rem, calc(${navFontCompact}rem + ${navFontDelta}rem * ${1 - shrink}), 0.85rem)`;
   useEffect(() => {
     if (!isMenuOpen) return;
     const container = mobileNavRef.current;
@@ -660,7 +660,7 @@ const Header: React.FC = () => {
       >
         {/* Top bar (date + socials) - continuous fade/compress on desktop */}
         <div
-          className="hidden md:flex items-center justify-between px-4 border-b text-xs text-gray-300 transition-[opacity,max-height,padding] overflow-visible"
+          className="hidden lg:flex items-center justify-between px-4 border-b text-xs text-gray-300 transition-[opacity,max-height,padding] overflow-visible"
           style={{
             opacity: 1 - shrink,
             paddingTop: `${4 * (1 - shrink)}px`,
@@ -700,7 +700,7 @@ const Header: React.FC = () => {
         >
           <div className="flex justify-between items-center">
           {/* Logo and Title - Force white text */}
-          <Link to="/" className="flex items-center space-x-2 mr-8">
+          <Link to="/" className="flex items-center space-x-2 mr-12 md:mr-16 lg:mr-20">
             {/* âœ… FIXED: Use public folder logo with cache-busting */}
             <img
               src="/logo.png?v=2025"
@@ -723,11 +723,16 @@ const Header: React.FC = () => {
             </Link>
 
           {/* Desktop Navigation - Force styles to prevent conflicts */}
-          <nav className="hidden lg:flex flex-1 justify-center header-desktop-nav">
+          <nav className="hidden lg:flex flex-1 justify-center overflow-x-hidden header-desktop-nav">
+            {navStatusMessage && (
+              <span className="sr-only" aria-live="polite">
+                {navStatusMessage}
+              </span>
+            )}
             <ul
               className={`flex items-center transition-all ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'}`}
               style={{
-                gap: `calc(var(--nav-gap-base) + (var(--nav-gap-expanded) - var(--nav-gap-base)) * ${1 - shrink})`,
+                gap: `calc(var(--nav-gap-base) + (var(--nav-gap-expanded) - var(--nav-gap-base)) * ${1 - shrink * 0.8})`,
                 fontSize: 'var(--nav-font-size)',
               }}
             >
@@ -751,7 +756,7 @@ const Header: React.FC = () => {
               )}
             </ul>
           </nav>
-          <div className="hidden lg:flex items-center gap-3 pr-4">
+          <div className="hidden lg:flex items-center gap-3 pr-6 lg:pr-8">
             <div
               className="relative"
               onMouseEnter={() => setOpenMenu('account')}
@@ -760,6 +765,7 @@ const Header: React.FC = () => {
               <button
                 type="button"
                 className={`${navLinkClasses({ isActive: false })} inline-flex items-center gap-1 px-2.5 py-1`}
+                title="Account options"
                 aria-haspopup="true"
                 aria-expanded={openMenu === 'account'}
                 aria-controls="mega-account"
@@ -813,6 +819,7 @@ const Header: React.FC = () => {
                   showSearch ? 'text-orange-400' : 'text-white hover:text-orange-400'
                 } hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black`}
                 aria-label={showSearch ? 'Close search' : 'Search'}
+                title="Search articles"
                 onClick={() => { setShowSearch((s) => !s); setShowSuggest(true); }}
               >
                 {showSearch ? <X size={18} /> : renderSearchGlyph(searchVisualState, 'button')}

@@ -223,27 +223,7 @@ const ArticleDetail: React.FC = () => {
    [],
  );
 
-  const handleToggleShareMenu = () => {
-    const shareTitle = article?.title ?? 'The Age of GenZ';
-    const shareSlug = article?.slug ?? slug ?? '';
-    const fallbackUrl =
-      typeof window !== 'undefined' ? window.location.href : 'https://theageofgenz.com';
-    const shareTargetUrl = shareSlug
-      ? `https://theageofgenz.com/article/${shareSlug}`
-      : fallbackUrl;
-
-    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
-      void navigator
-        .share({
-          title: shareTitle,
-          url: shareTargetUrl,
-        })
-        .catch(() => {
-          setShowShareMenu(true);
-        });
-      return;
-    }
-
+  const handleToggleShareMenu = useCallback(() => {
     setShowShareMenu((prev) => {
       const next = !prev;
       if (!next && shareTriggerRef.current) {
@@ -251,7 +231,7 @@ const ArticleDetail: React.FC = () => {
       }
       return next;
     });
-  };
+  }, []);
 
   useEffect(() => {
     if (!showShareMenu) {
