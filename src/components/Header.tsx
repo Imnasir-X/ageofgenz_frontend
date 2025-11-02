@@ -12,6 +12,7 @@ const Header: React.FC = () => {
   const [navError, setNavError] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [openMoreChild, setOpenMoreChild] = useState<string | null>(null);
   const [isCompact, setIsCompact] = useState(false);
   const [hasShadow, setHasShadow] = useState(false);
   const [shrink, setShrink] = useState(0);
@@ -347,6 +348,12 @@ const Header: React.FC = () => {
     return null;
   }, [navLoading, navError]);
 
+  useEffect(() => {
+    if (openMenu !== 'more') {
+      setOpenMoreChild(null);
+    }
+  }, [openMenu]);
+
   const displayNavItems = useMemo(() => {
     const MORE_SLUGS = new Set(['business-economy', 'sports', 'crime-justice']);
     const moreChildren: NavNode[] = [];
@@ -472,6 +479,92 @@ const Header: React.FC = () => {
       );
     }
     const menuId = `mega-${node.slug}`;
+
+    if (node.slug === 'more') {
+      return (
+        <li
+          key={node.slug}
+          className="relative"
+          onMouseEnter={() => setOpenMenu(node.slug)}
+          onFocus={() => setOpenMenu(node.slug)}
+        >
+          <button
+            type="button"
+            className={`${navLinkClasses({ isActive: false })} inline-flex items-center gap-1`}
+            aria-haspopup="true"
+            aria-expanded={openMenu === node.slug}
+            aria-controls={menuId}
+            onClick={() => setOpenMenu((current) => (current === node.slug ? null : node.slug))}
+            onKeyDown={onMegaKeyDown(node.slug, menuId)}
+          >
+            {node.name}
+            <ChevronDown size={14} />
+          </button>
+          {openMenu === node.slug && (
+            <div
+              id={menuId}
+              className="absolute left-0 mt-2 w-[28rem] min-w-[20rem] max-w-[50vw] rounded-2xl border border-white/10 bg-black/40 text-gray-50 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl"
+              role="menu"
+            >
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-white/5 to-transparent opacity-80" />
+              <div className="relative flex flex-col gap-3 p-4">
+                {node.children.map((child) => {
+                  const expanded = openMoreChild === child.slug;
+                  return (
+                    <div
+                      key={child.slug}
+                      className="rounded-lg border border-white/10 bg-white/5 text-white/90 shadow-sm backdrop-blur-sm transition hover:border-white/20"
+                    >
+                      <button
+                        type="button"
+                        className="flex w-full items-center justify-between px-4 py-2 text-sm font-semibold uppercase tracking-wide text-white hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          setOpenMoreChild((prev) => (prev === child.slug ? null : child.slug));
+                        }}
+                      >
+                        <span>{child.name}</span>
+                        <ChevronDown
+                          size={16}
+                          className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+                        />
+                      </button>
+                      <div className={`overflow-hidden transition-all ${expanded ? 'max-h-96' : 'max-h-0'}`}>
+                        <div className="space-y-2 px-4 pb-4 pt-2 text-sm text-white/80">
+                          <NavLink
+                            to={getCategoryPath(child.slug)}
+                            className="block rounded-lg px-3 py-1.5 font-semibold text-white transition hover:bg-white/10"
+                            onClick={() => setOpenMenu(null)}
+                          >
+                            View all {child.name}
+                          </NavLink>
+                          {child.children.length > 0 && (
+                            <div className="grid gap-1">
+                              {child.children.map((grandchild) => (
+                                <NavLink
+                                  key={grandchild.slug}
+                                  to={getCategoryPath(grandchild.slug)}
+                                  className="inline-flex items-center rounded-lg px-3 py-1 text-sm transition hover:bg-white/10"
+                                  onClick={() => setOpenMenu(null)}
+                                >
+                                  {grandchild.name}
+                                </NavLink>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </li>
+      );
+    }
+
     return (
       <li
         key={node.slug}
