@@ -963,7 +963,7 @@ const ArticleDetail: React.FC = () => {
                   </p>
                 )}
 
-                <div className="mb-8 flex items-center justify-between gap-2 text-xs text-gray-500 flex-nowrap overflow-x-auto whitespace-nowrap scrollbar-hide sm:gap-3 sm:text-sm md:gap-6 md:overflow-visible">
+                <div className="mb-8 flex items-center justify-between gap-2 text-xs text-gray-500 flex-nowrap whitespace-nowrap overflow-visible sm:gap-3 sm:text-sm md:gap-6">
                   <div className="flex shrink-0 items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-hide sm:gap-3 md:gap-5 md:overflow-visible">
                     <span className="inline-flex items-center gap-1 sm:gap-2" title="Estimated read time">
                       <BookOpen className="h-3.5 w-3.5 text-orange-500 sm:h-4 sm:w-4" aria-hidden="true" />
@@ -1021,7 +1021,7 @@ const ArticleDetail: React.FC = () => {
                             role="menu"
                             aria-labelledby="article-share-trigger"
                             ref={shareMenuContentRef}
-                            className={`absolute right-0 top-full z-40 mt-2 w-64 max-md:left-1/2 max-md:right-auto max-md:-translate-x-1/2 overflow-hidden max-h-[50vh] overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-xl divide-y divide-gray-100 origin-top-right transition-transform transition-opacity duration-150 ease-out transform ${
+                            className={`absolute right-0 top-full z-40 mt-2 w-[min(16rem,calc(100vw-2.5rem))] transform overflow-hidden max-h-[50vh] overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-xl divide-y divide-gray-100 origin-top-right transition-transform transition-opacity duration-150 ease-out sm:w-64 ${
                               shareMenuReady ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-1 scale-95'
                             }`}
                           >
