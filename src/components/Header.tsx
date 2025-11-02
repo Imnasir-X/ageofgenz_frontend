@@ -469,7 +469,7 @@ const Header: React.FC = () => {
         {openMenu === node.slug && (
           <div
             id={menuId}
-            className="absolute left-0 mt-2 w-80 overflow-hidden rounded-2xl border border-white/10 bg-black/40 text-gray-50 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl"
+            className="absolute left-0 mt-2 w-80 overflow-y-auto max-h-[80vh] rounded-2xl border border-white/10 bg-black/40 text-gray-50 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl"
             role="menu"
           >
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-white/5 to-transparent opacity-80" />
