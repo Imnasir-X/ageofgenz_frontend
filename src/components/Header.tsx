@@ -723,7 +723,7 @@ const Header: React.FC = () => {
             </Link>
 
           {/* Desktop Navigation - Force styles to prevent conflicts */}
-          <nav className="hidden lg:flex flex-1 justify-center overflow-x-hidden header-desktop-nav">
+          <nav className="hidden lg:flex flex-1 min-w-0 justify-center header-desktop-nav">
             {navStatusMessage && (
               <span className="sr-only" aria-live="polite">
                 {navStatusMessage}
