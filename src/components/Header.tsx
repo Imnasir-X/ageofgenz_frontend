@@ -347,6 +347,30 @@ const Header: React.FC = () => {
     return null;
   }, [navLoading, navError]);
 
+  const displayNavItems = useMemo(() => {
+    const MORE_SLUGS = new Set(['business-economy', 'sports', 'crime-justice']);
+    const moreChildren: NavNode[] = [];
+    const primary: NavNode[] = [];
+
+    navItems.forEach((node) => {
+      if (MORE_SLUGS.has(node.slug)) {
+        moreChildren.push(node);
+      } else {
+        primary.push(node);
+      }
+    });
+
+    if (moreChildren.length > 0) {
+      primary.push({
+        slug: 'more',
+        name: 'More',
+        children: moreChildren,
+      });
+    }
+
+    return primary;
+  }, [navItems]);
+
   const getCategoryPath = (slug: string) => {
     if (!slug) return '/';
     switch (slug) {
@@ -682,7 +706,7 @@ const Header: React.FC = () => {
                   fontSize: 'var(--nav-font-size)',
                 }}
               >
-                {navItems.map((node) => renderDesktopNavItem(node))}
+                {displayNavItems.map((node) => renderDesktopNavItem(node))}
                 {isLive && (
                   <li className="flex items-center gap-2 px-3 py-1.5 bg-red-600/10 rounded-md border border-red-600/20">
                     <div className="relative flex items-center">
@@ -962,7 +986,7 @@ const Header: React.FC = () => {
 
                 {/* Main Navigation */}
                 <div className="space-y-3">
-                  {navItems.map((node) => renderMobileNavNode(node))}
+                  {displayNavItems.map((node) => renderMobileNavNode(node))}
                   {navLoading && (
                     <div className="flex items-center gap-2 px-3 py-2 text-xs text-gray-400">
                       <Loader2 className="h-4 w-4 animate-spin" />
