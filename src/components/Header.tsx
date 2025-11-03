@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { ChevronDown, ChevronRight, Search as SearchIcon, X, Loader2 } from 'lucide-react';
 import { getArticlesBySearch, getLatestArticles, getCategories } from '../utils/api';
 import { buildNavTreeFromCategories, getFallbackNavTree, type NavNode } from '../utils/categoryHelpers';
+import { getArticleHref } from '../utils/articleHelpers';
 
 type SearchVisualState = 'idle' | 'typing' | 'loading';
 
@@ -23,7 +24,16 @@ const Header: React.FC = () => {
   const [showSearch, setShowSearch] = useState(false);
   const [query, setQuery] = useState('');
   const [mobileQuery, setMobileQuery] = useState('');
-  const [suggestions, setSuggestions] = useState<Array<{ id: number; title: string; slug: string; image?: string; date?: string; category?: string }>>([]); 
+  const [suggestions, setSuggestions] = useState<Array<{
+    id: number;
+    title: string;
+    slug: string;
+    canonical_url?: string;
+    short_link?: string | null;
+    image?: string;
+    date?: string;
+    category?: string;
+  }>>([]);
   const [loadingSuggest, setLoadingSuggest] = useState(false);
   const [showSuggest, setShowSuggest] = useState(false);
   const searchBoxRef = useRef<HTMLDivElement | null>(null);
@@ -185,7 +195,7 @@ const Header: React.FC = () => {
     setIsMenuOpen(false);
   };
 
-  const [breakingNews, setBreakingNews] = useState<{ title: string; slug: string } | null>(null);
+  const [breakingNews, setBreakingNews] = useState<{ title: string; slug: string; canonical_url: string } | null>(null);
   const [breakingDismissed, setBreakingDismissed] = useState(false);
   const [breakingError, setBreakingError] = useState(false);
   const [isLive, setIsLive] = useState(false);
@@ -199,7 +209,12 @@ const Header: React.FC = () => {
         if (!mounted) return;
         if (items.length > 0) {
           const first = items[0];
-          setBreakingNews({ title: first.title || 'Breaking news', slug: first.slug });
+          const canonicalPath = getArticleHref(first);
+          setBreakingNews({
+            title: first.title || 'Breaking news',
+            slug: first.slug,
+            canonical_url: canonicalPath,
+          });
           const hasLive = items.some((a: any) => a.is_live || a.live);
           setIsLive(!!hasLive);
           setBreakingError(false);
@@ -284,14 +299,19 @@ const Header: React.FC = () => {
       try {
         const res = await getArticlesBySearch(q);
         if (seq !== suggestSeqRef.current) return;
-        const results = (res.data?.results || []).slice(0, 6).map((a: any) => ({
-          id: a.id,
-          title: a.title,
-          slug: a.slug,
-          image: a.thumbnail || a.image || a.featured_image || a.cover_image || undefined,
-          date: a.published_at || a.date || a.created_at || undefined,
-          category: (a.category && (a.category.name || a.category.title)) || a.section || (a.topic && a.topic.name) || undefined,
-        }));
+        const results = (res.data?.results || []).slice(0, 6).map((a: any) => {
+          const canonicalPath = getArticleHref(a);
+          return {
+            id: a.id,
+            title: a.title,
+            slug: a.slug,
+            canonical_url: canonicalPath,
+            short_link: a.short_link || null,
+            image: a.thumbnail || a.image || a.featured_image || a.cover_image || undefined,
+            date: a.published_at || a.date || a.created_at || undefined,
+            category: (a.category && (a.category.name || a.category.title)) || a.section || (a.topic && a.topic.name) || undefined,
+          };
+        });
         setSuggestions(results);
       } catch {
         if (seq === suggestSeqRef.current) setSuggestions([]);
@@ -696,7 +716,10 @@ const Header: React.FC = () => {
               <span className="line-clamp-1 animate-text-slide">{breakingNews.title}</span>
             </div>
             <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-              <Link to={`/article/${breakingNews.slug}`} className="text-white underline hover:text-gray-200 whitespace-nowrap">
+              <Link
+                to={breakingNews.canonical_url || getArticleHref({ slug: breakingNews.slug })}
+                className="text-white underline hover:text-gray-200 whitespace-nowrap"
+              >
                 Read more →
               </Link>
               <button onClick={() => setBreakingDismissed(true)} className="text-white/80 hover:text-white transition-colors" aria-label="Dismiss breaking news">
@@ -950,7 +973,10 @@ const Header: React.FC = () => {
                                     <button
                                       className="w-full text-left px-2 py-1 rounded-lg text-sm text-white flex items-start gap-3 transition-colors duration-200 hover:bg-white/10"
                                       onClick={() => {
-                                        navigate(`/article/${s.slug}`);
+                                        const targetPath = getArticleHref(s);
+                                        if (targetPath && targetPath !== '#') {
+                                          navigate(targetPath);
+                                        }
                                         setShowSuggest(false);
                                         setShowSearch(false);
                                       }}

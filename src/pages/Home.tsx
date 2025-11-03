@@ -14,6 +14,7 @@ import {
 import { RefreshCw, Search, X, TrendingUp, Clock, BookOpen, Pause, Play, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import type { Article, Category } from '../types';
 import { buildHomeCategories, resolveCategoryMeta, getCategoryAccent } from '../utils/categoryHelpers';
+import { getArticleHref } from '../utils/articleHelpers';
 import type { CategoryMeta } from '../utils/categoryHelpers';
 
 const HERO_ROTATE_INTERVAL = 7000;
@@ -1018,8 +1019,8 @@ const Home: React.FC = () => {
               {heroItems.map((article, idx) => {
                 const isActive = idx === heroIndex;
                 const img = article.featured_image_url || article.featured_image || article.image || '/api/placeholder/1200/675';
-                const articleHref = article.slug ? `/article/${article.slug}` : '#';
-                const isNavigable = Boolean(article.slug);
+                const articleHref = getArticleHref(article);
+                const isNavigable = articleHref !== '#';
                 const displayTitle = article.title?.trim() || 'Untitled story';
                 const displayExcerpt = article.excerpt?.trim() || 'Stay tuned for more details as this story develops.';
                 const categoryMeta = getArticleCategoryMeta(article);
@@ -1154,7 +1155,7 @@ const Home: React.FC = () => {
           const current = breakingItems[breakingIndex];
           if (!current) return null;
 
-          const href = current.slug ? `/article/${current.slug}` : '#';
+          const href = getArticleHref(current);
           const dateText = new Date(current.date || current.published_at || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
           const categoryMeta = getArticleCategoryMeta(current);
           const categoryText = categoryMeta.topLevelName.toUpperCase();

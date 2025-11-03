@@ -14,6 +14,7 @@ import {
   type FlatCategory,
 } from '../utils/categoryHelpers';
 import { CATEGORY_LOOKUP } from '../constants/categories';
+import { getArticleHref } from '../utils/articleHelpers';
 
 type CategoryArticle = Article & {
   formattedDate?: string;
@@ -362,7 +363,7 @@ const CategoryPage: React.FC = () => {
                 if (!article.id) {
                   return null;
                 }
-                const destination = article.slug ? `/article/${article.slug}` : `/article/${article.id}`;
+                const destination = getArticleHref(article);
 
                 return (
                   <div key={`category-${article.id}`} className="group relative rounded-xl border border-white/5 bg-gray-900/40 p-3 transition hover:border-white/20">

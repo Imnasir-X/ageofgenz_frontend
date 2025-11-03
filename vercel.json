@@ -1,6 +1,11 @@
 {
   "redirects": [
     {
+      "source": "/article/:slug",
+      "destination": "/articles/:slug",
+      "permanent": true
+    },
+    {
       "source": "/sitemap.xml",
       "destination": "https://ageofgenz-backend.onrender.com/sitemap.xml",
       "permanent": true
@@ -13,7 +18,7 @@
   ],
   "rewrites": [
     {
-      "source": "/article/:slug",
+      "source": "/articles/:slug",
       "destination": "/api/article-proxy?slug=:slug"
     },
     {
@@ -27,7 +32,7 @@
   ],
   "headers": [
     {
-      "source": "/article/:path*",
+      "source": "/articles/:path*",
       "headers": [
         {
           "key": "Cache-Control",

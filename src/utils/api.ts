@@ -183,6 +183,16 @@ const transformArticle = (backendArticle: any): Article => {
     id: backendArticle.id,
     title: backendArticle.title || 'Untitled',
     slug: backendArticle.slug || '',
+    canonical_url:
+      typeof backendArticle.canonical_url === 'string' && backendArticle.canonical_url.length > 0
+        ? backendArticle.canonical_url
+        : backendArticle.slug
+          ? `/articles/${backendArticle.slug}/`
+          : '',
+    short_link:
+      typeof backendArticle.short_link === 'string' && backendArticle.short_link.length > 0
+        ? backendArticle.short_link
+        : null,
     excerpt: rawExcerpt,
     content: rawContent,
     

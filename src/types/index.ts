@@ -49,10 +49,12 @@ export interface Article {
   id: number;
   title: string;
   slug: string;
+  canonical_url: string;
+  short_link: string | null;
   excerpt: string;
   content: string;
   featured_image: string | null;
-  featured_image_url?: string | null; 
+  featured_image_url?: string | null;
   author: Author;
   category: Category;
   category_name: string;
@@ -81,10 +83,12 @@ export interface BackendArticle {
   id: number;
   title: string;
   slug: string;
+  canonical_url?: string;
+  short_link?: string | null;
   content: string;
   excerpt: string;
   featured_image: string | null;
-  featured_image_url?: string | null;  // 🔧 ADD THIS LINE
+  featured_image_url?: string | null;
   is_published: boolean;
   is_featured: boolean;
   created_at: string;

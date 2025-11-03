@@ -520,8 +520,26 @@ const ArticleDetail: React.FC = () => {
     return { __html: htmlPieces.join('') };
   }, [article?.content]);
 
-  const articleSlug = article?.slug ?? '';
-  const articleUrl = `https://theageofgenz.com/article/${articleSlug}`;
+  const routeSlug = slug ?? '';
+  const articleSlug = article?.slug ?? routeSlug;
+  const canonicalPath = article?.canonical_url
+    ? article.canonical_url.startsWith('/')
+      ? article.canonical_url
+      : article.canonical_url.replace(/^https?:\/\/[^/]+/i, '')
+    : articleSlug
+      ? `/articles/${articleSlug}/`
+      : '';
+  const articleUrl = canonicalPath
+    ? `https://theageofgenz.com${canonicalPath}`
+    : articleSlug
+      ? `https://theageofgenz.com/articles/${articleSlug}/`
+      : 'https://theageofgenz.com/';
+  const shortLinkUrl = article?.short_link
+    ? article.short_link.startsWith('http')
+      ? article.short_link
+      : `https://theageofgenz.com${article.short_link.startsWith('/') ? article.short_link : `/${article.short_link}`}`
+    : null;
+  const shareUrl = shortLinkUrl || articleUrl;
   const rawPublishedDate = article?.published_at || article?.created_at || '';
   const publishedDate = rawPublishedDate ? formatDate(rawPublishedDate) : '';
   const imageUrl =
@@ -529,7 +547,7 @@ const ArticleDetail: React.FC = () => {
     article?.featured_image ||
     'https://theageofgenz.com/og-image.jpg';
   const viewCount = article?.view_count ?? article?.views ?? null;
-  const encodedShareUrl = encodeURIComponent(articleUrl);
+  const encodedShareUrl = encodeURIComponent(shareUrl);
   const encodedShareTitle = encodeURIComponent(article?.title ?? 'The Age of GenZ');
   const shareMenuItemClass =
     'flex items-center gap-3 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white';
@@ -639,9 +657,9 @@ const ArticleDetail: React.FC = () => {
       }
 
       if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-        await navigator.clipboard.writeText(articleUrl);
+        await navigator.clipboard.writeText(shareUrl);
       } else {
-        const fallback = window.prompt('Copy this link', articleUrl);
+        const fallback = window.prompt('Copy this link', shareUrl);
         if (fallback === null) {
           return false;
         }
@@ -653,7 +671,7 @@ const ArticleDetail: React.FC = () => {
       console.error('Failed to copy link', err);
       return false;
     }
-  }, [articleUrl]);
+  }, [shareUrl]);
 
   // Reading progress tracking
   useEffect(() => {
@@ -1206,9 +1224,16 @@ const ArticleDetail: React.FC = () => {
                               parent_slug: null,
                             },
                       );
+                      const relatedPath = relatedArticle.canonical_url
+                        ? relatedArticle.canonical_url.startsWith('/')
+                          ? relatedArticle.canonical_url
+                          : relatedArticle.canonical_url.replace(/^https?:\/\/[^/]+/i, '')
+                        : relatedArticle.slug
+                          ? `/articles/${relatedArticle.slug}/`
+                          : '#';
                       return (
                         <article key={relatedArticle.id} className="trending-item">
-                          <Link to={`/article/${relatedArticle.slug}`} className="trending-link group">
+                          <Link to={relatedPath} className="trending-link group">
                             <div className="trending-image-wrap">
                               <img
                                 src={relatedArticle.featured_image_url || relatedArticle.featured_image || '/api/placeholder/420/240'}

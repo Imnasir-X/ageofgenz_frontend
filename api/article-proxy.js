@@ -22,7 +22,7 @@ export default async function handler(request) {
   // For bots: serve SEO-optimized HTML from Django backend
   if (isBot) {
     try {
-      const backendUrl = `https://ageofgenz-backend.onrender.com/article/${encodeURIComponent(slug)}`;
+      const backendUrl = `https://ageofgenz-backend.onrender.com/articles/${encodeURIComponent(slug)}/`;
       const backendResponse = await fetch(backendUrl, {
         headers: {
           'user-agent': userAgent,
@@ -97,7 +97,7 @@ export default async function handler(request) {
     <title>The Age of Gen Z</title>
     <script>
         // Redirect to main site if edge function fails
-        window.location.href = 'https://theageofgenz.com/article/${encodeURIComponent(slug)}';
+        window.location.href = 'https://theageofgenz.com/articles/${encodeURIComponent(slug)}/';
     </script>
 </head>
 <body>

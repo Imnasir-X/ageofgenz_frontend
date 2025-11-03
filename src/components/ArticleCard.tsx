@@ -4,6 +4,7 @@ import { Clock } from 'lucide-react';
 import type { Article } from '../types';
 import { getArticleBySlug } from '../utils/api';
 import { getCategoryAccent } from '../utils/categoryHelpers';
+import { getArticleHref } from '../utils/articleHelpers';
 
 interface ArticleCardProps {
   article: Article;
@@ -44,6 +45,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
   });
 
   const imgSrc = article.featured_image_url || article.image || article.featured_image || '/api/placeholder/400/250';
+  const articleHref = getArticleHref(article);
   const resolvedAccent = getCategoryAccent(
     article.category && (article.category.slug || article.category.name)
       ? {
@@ -84,7 +86,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
   if (variant === 'large') {
     return (
       <article className={wrapperClasses}>
-        <Link to={`/article/${article.slug}`} className="block" onMouseEnter={onHoverPrefetch}>
+        <Link to={articleHref} className="block" onMouseEnter={onHoverPrefetch}>
           <div className="relative aspect-[16/9] overflow-hidden bg-gray-100">
             <img
               src={imgSrc}
@@ -132,7 +134,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
   if (variant === 'horizontal') {
     return (
       <article className={wrapperClasses}>
-        <Link to={`/article/${article.slug}`} className="flex gap-3 p-3 sm:p-4" onMouseEnter={onHoverPrefetch}>
+        <Link to={articleHref} className="flex gap-3 p-3 sm:p-4" onMouseEnter={onHoverPrefetch}>
           <div className="w-36 sm:w-40 md:w-48 aspect-[16/10] bg-gray-100 overflow-hidden rounded-md">
             <img
               src={imgSrc}
@@ -169,7 +171,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
   if (variant === 'sidebarLarge') {
     return (
       <article className={wrapperClasses}>
-        <Link to={`/article/${article.slug}`} className="block h-full" onMouseEnter={onHoverPrefetch}>
+        <Link to={articleHref} className="block h-full" onMouseEnter={onHoverPrefetch}>
           <div className="relative aspect-[5/3] w-full overflow-hidden bg-gray-100">
             <img
               src={imgSrc}
@@ -202,7 +204,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
   // Default compact
   return (
     <article className={wrapperClasses}>
-      <Link to={`/article/${article.slug}`} className="block" onMouseEnter={onHoverPrefetch}>
+      <Link to={articleHref} className="block" onMouseEnter={onHoverPrefetch}>
         {/* Compact Image Container */}
         <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
           <img
