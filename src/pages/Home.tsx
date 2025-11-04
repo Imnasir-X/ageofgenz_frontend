@@ -11,7 +11,7 @@ import {
   getArticles,
   getArticlesByCategory
 } from '../utils/api';
-import { RefreshCw, Search, X, TrendingUp, Clock, BookOpen, Pause, Play, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { RefreshCw, Search, X, TrendingUp, Clock, BookOpen, Pause, Play, ChevronLeft, ChevronRight, Loader2, SlidersHorizontal } from 'lucide-react';
 import type { Article, Category } from '../types';
 import { buildHomeCategories, resolveCategoryMeta, getCategoryAccent } from '../utils/categoryHelpers';
 import { getArticleHref } from '../utils/articleHelpers';
@@ -168,11 +168,21 @@ const Home: React.FC = () => {
   }, [activeCategory, homeCategories]);
 
   const getCategoryButtonClasses = (isActive: boolean) =>
-    `inline-flex items-center whitespace-nowrap rounded-full border border-transparent px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 ${
+    `inline-flex items-center whitespace-nowrap rounded-full border border-transparent px-4 py-2 text-sm font-medium cursor-pointer transition-colors transition-transform duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 ${
       isActive
-        ? 'bg-orange-600 text-white shadow-lg shadow-orange-200/60'
-        : 'bg-white text-gray-700 hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600'
+        ? 'bg-orange-600 text-white shadow-lg shadow-orange-200/60 -translate-y-0.5'
+        : 'bg-white text-gray-700 hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600 hover:-translate-y-0.5 hover:shadow-md active:scale-95'
     }`;
+
+  const activeCategoryLabel = useMemo(() => {
+    if (activeCategory === 'all') return null;
+    const match = homeCategories.find((cat) => cat.slug === activeCategory);
+    if (match?.name) {
+      return match.name;
+    }
+    const meta = resolveCategoryMeta({ slug: activeCategory });
+    return meta.name;
+  }, [activeCategory, homeCategories]);
 
   // Breaking items: prefer latest, fallback to featured
   const breakingItems = useMemo(() => {
@@ -1286,7 +1296,10 @@ const Home: React.FC = () => {
                   <span className="inline-flex h-2 w-2 rounded-full bg-orange-500" aria-hidden="true" />
                   <h3 className="text-base font-semibold text-gray-800">Browse by Category</h3>
                 </div>
-                <div className="text-xs uppercase tracking-wide text-gray-700">Tap to filter</div>
+                <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-700">
+                  <SlidersHorizontal className="h-3.5 w-3.5 text-orange-500" aria-hidden="true" />
+                  <span>Tap a category to filter</span>
+                </div>
               </div>
               {loadingCategories ? (
                 <div className="flex flex-wrap gap-3">
@@ -1419,9 +1432,15 @@ const Home: React.FC = () => {
                   <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <TrendingUp size={40} className="text-orange-500" aria-hidden="true" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">No Featured Articles Yet</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                    {activeCategory === 'all'
+                      ? 'No Featured Articles Yet'
+                      : `No featured stories in ${activeCategoryLabel ?? 'this category'} yet`}
+                  </h3>
                   <p className="text-gray-700 max-w-md mx-auto">
-                    Featured articles will appear here once they're added to the system. Check back soon for curated content!
+                    {activeCategory === 'all'
+                      ? "Featured articles will appear here once they're added to the system. Check back soon for curated content!"
+                      : `We're still preparing featured coverage for ${activeCategoryLabel ?? 'this category'}. Try another filter or check back soon!`}
                   </p>
                 </div>
               )}
@@ -1520,9 +1539,15 @@ const Home: React.FC = () => {
                   <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <BookOpen size={40} className="text-blue-500" aria-hidden="true" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">No Articles Available</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                    {activeCategory === 'all'
+                      ? 'No Articles Available'
+                      : `No ${activeCategoryLabel ?? 'category'} articles yet`}
+                  </h3>
                   <p className="text-gray-700 max-w-md mx-auto">
-                    Latest articles will appear here once they're published. Start creating content to fill this space!
+                    {activeCategory === 'all'
+                      ? "Latest articles will appear here once they're published. Start creating content to fill this space!"
+                      : `We haven't published any stories in ${activeCategoryLabel ?? 'this category'} yet. Check back soon or explore another section above.`}
                   </p>
                 </div>
               )}
