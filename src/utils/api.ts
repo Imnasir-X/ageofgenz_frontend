@@ -613,15 +613,22 @@ export const getCategories = async (options: GetCategoriesOptions = {}) => {
 
 // FIXED: Simplified category filtering using Django backend first
 export const getArticlesByCategory = async (categorySlug: string, page: number = 1) => {
-  console.log('ðŸ“‚ Fetching articles for category:', categorySlug);
+  const normalizedSlug = (categorySlug || '').trim().toLowerCase();
+  console.log('📂 Fetching articles for category:', normalizedSlug || categorySlug);
   
   try {
     // First, try the Django filter directly using the backend filterset_fields
     const response = await retryRequest<any>(() =>
-      api.get(`/api/articles/?category__slug=${categorySlug}&page=${page}`)
+      api.get('/api/articles/', {
+        params: {
+          category__slug: normalizedSlug,
+          page,
+          include_subs: true,
+        },
+      })
     );
     
-    console.log('ðŸ“‚ Direct category filter response:', response.data);
+    console.log('📂 Direct category filter response:', response.data);
     
     let results = [];
     if (response.data.results) {
@@ -632,7 +639,7 @@ export const getArticlesByCategory = async (categorySlug: string, page: number =
     
     const transformedResults = results.map(transformArticle);
     
-    console.log(`ðŸ“‚ Category "${categorySlug}" articles found:`, transformedResults.length);
+    console.log(`📂 Category "${normalizedSlug || categorySlug}" articles found:`, transformedResults.length);
     
     // If we got results from the backend filter, return them
     if (transformedResults.length > 0) {
@@ -648,24 +655,24 @@ export const getArticlesByCategory = async (categorySlug: string, page: number =
     }
     
     // Fallback: Get all articles and filter on frontend
-    console.log('ðŸ“‚ No results from backend filter, trying frontend filtering...');
+    console.log('📂 No results from backend filter, trying frontend filtering...');
     throw new Error('No backend results, trying fallback');
     
   } catch (error) {
-    console.log('ðŸ“‚ Backend filtering failed, using frontend fallback...');
+    console.log('📂 Backend filtering failed, using frontend fallback...');
     
     // Fallback: Get all articles and filter on frontend
     try {
       const allResponse = await getArticles();
       const allArticles = allResponse.data.results;
       
-      console.log('ðŸ“‚ All articles for frontend filtering:', allArticles.length);
+      console.log('📂 All articles for frontend filtering:', allArticles.length);
       
       // Simple category matching
       const filteredArticles = allArticles.filter(article => {
         const articleCategorySlug = article.category?.slug?.toLowerCase();
         const articleCategoryName = article.category?.name?.toLowerCase();
-        const searchSlug = categorySlug.toLowerCase();
+        const searchSlug = normalizedSlug || (categorySlug ? categorySlug.toLowerCase() : '');
         
         // Category mapping for common variations
         const categoryMappings: { [key: string]: string[] } = {
@@ -688,7 +695,7 @@ export const getArticlesByCategory = async (categorySlug: string, page: number =
           articleCategoryName === match
         );
         
-        console.log(`ðŸ“‚ Article "${article.title}" category check:`, {
+        console.log(`📂 Article "${article.title}" category check:`, {
           articleSlug: articleCategorySlug,
           articleName: articleCategoryName,
           searchSlug,
@@ -698,7 +705,7 @@ export const getArticlesByCategory = async (categorySlug: string, page: number =
         return isMatch;
       });
       
-      console.log(`ðŸ“‚ Frontend filter found ${filteredArticles.length} articles for category "${categorySlug}"`);
+      console.log(`📂 Frontend filter found ${filteredArticles.length} articles for category "${normalizedSlug || categorySlug}"`);
       
       return {
         ...allResponse,
@@ -711,12 +718,11 @@ export const getArticlesByCategory = async (categorySlug: string, page: number =
       } as AxiosResponse<PaginatedArticlesResponse>;
       
     } catch (fallbackError) {
-      console.error('ðŸ“‚ Frontend filtering also failed:', fallbackError);
+      console.error('📂 Frontend filtering also failed:', fallbackError);
       throw error;
     }
   }
 };
-
 // NEW: Specific function for opinion articles
 export const getOpinionArticles = async (page: number = 1) => {
   console.log('ðŸ’­ Fetching opinion articles...');
