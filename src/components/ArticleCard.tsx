@@ -223,10 +223,17 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
 
         {/* Compact Content */}
         <div className="p-2">
-          {/* Meta row (date only) */}
-          <div className="flex items-center mb-1.5 text-[11px] font-medium text-gray-500 uppercase tracking-wide">
-            <Clock size={10} className="mr-1 text-orange-500" />
-            {formattedDate}
+          {/* Category + meta row */}
+          <div className="mb-1.5 flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+            <span
+              className={`${categoryAccent} inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm`}
+            >
+              {article.category?.name || article.category_name || 'General'}
+            </span>
+            <span className="flex items-center text-gray-500">
+              <Clock size={10} className={`mr-1 ${categoryTextAccent}`} />
+              {formattedDate}
+            </span>
           </div>
 
           {/* Compact Title */}
