@@ -425,7 +425,7 @@ const CategoryPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => window.location.reload()}
-                className={`inline-flex items-center gap-2 rounded-full border ${borderClass} bg-white/10 px-5 py-2 text-sm font-semibold text-white transition hover:bg-white/20`}
+                className={`inline-flex items-center gap-2 rounded-full border ${borderClass} bg-white px-5 py-2 text-sm font-semibold ${textAccentClass} shadow-sm transition hover:bg-orange-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white`}
               >
                 Refresh {categoryHeading} stories
               </button>
