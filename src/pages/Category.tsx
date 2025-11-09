@@ -347,12 +347,12 @@ const CategoryPage: React.FC = () => {
           </section>
         )}
 
-        <div className="rounded-lg border border-gray-900/20 bg-gray-900 p-6 shadow-xl shadow-gray-900/10">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-gray-900/5">
           <div className="mb-6 flex items-center justify-between gap-3">
-            <h2 className={`text-xl font-bold text-white pb-2 border-b-2 ${borderClass}`}>
+            <h2 className={`text-xl font-bold text-slate-900 pb-2 border-b-2 ${borderClass}`}>
               Latest in {categoryHeading}
             </h2>
-            <span className="text-xs uppercase tracking-wide text-white/70">
+            <span className="text-xs uppercase tracking-wide text-gray-500">
               {articles.length} article{articles.length === 1 ? '' : 's'}
             </span>
           </div>
@@ -366,7 +366,10 @@ const CategoryPage: React.FC = () => {
                 const destination = getArticleHref(article);
 
                 return (
-                  <div key={`category-${article.id}`} className="group relative rounded-xl border border-white/5 bg-gray-900/40 p-3 transition hover:border-white/20">
+                  <div
+                    key={`category-${article.id}`}
+                    className="group relative rounded-xl border border-slate-200 bg-white p-3 transition hover:-translate-y-1 hover:shadow-md"
+                  >
                     <Link to={destination} className="block">
                       <div className="relative aspect-video overflow-hidden rounded-lg">
                         <img
@@ -381,23 +384,25 @@ const CategoryPage: React.FC = () => {
                       <div className="pt-3">
                         <div className="flex items-center justify-between gap-2 mb-2">
                           <div className="flex items-center gap-2">
-                            <span className={`${badgeClass} text-xs font-semibold uppercase tracking-wide text-white px-2 py-0.5 rounded`}>
+                            <span
+                              className={`${badgeClass} text-xs font-semibold uppercase tracking-wide text-white px-2 py-0.5 rounded`}
+                            >
                               {badgeLabel}
                             </span>
-                            <span className="flex items-center gap-1 text-xs text-gray-300">
+                            <span className="flex items-center gap-1 text-xs text-gray-500">
                               <Clock size={12} aria-hidden="true" />
                               {article.formattedDate}
                             </span>
                           </div>
-                          <span className="flex items-center gap-1 text-xs text-gray-300">
+                          <span className="flex items-center gap-1 text-xs text-gray-500">
                             <Eye size={14} aria-hidden="true" />
                             {article.views || article.view_count || 0}
                           </span>
                         </div>
-                        <h3 className="text-lg font-semibold text-white transition-colors group-hover:text-orange-400 line-clamp-2">
+                        <h3 className="text-lg font-semibold text-slate-900 transition-colors group-hover:text-orange-500 line-clamp-2">
                           {article.title || 'Untitled'}
                         </h3>
-                        <p className="mt-2 text-sm text-gray-300 line-clamp-3">
+                        <p className="mt-2 text-sm text-gray-600 line-clamp-3">
                           {article.sanitizedExcerpt || 'Stay tuned for updates from this category.'}
                         </p>
                       </div>
@@ -407,9 +412,9 @@ const CategoryPage: React.FC = () => {
               })}
             </div>
           ) : (
-            <div className="text-center py-12 text-gray-300">
-              <p className="mb-2 font-semibold">No articles yet</p>
-              <p className="text-sm text-gray-400">
+            <div className="text-center py-12 text-gray-500">
+              <p className="mb-2 font-semibold text-gray-700">No articles yet</p>
+              <p className="text-sm text-gray-500">
                 Articles may need to be assigned to the {categoryHeading} category in the admin panel.
               </p>
             </div>
