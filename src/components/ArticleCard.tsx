@@ -1,4 +1,4 @@
-﻿import React, { useMemo } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Clock } from 'lucide-react';
 import type { Article } from '../types';
@@ -17,6 +17,22 @@ const prefetched = new Set<string>();
 
 const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'center', variant = 'compact', prefetchOnHover = true }) => {
   // Category badge removed per request
+
+  const primaryImage =
+    article.featured_image_url ||
+    article.image ||
+    article.featured_image ||
+    '';
+  const [imageFailed, setImageFailed] = useState(false);
+  const showImage = Boolean(primaryImage) && !imageFailed;
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [article.id, primaryImage]);
+
+  const handleImageError = () => {
+    setImageFailed(true);
+  };
 
   // Function to strip HTML tags
   const stripHtml = (html: string): string => {
@@ -44,7 +60,6 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
     day: 'numeric',
   });
 
-  const imgSrc = article.featured_image_url || article.image || article.featured_image || '/api/placeholder/400/250';
   const articleHref = getArticleHref(article);
   const resolvedAccent = getCategoryAccent(
     article.category && (article.category.slug || article.category.name)
@@ -59,6 +74,11 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
   );
   const categoryAccent = resolvedAccent.badge;
   const categoryTextAccent = resolvedAccent.text;
+  const accentGradient =
+    resolvedAccent.gradient || 'linear-gradient(135deg, #0f172a 0%, #f97316 45%, #fb923c 100%)';
+  const fallbackBackgroundStyle = showImage
+    ? undefined
+    : { backgroundImage: accentGradient, backgroundColor: '#0f172a' };
 
   const onHoverPrefetch = async () => {
     if (!prefetchOnHover || !article.slug || prefetched.has(article.slug)) return;
@@ -87,15 +107,20 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
     return (
       <article className={wrapperClasses}>
         <Link to={articleHref} className="block" onMouseEnter={onHoverPrefetch}>
-          <div className="relative aspect-[16/9] overflow-hidden bg-gray-100">
-            <img
-              src={imgSrc}
-              alt={article.title || 'Article image'}
-              className={`w-full h-full object-cover ${getObjectPosition()} transition-transform duration-500 group-hover:scale-[1.03]`}
-              onError={(e) => { e.currentTarget.src = '/api/placeholder/800/450'; }}
-              loading="lazy"
-              fetchPriority="high"
-            />
+          <div
+            className="relative aspect-[16/9] overflow-hidden bg-slate-950"
+            style={fallbackBackgroundStyle}
+          >
+            {showImage && (
+              <img
+                src={primaryImage}
+                alt={article.title || 'Article image'}
+                className={`w-full h-full object-cover ${getObjectPosition()} transition-transform duration-500 group-hover:scale-[1.03]`}
+                onError={handleImageError}
+                loading="lazy"
+                fetchPriority="high"
+              />
+            )}
             <div className="absolute inset-0">
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/35 to-transparent" aria-hidden="true" />
               <div className="absolute left-4 top-4 z-10 sm:left-6 sm:top-6">
@@ -135,13 +160,22 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
     return (
       <article className={wrapperClasses}>
         <Link to={articleHref} className="flex gap-3 p-3 sm:p-4" onMouseEnter={onHoverPrefetch}>
-          <div className="w-36 sm:w-40 md:w-48 aspect-[16/10] bg-gray-100 overflow-hidden rounded-md">
-            <img
-              src={imgSrc}
-              alt={article.title || 'Article image'}
-              className={`w-full h-full object-cover ${getObjectPosition()} transition-transform duration-300 group-hover:scale-105`}
-              onError={(e) => { e.currentTarget.src = '/api/placeholder/320/200'; }}
-              loading="lazy"
+          <div
+            className="relative w-36 sm:w-40 md:w-48 aspect-[16/10] overflow-hidden rounded-md bg-gray-100 flex-shrink-0"
+            style={fallbackBackgroundStyle}
+          >
+            {showImage && (
+              <img
+                src={primaryImage}
+                alt={article.title || 'Article image'}
+                className={`w-full h-full object-cover ${getObjectPosition()} transition-transform duration-300 group-hover:scale-105`}
+                onError={handleImageError}
+                loading="lazy"
+              />
+            )}
+            <div
+              className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+              aria-hidden="true"
             />
           </div>
           <div className="min-w-0 py-1 flex flex-col gap-1.5">
@@ -172,13 +206,22 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
     return (
       <article className={wrapperClasses}>
         <Link to={articleHref} className="block h-full" onMouseEnter={onHoverPrefetch}>
-          <div className="relative aspect-[5/3] w-full overflow-hidden bg-gray-100">
-            <img
-              src={imgSrc}
-              alt={article.title || 'Article image'}
-              className={`h-full w-full object-cover ${getObjectPosition()} transition-transform duration-300 group-hover:scale-[1.03]`}
-              onError={(e) => { e.currentTarget.src = '/api/placeholder/640/360'; }}
-              loading="lazy"
+          <div
+            className="relative aspect-[5/3] w-full overflow-hidden bg-gray-100"
+            style={fallbackBackgroundStyle}
+          >
+            {showImage && (
+              <img
+                src={primaryImage}
+                alt={article.title || 'Article image'}
+                className={`h-full w-full object-cover ${getObjectPosition()} transition-transform duration-300 group-hover:scale-[1.03]`}
+                onError={handleImageError}
+                loading="lazy"
+              />
+            )}
+            <div
+              className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+              aria-hidden="true"
             />
           </div>
           <div className="flex h-full flex-col gap-1.5 px-3 py-3">
@@ -186,7 +229,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
               <span className={`${categoryAccent} inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold text-white`}>
                 {article.category?.name || 'General'}
               </span>
-              <span className="text-gray-400">•</span>
+              <span className="text-gray-400" aria-hidden="true">&middot;</span>
               <span className="flex items-center gap-1 text-gray-500">
                 <Clock size={10} className="text-gray-400" />
                 {formattedDate}
@@ -206,17 +249,20 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
     <article className={wrapperClasses}>
       <Link to={articleHref} className="block" onMouseEnter={onHoverPrefetch}>
         {/* Compact Image Container */}
-        <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
-          <img
-            src={imgSrc}
-            alt={article.title || 'Article image'}
-            className={`w-full h-full object-cover ${getObjectPosition()} transition-transform duration-200 group-hover:scale-105`}
-            onError={(e) => {
-              e.currentTarget.src = '/api/placeholder/400/250';
-            }}
-            loading="lazy"
-          />
-          
+        <div
+          className="relative aspect-[16/10] overflow-hidden bg-gray-100"
+          style={fallbackBackgroundStyle}
+        >
+          {showImage && (
+            <img
+              src={primaryImage}
+              alt={article.title || 'Article image'}
+              className={`w-full h-full object-cover ${getObjectPosition()} transition-transform duration-200 group-hover:scale-105`}
+              onError={handleImageError}
+              loading="lazy"
+            />
+          )}
+
           {/* Subtle gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
         </div>
@@ -254,3 +300,4 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
 };
 
 export default ArticleCard;
+

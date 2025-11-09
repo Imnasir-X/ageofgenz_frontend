@@ -18,6 +18,7 @@ export type CategoryAccent = {
   divider: string;
   text: string;
   border: string;
+  gradient: string;
 };
 
 const ROOT_ORDER_KEY = '__root__';
@@ -281,16 +282,76 @@ export type CategoryMeta = {
 type CategoryLike = Partial<Pick<Category, 'slug' | 'name' | 'parent_slug'>>;
 
 const CATEGORY_ACCENT_MAP: Record<string, CategoryAccent> = {
-  trending: { badge: 'bg-orange-500', divider: 'bg-orange-400', text: 'text-orange-500', border: 'border-orange-500' },
-  tech: { badge: 'bg-indigo-600', divider: 'bg-indigo-500', text: 'text-indigo-500', border: 'border-indigo-500' },
-  'pop-media': { badge: 'bg-rose-600', divider: 'bg-rose-500', text: 'text-rose-500', border: 'border-rose-500' },
-  'science-discovery': { badge: 'bg-cyan-600', divider: 'bg-cyan-500', text: 'text-cyan-500', border: 'border-cyan-500' },
-  global: { badge: 'bg-emerald-600', divider: 'bg-emerald-500', text: 'text-emerald-500', border: 'border-emerald-500' },
-  politics: { badge: 'bg-blue-600', divider: 'bg-blue-500', text: 'text-blue-500', border: 'border-blue-500' },
-  'business-economy': { badge: 'bg-amber-600', divider: 'bg-amber-500', text: 'text-amber-600', border: 'border-amber-500' },
-  'crime-justice': { badge: 'bg-purple-600', divider: 'bg-purple-500', text: 'text-purple-500', border: 'border-purple-500' },
-  sports: { badge: 'bg-red-600', divider: 'bg-red-500', text: 'text-red-500', border: 'border-red-500' },
-  default: { badge: 'bg-orange-500', divider: 'bg-orange-400', text: 'text-orange-500', border: 'border-orange-500' },
+  trending: {
+    badge: 'bg-orange-500',
+    divider: 'bg-orange-400',
+    text: 'text-orange-500',
+    border: 'border-orange-500',
+    gradient: 'linear-gradient(135deg, #0f172a 0%, #f97316 45%, #fb923c 100%)',
+  },
+  tech: {
+    badge: 'bg-indigo-600',
+    divider: 'bg-indigo-500',
+    text: 'text-indigo-500',
+    border: 'border-indigo-500',
+    gradient: 'linear-gradient(135deg, #0f172a 0%, #818cf8 45%, #6366f1 100%)',
+  },
+  'pop-media': {
+    badge: 'bg-rose-600',
+    divider: 'bg-rose-500',
+    text: 'text-rose-500',
+    border: 'border-rose-500',
+    gradient: 'linear-gradient(135deg, #1b0b1f 0%, #fb7185 45%, #f472b6 100%)',
+  },
+  'science-discovery': {
+    badge: 'bg-cyan-600',
+    divider: 'bg-cyan-500',
+    text: 'text-cyan-500',
+    border: 'border-cyan-500',
+    gradient: 'linear-gradient(135deg, #041c32 0%, #22d3ee 45%, #06b6d4 100%)',
+  },
+  global: {
+    badge: 'bg-emerald-600',
+    divider: 'bg-emerald-500',
+    text: 'text-emerald-500',
+    border: 'border-emerald-500',
+    gradient: 'linear-gradient(135deg, #022c22 0%, #34d399 45%, #10b981 100%)',
+  },
+  politics: {
+    badge: 'bg-blue-600',
+    divider: 'bg-blue-500',
+    text: 'text-blue-500',
+    border: 'border-blue-500',
+    gradient: 'linear-gradient(135deg, #0f172a 0%, #60a5fa 45%, #3b82f6 100%)',
+  },
+  'business-economy': {
+    badge: 'bg-amber-600',
+    divider: 'bg-amber-500',
+    text: 'text-amber-600',
+    border: 'border-amber-500',
+    gradient: 'linear-gradient(135deg, #2b1907 0%, #fbbf24 45%, #f59e0b 100%)',
+  },
+  'crime-justice': {
+    badge: 'bg-purple-600',
+    divider: 'bg-purple-500',
+    text: 'text-purple-500',
+    border: 'border-purple-500',
+    gradient: 'linear-gradient(135deg, #1f1135 0%, #c084fc 45%, #a855f7 100%)',
+  },
+  sports: {
+    badge: 'bg-red-600',
+    divider: 'bg-red-500',
+    text: 'text-red-500',
+    border: 'border-red-500',
+    gradient: 'linear-gradient(135deg, #2c0d0d 0%, #f87171 45%, #ef4444 100%)',
+  },
+  default: {
+    badge: 'bg-orange-500',
+    divider: 'bg-orange-400',
+    text: 'text-orange-500',
+    border: 'border-orange-500',
+    gradient: 'linear-gradient(135deg, #0f172a 0%, #f97316 45%, #fb923c 100%)',
+  },
 };
 
 const getNormalizedSlugFromName = (name: string): string | null => {
