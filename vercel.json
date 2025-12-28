@@ -2,7 +2,22 @@
   "redirects": [
     {
       "source": "/article/:slug",
-      "destination": "/articles/:slug",
+      "destination": "/articles/:slug/",
+      "permanent": true
+    },
+    {
+      "source": "/article/:slug/",
+      "destination": "/articles/:slug/",
+      "permanent": true
+    },
+    {
+      "source": "/s/:code",
+      "destination": "https://ageofgenz-backend.onrender.com/s/:code/",
+      "permanent": true
+    },
+    {
+      "source": "/s/:code/",
+      "destination": "https://ageofgenz-backend.onrender.com/s/:code/",
       "permanent": true
     },
     {
@@ -19,6 +34,10 @@
   "rewrites": [
     {
       "source": "/articles/:slug",
+      "destination": "/api/article-proxy?slug=:slug"
+    },
+    {
+      "source": "/articles/:slug/",
       "destination": "/api/article-proxy?slug=:slug"
     },
     {

@@ -946,6 +946,7 @@ export const submitContactForm = async (data: { name: string; email: string; mes
   );
 };
 
+
 // Donations
 export const subscribeToPlan = async (plan: string, billingCycle: string, amount: number) => {
   console.log('ðŸ’³ Creating subscription:', plan, billingCycle, amount);
