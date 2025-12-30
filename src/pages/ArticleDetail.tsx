@@ -529,8 +529,10 @@ const ArticleDetail: React.FC = () => {
     : articleSlug
       ? `/articles/${articleSlug}/`
       : '';
-  const articleUrl = canonicalPath
-    ? `https://theageofgenz.com${canonicalPath}`
+  const normalizedCanonicalPath =
+    canonicalPath && !canonicalPath.endsWith('/') ? `${canonicalPath}/` : canonicalPath;
+  const articleUrl = normalizedCanonicalPath
+    ? `https://theageofgenz.com${normalizedCanonicalPath}`
     : articleSlug
       ? `https://theageofgenz.com/articles/${articleSlug}/`
       : 'https://theageofgenz.com/';

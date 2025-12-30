@@ -89,7 +89,14 @@ const CategoryPage: React.FC<Props> = ({
 
   const pageTitle = metaTitle || `${title} | The Age of GenZ`;
   const pageDescription = metaDescription || description;
-  const canonicalUrl = typeof window !== 'undefined' ? window.location.href : undefined;
+  const canonicalUrl =
+    typeof window !== 'undefined'
+      ? `https://theageofgenz.com${
+          window.location.pathname.endsWith('/')
+            ? window.location.pathname
+            : `${window.location.pathname}/`
+        }`
+      : undefined;
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
