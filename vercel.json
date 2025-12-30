@@ -1,6 +1,27 @@
 {
   "redirects": [
     {
+      "source": "/:path*",
+      "destination": "https://theageofgenz.com/:path*",
+      "permanent": true,
+      "has": [
+        {
+          "type": "host",
+          "value": "www.theageofgenz.com"
+        }
+      ]
+    },
+    {
+      "source": "/:category(tech|pop-media|science-discovery|global|politics|business-economy|crime-justice|sports|donate|support|trending|privacy|contact|terms|about)",
+      "destination": "/:category/",
+      "permanent": true
+    },
+    {
+      "source": "/articles/:slug",
+      "destination": "/articles/:slug/",
+      "permanent": true
+    },
+    {
       "source": "/article/:slug",
       "destination": "/articles/:slug/",
       "permanent": true
