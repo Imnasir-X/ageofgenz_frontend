@@ -36,6 +36,9 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'cen
 
   // Function to strip HTML tags
   const stripHtml = (html: string): string => {
+    if (typeof document === 'undefined') {
+      return html.replace(/<[^>]+>/g, '');
+    }
     const temp = document.createElement('div');
     temp.innerHTML = html;
     return temp.textContent || temp.innerText || '';
