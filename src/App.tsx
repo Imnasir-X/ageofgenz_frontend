@@ -11,6 +11,8 @@ import { AuthProvider } from './context/AuthContext';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import CategoryPage from './components/CategoryPage';
+import { resolveCategoryMeta } from './utils/categoryHelpers';
 
 const Home = lazy(() => import('./pages/Home'));
 const Trending = lazy(() => import('./pages/Trending'));
@@ -42,6 +44,37 @@ const DEFAULT_DESCRIPTION =
   'The Age of GenZ delivers NEWS YOU CAN VIBE WITH - breaking news, politics, culture & technology from a generational perspective.';
 const DEFAULT_OG_IMAGE = 'https://theageofgenz.com/og-image.jpg';
 const DEFAULT_TWITTER_IMAGE = 'https://theageofgenz.com/twitter-card.jpg';
+
+const CATEGORY_ROUTE_SLUGS = [
+  'tech',
+  'pop-media',
+  'science-discovery',
+  'global',
+  'business-economy',
+  'crime-justice',
+];
+
+const buildCategoryMeta = (name: string) => ({
+  metaTitle: `${name} | The Age of GenZ`,
+  metaDescription: `Latest ${name} stories, analysis, and updates from The Age of GenZ.`,
+  description: `The latest ${name} coverage, insights, and Gen Z perspectives in one place.`,
+});
+
+const CategoryAlias: React.FC<{ slug: string }> = ({ slug }) => {
+  const meta = resolveCategoryMeta({ slug });
+  const copy = buildCategoryMeta(meta.name);
+
+  return (
+    <CategoryPage
+      slug={meta.slug}
+      title={meta.name}
+      description={copy.description}
+      metaTitle={copy.metaTitle}
+      metaDescription={copy.metaDescription}
+      emptyMessage={`No ${meta.name.toLowerCase()} articles available yet.`}
+    />
+  );
+};
 
 const LegacyArticleRedirect: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -122,8 +155,12 @@ export const AppRoutes: React.FC = () => {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/articles/:slug/*" element={<ArticleDetail />} />
             <Route path="/article/:slug" element={<LegacyArticleRedirect />} />
+            {CATEGORY_ROUTE_SLUGS.map((slug) => (
+              <Route key={slug} path={`/${slug}`} element={<CategoryAlias slug={slug} />} />
+            ))}
             <Route path="/terms" element={<Terms />} />
             <Route path="/donate" element={<DonationPlaceholder />} />
+            <Route path="/support" element={<DonationPlaceholder />} />
             <Route path="/donation/success" element={<ThankYou />} />
             <Route path="/donation/cancelled" element={<Cancel />} />
             <Route path="/signup" element={<Signup />} />
