@@ -34,7 +34,6 @@
     "@types/react-dom": "^19.1.1",
     "@types/react-helmet": "^6.1.11",
     "@types/react-infinite-scroll-component": "^4.2.5",
-    "@types/react-router-dom": "^5.3.3",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.21.0",

@@ -2,8 +2,8 @@ import type { ComponentType } from 'react';
 import fs from 'node:fs';
 import path from 'node:path';
 import ReactDOMServer from 'react-dom/server';
-import { StaticRouter } from 'react-router-dom/server';
-import type { FilledContext } from 'react-helmet-async';
+import { StaticRouter } from 'react-router';
+import type { HelmetServerState } from 'react-helmet-async';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from '../context/AuthContext';
 import { dangerouslySkipEscape } from 'vite-plugin-ssr/server';
@@ -14,7 +14,7 @@ type PageContext = {
 };
 
 export async function render(pageContext: PageContext) {
-  const helmetContext = {} as FilledContext;
+  const helmetContext = {} as { helmet?: HelmetServerState };
   const { Page, urlOriginal } = pageContext;
 
   const pageHtml = ReactDOMServer.renderToString(
