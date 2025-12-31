@@ -50,6 +50,7 @@ const CATEGORY_ROUTE_SLUGS = [
   'pop-media',
   'science-discovery',
   'global',
+  'middle-east',
   'business-economy',
   'crime-justice',
 ];
