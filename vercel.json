@@ -5,7 +5,6 @@
     {
       "source": "/:path*",
       "destination": "https://theageofgenz.com/:path*",
-      "permanent": true,
       "statusCode": 308,
       "has": [
         {
