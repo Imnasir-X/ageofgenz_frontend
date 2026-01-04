@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, ReactNode, useContext } from 'react';
-import { loginUser, registerUser } from '../utils/api'; // ← ADD registerUser import
+import { loginUser, registerUser, socialAuth } from '../utils/api'; // ← ADD registerUser import
 
 interface User {
   id: number;
@@ -27,6 +27,8 @@ interface AuthContextType {
     firstName?: string,
     lastName?: string
   ) => Promise<void>;
+  socialLogin: (provider: string, accessToken: string, email?: string) => Promise<boolean>;
+  setAuthTokens: (access: string, refresh: string, userData?: User) => void;
   logout: () => void;
   setUser: (user: User | null) => void;
 }
@@ -43,6 +45,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const isAuthenticated = !!token && !!user;
+
+  const setAuthTokens = (access: string, refresh: string, userData?: User) => {
+    localStorage.setItem('token', access);
+    localStorage.setItem('refresh', refresh);
+    setToken(access);
+    if (userData) {
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+    }
+  };
 
   // Improved login function with detailed logging and error handling
   const login = async (email: string, password: string) => {
@@ -62,15 +74,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
       
       if (response.data?.access && response.data?.refresh) {
-        // Store tokens
-        localStorage.setItem('token', response.data.access);
-        localStorage.setItem('refresh', response.data.refresh);
-        
-        // Set user
-        setUser(response.data.user);
-        setToken(response.data.access);
-        
-        console.log('🔐 Frontend: Login successful, user set!');
+        setAuthTokens(response.data.access, response.data.refresh, response.data.user);
+
+        console.log('dY"? Frontend: Login successful, user set!');
         return true;
       } else {
         console.error('🔐 Frontend: Missing tokens in response');
@@ -84,6 +90,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                           error.message || 
                           'Login failed. Please check your connection.';
       
+      throw new Error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const socialLogin = async (provider: string, accessToken: string, email?: string) => {
+    try {
+      setIsLoading(true);
+      console.log('Social login starting for:', provider);
+      const response = await socialAuth(provider, accessToken, email);
+
+      if (response.data?.access && response.data?.refresh) {
+        setAuthTokens(response.data.access, response.data.refresh, response.data.user);
+        return true;
+      }
+
+      throw new Error('Invalid response format - missing tokens');
+    } catch (error: any) {
+      console.error('Social login failed:', error);
+      const errorMessage = error.response?.data?.error ||
+                          error.response?.data?.detail ||
+                          error.message ||
+                          'Social login failed. Please try again.';
+      localStorage.removeItem('token');
+      localStorage.removeItem('refresh');
       throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -227,6 +259,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoading,
     login,
     register, // ← ADD register to context value
+    socialLogin,
+    setAuthTokens,
     logout,
     setUser,
   };

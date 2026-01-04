@@ -899,10 +899,14 @@ export const verifyEmail = async (token: string) => {
   );
 };
 
-export const socialAuth = async (provider: string, access_token: string) => {
-  console.log('ðŸ”— Social auth with:', provider);
+export const socialAuth = async (provider: string, access_token: string, email?: string) => {
+  console.log('dY"- Social auth with:', provider);
+  const payload: { provider: string; access_token: string; email?: string } = { provider, access_token };
+  if (email) {
+    payload.email = email;
+  }
   return retryRequest<LoginResponse>(() =>
-    api.post('/api/auth/social-auth/', { provider, access_token })
+    api.post('/api/auth/social-auth/', payload)
   );
 };
 
