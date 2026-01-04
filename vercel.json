@@ -16,42 +16,42 @@
     {
       "source": "/:category(tech|pop-media|science-discovery|global|politics|business-economy|crime-justice|sports|donate|support|trending|privacy|contact|terms|about)",
       "destination": "/:category/",
-      "permanent": true
+      "statusCode": 307
     },
     {
       "source": "/articles/:slug",
       "destination": "/articles/:slug/",
-      "permanent": true
+      "statusCode": 307
     },
     {
       "source": "/article/:slug",
       "destination": "/articles/:slug/",
-      "permanent": true
+      "statusCode": 307
     },
     {
       "source": "/article/:slug/",
       "destination": "/articles/:slug/",
-      "permanent": true
+      "statusCode": 307
     },
     {
       "source": "/s/:code",
       "destination": "https://ageofgenz-backend.onrender.com/s/:code/",
-      "permanent": true
+      "statusCode": 307
     },
     {
       "source": "/s/:code/",
       "destination": "https://ageofgenz-backend.onrender.com/s/:code/",
-      "permanent": true
+      "statusCode": 307
     },
     {
       "source": "/sitemap.xml",
       "destination": "https://ageofgenz-backend.onrender.com/sitemap.xml",
-      "permanent": true
+      "statusCode": 307
     },
     {
       "source": "/robots.txt",
       "destination": "https://ageofgenz-backend.onrender.com/robots.txt",
-      "permanent": true
+      "statusCode": 307
     }
   ],
   "rewrites": [
