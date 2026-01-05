@@ -49,6 +49,11 @@
       "statusCode": 307
     },
     {
+      "source": "/rss.xml",
+      "destination": "https://ageofgenz-backend.onrender.com/rss.xml",
+      "statusCode": 307
+    },
+    {
       "source": "/robots.txt",
       "destination": "https://ageofgenz-backend.onrender.com/robots.txt",
       "statusCode": 307
