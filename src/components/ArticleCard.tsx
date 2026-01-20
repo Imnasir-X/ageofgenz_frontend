@@ -1,0 +1,306 @@
+﻿import React, { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Clock } from 'lucide-react';
+import type { Article } from '../types';
+import { getArticleBySlug } from '../utils/api';
+import { getCategoryAccent } from '../utils/categoryHelpers';
+import { getArticleHref } from '../utils/articleHelpers';
+
+interface ArticleCardProps {
+  article: Article;
+  imagePosition?: 'top' | 'center' | 'bottom';
+  variant?: 'compact' | 'large' | 'horizontal' | 'sidebarLarge';
+  prefetchOnHover?: boolean;
+}
+
+const prefetched = new Set<string>();
+
+const ArticleCard: React.FC<ArticleCardProps> = ({ article, imagePosition = 'center', variant = 'compact', prefetchOnHover = true }) => {
+  // Category badge removed per request
+
+  const primaryImage =
+    article.featured_image_url ||
+    article.image ||
+    article.featured_image ||
+    '';
+  const [imageFailed, setImageFailed] = useState(false);
+  const showImage = Boolean(primaryImage) && !imageFailed;
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [article.id, primaryImage]);
+
+  const handleImageError = () => {
+    setImageFailed(true);
+  };
+
+  // Function to strip HTML tags
+  const stripHtml = (html: string): string => {
+    if (typeof document === 'undefined') {
+      return html.replace(/<[^>]+>/g, '');
+    }
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+    return temp.textContent || temp.innerText || '';
+  };
+
+  // Get object position based on prop
+  const getObjectPosition = () => {
+    switch (imagePosition) {
+      case 'top': return 'object-top';
+      case 'bottom': return 'object-bottom';
+      default: return 'object-center';
+    }
+  };
+
+  // Process article data
+  const cleanDescription = article.description || article.excerpt
+    ? stripHtml(article.description || article.excerpt).substring(0, 80) + '...'
+    : '';
+
+  const formattedDate = new Date(article.date || article.published_at || Date.now()).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
+
+  const articleHref = getArticleHref(article);
+  const resolvedAccent = getCategoryAccent(
+    article.category && (article.category.slug || article.category.name)
+      ? {
+          slug: article.category.slug || article.category.name,
+          name: article.category.name || article.category_name || undefined,
+          parent_slug: article.category.parent_slug ?? null,
+        }
+      : article.category_name
+      ? { slug: article.category_name, name: article.category_name }
+      : undefined,
+  );
+  const categoryAccent = resolvedAccent.badge;
+  const categoryTextAccent = resolvedAccent.text;
+  const accentGradient =
+    resolvedAccent.gradient || 'linear-gradient(135deg, #0f172a 0%, #f97316 45%, #fb923c 100%)';
+  const fallbackBackgroundStyle = showImage
+    ? undefined
+    : { backgroundImage: accentGradient, backgroundColor: '#0f172a' };
+
+  const onHoverPrefetch = async () => {
+    if (!prefetchOnHover || !article.slug || prefetched.has(article.slug)) return;
+    try {
+      prefetched.add(article.slug);
+      await getArticleBySlug(article.slug);
+    } catch {
+      // ignore errors for prefetch
+    }
+  };
+
+  const wrapperClasses = useMemo(() => {
+    switch (variant) {
+      case 'large':
+        return 'bg-white rounded-xl shadow-sm hover:shadow-lg transition-transform duration-500 ease-out transform-gpu hover:-translate-y-1 overflow-hidden group';
+      case 'horizontal':
+        return 'bg-white rounded-md shadow-sm hover:shadow-md transition-transform duration-300 ease-out transform-gpu hover:-translate-y-1 overflow-hidden group';
+      case 'sidebarLarge':
+        return 'flex w-full max-w-[320px] flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-100 transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg';
+      default:
+        return 'bg-white rounded-md shadow-sm hover:shadow-md transition-transform duration-300 ease-out transform-gpu hover:-translate-y-1 overflow-hidden group';
+    }
+  }, [variant]);
+
+  if (variant === 'large') {
+    return (
+      <article className={wrapperClasses}>
+        <Link to={articleHref} className="block" onMouseEnter={onHoverPrefetch}>
+          <div
+            className="relative aspect-[16/9] overflow-hidden bg-slate-950"
+            style={fallbackBackgroundStyle}
+          >
+            {showImage && (
+              <img
+                src={primaryImage}
+                alt={article.title || 'Article image'}
+                className={`w-full h-full object-cover ${getObjectPosition()} transition-transform duration-500 group-hover:scale-[1.03]`}
+                onError={handleImageError}
+                loading="lazy"
+                fetchPriority="high"
+              />
+            )}
+            <div className="absolute inset-0">
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/35 to-transparent" aria-hidden="true" />
+              <div className="absolute left-4 top-4 z-10 sm:left-6 sm:top-6">
+                <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-white/15 bg-white/8 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white backdrop-blur-md shadow-[0_14px_26px_rgba(15,23,42,0.35)]">
+                  <span className={`${categoryAccent} px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white shadow-sm shadow-black/20`}>
+                    {article.category?.name || 'General'}
+                  </span>
+                  <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-white/40" aria-hidden="true" />
+                  <span className="text-white/80">By {article.author?.name || 'Staff'}</span>
+                  <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-white/40" aria-hidden="true" />
+                  <span className="flex items-center text-white">
+                    <Clock size={12} className={`mr-1 ${categoryTextAccent}`} />
+                    {article.estimated_read_time || 3} min read
+                  </span>
+                </div>
+              </div>
+              <div className="relative z-10 flex h-full flex-col justify-end p-3 sm:p-5 lg:p-6">
+                <div className="w-full max-w-3xl rounded-2xl bg-slate-950/20 px-3 py-2 sm:px-4 sm:py-2.5 backdrop-blur-md backdrop-saturate-150 shadow-[0_16px_32px_rgba(15,23,42,0.35)] ring-1 ring-white/10">
+                  <h3 className="text-[1.85rem] sm:text-[2.2rem] lg:text-[2.45rem] font-black text-white leading-tight tracking-tight line-clamp-2 lg:line-clamp-3">
+                    {article.title || 'Untitled Article'}
+                  </h3>
+                  {cleanDescription && (
+                    <p className="mt-1 hidden text-sm text-white/75 sm:block sm:text-[0.95rem] sm:leading-snug line-clamp-2">
+                      {cleanDescription}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </Link>
+      </article>
+    );
+  }
+
+  if (variant === 'horizontal') {
+    return (
+      <article className={wrapperClasses}>
+        <Link to={articleHref} className="flex gap-3 p-3 sm:p-4" onMouseEnter={onHoverPrefetch}>
+          <div
+            className="relative w-36 sm:w-40 md:w-48 aspect-[16/10] overflow-hidden rounded-md bg-gray-100 flex-shrink-0"
+            style={fallbackBackgroundStyle}
+          >
+            {showImage && (
+              <img
+                src={primaryImage}
+                alt={article.title || 'Article image'}
+                className={`w-full h-full object-cover ${getObjectPosition()} transition-transform duration-300 group-hover:scale-105`}
+                onError={handleImageError}
+                loading="lazy"
+              />
+            )}
+            <div
+              className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+              aria-hidden="true"
+            />
+          </div>
+          <div className="min-w-0 py-1 flex flex-col gap-1.5">
+            <div className="flex items-center flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wide">
+              <span className={`${categoryAccent} px-2 py-0.5 rounded-full text-white shadow-sm`}>
+                {article.category?.name || 'General'}
+              </span>
+              <span className="flex items-center text-gray-500">
+                <Clock size={11} className="mr-1" />
+                {formattedDate}
+              </span>
+            </div>
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 leading-snug line-clamp-2 group-hover:text-orange-500 transition-colors">
+              {article.title || 'Untitled Article'}
+            </h3>
+            {cleanDescription && (
+              <p className="text-gray-600 text-sm line-clamp-2">
+                {cleanDescription}
+              </p>
+            )}
+          </div>
+        </Link>
+      </article>
+    );
+  }
+
+  if (variant === 'sidebarLarge') {
+    return (
+      <article className={wrapperClasses}>
+        <Link to={articleHref} className="block h-full" onMouseEnter={onHoverPrefetch}>
+          <div
+            className="relative aspect-[5/3] w-full overflow-hidden bg-gray-100"
+            style={fallbackBackgroundStyle}
+          >
+            {showImage && (
+              <img
+                src={primaryImage}
+                alt={article.title || 'Article image'}
+                className={`h-full w-full object-cover ${getObjectPosition()} transition-transform duration-300 group-hover:scale-[1.03]`}
+                onError={handleImageError}
+                loading="lazy"
+              />
+            )}
+            <div
+              className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+              aria-hidden="true"
+            />
+          </div>
+          <div className="flex h-full flex-col gap-1.5 px-3 py-3">
+            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+              <span className={`${categoryAccent} inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold text-white`}>
+                {article.category?.name || 'General'}
+              </span>
+              <span className="text-gray-400" aria-hidden="true">&middot;</span>
+              <span className="flex items-center gap-1 text-gray-500">
+                <Clock size={10} className="text-gray-400" />
+                {formattedDate}
+              </span>
+            </div>
+            <h3 className="text-[15px] font-semibold leading-snug text-gray-900 line-clamp-2">
+              {article.title || 'Untitled Article'}
+            </h3>
+          </div>
+        </Link>
+      </article>
+    );
+  }
+
+  // Default compact
+  return (
+    <article className={wrapperClasses}>
+      <Link to={articleHref} className="block" onMouseEnter={onHoverPrefetch}>
+        {/* Compact Image Container */}
+        <div
+          className="relative aspect-[16/10] overflow-hidden bg-gray-100"
+          style={fallbackBackgroundStyle}
+        >
+          {showImage && (
+            <img
+              src={primaryImage}
+              alt={article.title || 'Article image'}
+              className={`w-full h-full object-cover ${getObjectPosition()} transition-transform duration-200 group-hover:scale-105`}
+              onError={handleImageError}
+              loading="lazy"
+            />
+          )}
+
+          {/* Subtle gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+        </div>
+
+        {/* Compact Content */}
+        <div className="p-2">
+          {/* Category + meta row */}
+          <div className="mb-1.5 flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+            <span
+              className={`${categoryAccent} inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm`}
+            >
+              {article.category?.name || article.category_name || 'General'}
+            </span>
+            <span className="flex items-center text-gray-500">
+              <Clock size={10} className={`mr-1 ${categoryTextAccent}`} />
+              {formattedDate}
+            </span>
+          </div>
+
+          {/* Compact Title */}
+          <h3 className="text-base font-semibold text-gray-900 mb-0.5 line-clamp-2 group-hover:text-orange-500 transition-colors leading-snug">
+            {article.title || 'Untitled Article'}
+          </h3>
+
+          {/* Optional Description - Very Compact */}
+          {cleanDescription && (
+            <p className="text-gray-600 text-[11px] line-clamp-2 leading-snug">
+              {cleanDescription}
+            </p>
+          )}
+        </div>
+      </Link>
+    </article>
+  );
+};
+
+export default ArticleCard;
+

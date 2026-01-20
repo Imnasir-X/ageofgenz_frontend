@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    
+    <!-- ✅ SECURITY HEADERS -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    
+    <!-- ✅ PRELOAD: Critical assets for performance (LCP optimization) -->
+    <link rel="preload" href="/logo.png" as="image" type="image/png" fetchpriority="high" />
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" as="style" />
+    
+    <!-- ✅ PRECONNECT: All critical third-party origins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossorigin>
+    <link rel="preconnect" href="https://googletagservices.com" crossorigin>
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+    <link rel="dns-prefetch" href="https://ageofgenz-backend.onrender.com">
+    <link rel="preconnect" href="https://ageofgenz-backend.onrender.com" crossorigin>
+    
+    <!-- ✅ FAVICON: Complete favicon setup -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/logo192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/logo.png" />
+    
+    <!-- ✅ PWA SUPPORT -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="google-site-verification" content="qLnHhIXeMAmBziKg2oKO4XsALvo15pfc6ZfIyTHWaik" />
+    <meta name="msvalidate.01" content="EED29729C3D319FCACF2A9D055894D7B" />
+    
+    <!-- ✅ ENHANCED: Performance optimization headers -->
+    <meta name="format-detection" content="telephone=no">
+    <meta name="format-detection" content="date=no">
+    <meta name="format-detection" content="address=no">
+    <meta name="format-detection" content="email=no">
+    
+    <!-- ✅ COLOR SCHEME: Force light mode to prevent text visibility issues -->
+    <meta name="color-scheme" content="light">
+    
+    <!-- ✅ FONTS: Inter only for better performance -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!--app-head-->
+
+<style>
+      /* Critical CSS for above-the-fold content - ENHANCED VERSION */
+      :root {
+        --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+        --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+        --color-primary: #f97316;
+        --color-accent: #3b82f6;
+      }
+      
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      html {
+        font-size: 16px;
+        scroll-behavior: smooth;
+        -webkit-text-size-adjust: 100%;
+      }
+      
+      body {
+        font-family: var(--font-primary);
+        color: #1f2937 !important;
+        background-color: #f9fafb !important;
+        font-weight: 400;
+        line-height: 1.6;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        min-height: 100vh;
+      }
+      
+      h1, h2, h3, h4, h5, h6 {
+        font-family: var(--font-display);
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 0.5em;
+        color: #1f2937 !important;
+      }
+      
+      p, span, div, a {
+        color: inherit !important;
+      }
+      
+      /* 🔥 BRAND RECOGNITION: Enhanced H1 with brand variations */
+      .seo-h1 {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        padding: 0 !important;
+        margin: -1px !important;
+        overflow: hidden !important;
+        clip: rect(0, 0, 0, 0) !important;
+        white-space: nowrap !important;
+        border: 0 !important;
+        color: #1f2937 !important;
+        font-size: 2rem !important;
+        font-weight: 700 !important;
+        font-family: var(--font-display) !important;
+      }
+      
+      /* Enhanced accessibility and performance styles */
+      .skip-to-content {
+        position: absolute;
+        left: -9999px;
+        z-index: 999;
+        padding: 1em;
+        background-color: var(--color-primary);
+        color: white;
+        text-decoration: none;
+      }
+      
+      .skip-to-content:focus {
+        left: 50%;
+        transform: translateX(-50%);
+        top: 0;
+      }
+      
+      /* Loading states for better UX */
+      .skeleton {
+        animation: skeleton-loading 1s linear infinite alternate;
+      }
+      
+      @keyframes skeleton-loading {
+        0% { background-color: hsl(200, 20%, 80%); }
+        100% { background-color: hsl(200, 20%, 95%); }
+      }
+      
+      /* Accessibility improvements */
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+      
+      /* Print optimization */
+      @media print {
+        body { color: black !important; background: white !important; }
+        .ad-container, .no-print, .seo-h1 { display: none !important; }
+      }
+    </style>
+    
+    <!-- ✅ Non-critical CSS: Load asynchronously -->
+    
+    <!-- ✅ ADSENSE: Ready for Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+    
+    <!-- 🔥 BRAND RECOGNITION: Enhanced Analytics with brand tracking -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XXXXXXXXXX', {
+        page_title: 'The Age Of GenZ',
+        page_location: 'https://theageofgenz.com',
+        content_group1: 'Homepage',
+        content_group2: 'Multi-Regional',
+        content_group3: 'Age 18-35',
+        send_page_view: true,
+        anonymize_ip: true,
+        link_attribution: true,
+        allow_ad_personalization_signals: true
+      });
+      
+      // 🔥 BRAND RECOGNITION: Enhanced brand tracking
+      gtag('event', 'brand_impression', {
+        event_category: 'Brand',
+        event_label: 'The Age Of GenZ',
+        brand_name: 'The Age Of GenZ',
+        brand_alternate: 'theageofgenz',
+        non_interaction: true
+      });
+      
+      // Enhanced performance monitoring with GEO tracking
+      if ('performance' in window && 'PerformanceObserver' in window) {
+        new PerformanceObserver((entryList) => {
+          for (const entry of entryList.getEntries()) {
+            gtag('event', 'web_vitals', {
+              event_category: 'Web Vitals',
+              event_label: entry.name,
+              value: Math.round(entry.value),
+              non_interaction: true
+            });
+          }
+        }).observe({ entryTypes: ['largest-contentful-paint', 'first-input', 'layout-shift'] });
+        
+        // Track GEO-specific events
+        gtag('event', 'page_view', {
+          event_category: 'GEO Optimization',
+          event_label: 'Homepage View',
+          content_group1: 'News Platform',
+          content_group2: 'Multi-Generational'
+        });
+      }
+    </script>
+  </head>
+  <body class="bg-gray-50">
+    <!-- ✅ ACCESSIBILITY: Skip to content link -->
+    <a href="#main-content" class="skip-to-content">Skip to main content</a>
+    
+    <!-- 🔥 BRAND RECOGNITION: Enhanced H1 with brand variations -->
+    <h1 class="seo-h1">The Age Of GenZ - theageofgenz - The Age of GenZ - NEWS YOU CAN VIBE WITH | Breaking News, Politics, Culture & Technology for Generation Z and All Generations | US Europe Asia Coverage</h1>
+    <strong class="sr-only">theageofgenz</strong>
+    
+    <div id="root"></div>
+    
+    <!-- ✅ MAIN CONTENT LANDMARK -->
+    <main id="main-content" tabindex="-1"></main>
+    
+    <!-- ✅ MODULE SCRIPT -->
+    
+    <!-- ✅ ENHANCED NO-JS FALLBACK -->
+    <noscript>
+      <div style="padding: 20px; text-align: center; background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca; border-radius: 8px; margin: 20px;">
+        <h2 style="color: #991b1b; margin-bottom: 10px;">JavaScript Required</h2>
+        <p>The Age of GenZ requires JavaScript to provide you with the best NEWS YOU CAN VIBE WITH experience. Please enable JavaScript in your browser settings to access our breaking news, politics, culture, and technology coverage.</p>
+        <p style="margin-top: 10px;"><a href="https://theageofgenz.com/help/enable-javascript" style="color: #dc2626; text-decoration: underline;">Learn how to enable JavaScript</a></p>
+      </div>
+    </noscript>
+  </body>
+</html>

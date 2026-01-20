@@ -1,0 +1,1004 @@
+﻿import axios, { AxiosResponse, AxiosError } from 'axios';
+import type { Article, Category, PaginatedResponse, CategoryListMeta } from '../types';
+
+// âœ… FIXED: Use production backend URL as fallback
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://ageofgenz-backend.onrender.com';
+
+interface PaginatedArticlesResponse {
+  results: Article[];
+  next: string | null;
+  previous: string | null;
+  count: number;
+}
+
+interface LoginResponse {
+  access: string;
+  refresh: string;
+  user: {
+    id: number;
+    email: string;
+    username: string;
+    first_name?: string;
+    last_name?: string;
+    full_name?: string;
+    bio?: string;
+    is_subscriber?: boolean;
+  };
+}
+
+interface RegisterResponse {
+  user: {
+    id: number;
+    email: string;
+    username: string;
+  };
+  message: string;
+}
+
+interface SubscribeResponse {
+  message: string;
+  success: boolean;
+}
+
+interface ResetPasswordResponse {
+  message: string;
+}
+
+interface SubscriptionResponse {
+  id: string;
+  status: string;
+  amount: number;
+}
+
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000;
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// âœ… ENHANCED: Add debug logging for API URL
+console.log('ðŸš€ API Configuration:', {
+  VITE_API_URL: import.meta.env.VITE_API_URL,
+  API_BASE_URL: API_BASE_URL,
+  isDevelopment: import.meta.env.DEV,
+  isProduction: import.meta.env.PROD
+});
+
+api.interceptors.request.use(
+  (config) => {
+    console.log('ðŸ”„ API Request:', config.method?.toUpperCase(), config.url, config.params);
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// âœ… IMPROVED: Updated response interceptor with better error handling
+api.interceptors.response.use(
+  (response) => {
+    console.log('âœ… API Response:', response.status, response.config.url, 'Data:', response.data);
+    return response;
+  },
+  async (error) => {
+    console.error('âŒ API Error:', error.response?.status, error.response?.config.url, error.response?.data || error.message);
+    const originalRequest = error.config;
+    
+    // Handle 401 Unauthorized errors
+    if (error.response?.status === 401 && !originalRequest._retry && 
+        !originalRequest.url.includes('api/auth/login') && 
+        !originalRequest.url.includes('api/token/refresh/')) {
+      originalRequest._retry = true;
+      
+      try {
+        const refresh = localStorage.getItem('refresh');
+        if (!refresh) {
+          throw new Error('No refresh token available');
+        }
+        
+        // Try to refresh the token
+        const response = await axios.post(`${API_BASE_URL}/api/token/refresh/`, { refresh });
+        if (!response.data.access) {
+          throw new Error('No access token in refresh response');
+        }
+        
+        const newToken = response.data.access;
+        localStorage.setItem('token', newToken);
+        
+        // Update auth header and retry original request
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        // Clear auth data and redirect to login on refresh failure
+        console.error('Token refresh failed:', refreshError);
+        localStorage.removeItem('token');
+        localStorage.removeItem('refresh');
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const retryRequest = async <T>(
+  fn: () => Promise<AxiosResponse<T>>,
+  retries: number = MAX_RETRIES,
+  delay: number = RETRY_DELAY
+): Promise<AxiosResponse<T>> => {
+  try {
+    return await fn();
+  } catch (error) {
+    if (retries === 0 || !(error instanceof AxiosError)) throw error;
+    console.warn(`âš ï¸  Request failed, retrying... (${MAX_RETRIES - retries + 1}/${MAX_RETRIES})`);
+    await wait(delay);
+    return retryRequest(fn, retries - 1, delay * 2);
+  }
+};
+
+// Transform backend data to frontend format with better debugging
+const transformArticle = (backendArticle: any): Article => {
+  console.log('[Article] Raw backend article:', backendArticle);
+
+  const resolveRichText = (input: any): string => {
+    if (typeof input === 'string') {
+      return input;
+    }
+    if (input && typeof input === 'object') {
+      if (typeof input.rendered === 'string') {
+        return input.rendered;
+      }
+      if (typeof input.html === 'string') {
+        return input.html;
+      }
+      if (Array.isArray(input)) {
+        return input.filter((value) => typeof value === 'string').join('\n');
+      }
+    }
+    return '';
+  };
+
+  const contentBlocks = Array.isArray(backendArticle.content_blocks)
+    ? backendArticle.content_blocks
+    : null;
+
+  const extractBlocksText = (blocks: any[]): string =>
+    blocks
+      .map((block) => {
+        if (!block || typeof block !== 'object') {
+          return '';
+        }
+        if (typeof block.text === 'string') {
+          return block.text;
+        }
+        if (typeof block.caption === 'string') {
+          return block.caption;
+        }
+        return '';
+      })
+      .join(' ');
+
+  const rawContent =
+    resolveRichText(
+      backendArticle.content ??
+        backendArticle.content_html ??
+        backendArticle.body ??
+        backendArticle.article_body ??
+        backendArticle.rich_text,
+    ) || '';
+
+  const rawExcerpt =
+    resolveRichText(backendArticle.excerpt ?? backendArticle.summary ?? backendArticle.description) ||
+    '';
+  const blocksText = contentBlocks ? extractBlocksText(contentBlocks) : '';
+
+  const transformed: Article = {
+    id: backendArticle.id,
+    title: backendArticle.title || 'Untitled',
+    slug: backendArticle.slug || '',
+    canonical_url:
+      typeof backendArticle.canonical_url === 'string' && backendArticle.canonical_url.length > 0
+        ? backendArticle.canonical_url
+        : backendArticle.slug
+          ? `/articles/${backendArticle.slug}/`
+          : '',
+    short_link:
+      typeof backendArticle.short_link === 'string' && backendArticle.short_link.length > 0
+        ? backendArticle.short_link
+        : null,
+    excerpt: rawExcerpt,
+    content: rawContent,
+    content_blocks: contentBlocks,
+    
+    featured_image: backendArticle.featured_image_url || backendArticle.featured_image || null,
+    featured_image_url: backendArticle.featured_image_url || null,
+    
+    author: backendArticle.author ?
+      (typeof backendArticle.author === 'object' ? backendArticle.author : { id: 1, name: backendArticle.author }) :
+      { id: 1, name: 'The Age of GenZ' },
+    
+    category: backendArticle.category ?
+      (typeof backendArticle.category === 'object' ? backendArticle.category : { id: 1, name: backendArticle.category, slug: String(backendArticle.category).toLowerCase() }) :
+      { id: 1, name: 'General', slug: 'general' },
+    
+    category_name: backendArticle.category?.name || backendArticle.category || 'General',
+    
+    tags: Array.isArray(backendArticle.tags)
+      ? backendArticle.tags
+      : typeof backendArticle.tags === 'string'
+        ? backendArticle.tags
+            .split(',')
+            .map((tag: string) => tag.trim())
+            .filter((tag: string) => tag.length > 0)
+        : [],
+    status: backendArticle.is_published ? 'PUBLISHED' as const : 'DRAFT' as const,
+    is_featured: Boolean(backendArticle.is_featured),
+    view_count: Number(backendArticle.view_count) || 0,
+    published_at: backendArticle.published_at || backendArticle.created_at,
+    created_at: backendArticle.created_at,
+    updated_at: backendArticle.updated_at,
+    estimated_read_time: Math.max(
+      1,
+      Math.ceil((blocksText || rawContent).split(/\s+/).filter(Boolean).length / 200),
+    ),
+    
+    image: backendArticle.featured_image_url || backendArticle.featured_image,
+    description: rawExcerpt || backendArticle.excerpt || '',
+    date: backendArticle.published_at || backendArticle.created_at,
+    views: Number(backendArticle.view_count) || 0,
+    featured: Boolean(backendArticle.is_featured)
+  };
+
+  console.log('[Article] Transformed article summary:', {
+    id: transformed.id,
+    title: transformed.title,
+    hasContent: transformed.content.length > 0,
+    featured_image: transformed.featured_image,
+    category: transformed.category,
+    is_featured: transformed.is_featured,
+  });
+
+  return transformed;
+};
+
+// Article API calls
+export const getLatestArticles = async () => {
+  console.log('ðŸ“– Fetching latest 25 via /articles/latest/');
+  try {
+    const response = await retryRequest<any>(() => api.get('/api/articles/latest/'));
+    
+    console.log('ðŸ“– Raw latest articles response:', response.data);
+    
+    // Handle the response - could be array or object with results
+    let results = [];
+    if (Array.isArray(response.data)) {
+      results = response.data;
+    } else if (response.data.results) {
+      results = response.data.results;
+    }
+    
+    const transformedResults = results.map(transformArticle);
+    
+    console.log('ðŸ“– Latest articles transformed:', transformedResults.length);
+    
+    return {
+      ...response,
+      data: {
+        results: transformedResults,
+        next: null,
+        previous: null,
+        count: transformedResults.length
+      }
+    } as AxiosResponse<PaginatedArticlesResponse>;
+  } catch (error) {
+    console.warn('ðŸ“– Latest endpoint failed, falling back to paginated...');
+    // Fallback to the existing getArticles with higher page size
+    return await getArticles(1, 25); // Get 25 articles from first page
+  }
+};
+
+// MODIFY your existing getArticles function to support custom page size
+export const getArticles = async (page: number = 1, pageSize: number = 25) => {
+  console.log('ðŸ“– Fetching articles, page:', page, 'size:', pageSize);
+  const response = await retryRequest<any>(() =>
+    api.get(`/api/articles/?page=${page}&page_size=${pageSize}`)
+  );
+  
+  console.log('ðŸ“– Raw API response:', response.data);
+  
+  let results = [];
+  if (response.data.results) {
+    results = response.data.results;
+  } else if (Array.isArray(response.data)) {
+    results = response.data;
+  }
+  
+  const transformedResults = results.map(transformArticle);
+  console.log('ðŸ“– All articles with categories:', transformedResults.map((a: Article) => ({ 
+    id: a.id, 
+    title: a.title, 
+    category: a.category 
+  })));
+  
+  return {
+    ...response,
+    data: {
+      results: transformedResults,
+      next: response.data.next || null,
+      previous: response.data.previous || null,
+      count: response.data.count || transformedResults.length
+    }
+  } as AxiosResponse<PaginatedArticlesResponse>;
+};
+
+export const getFeaturedArticles = async () => {
+  console.log('â­ Getting featured articles...');
+  
+  try {
+    const response = await retryRequest<any>(() =>
+      api.get(`/api/articles/`)
+    );
+    
+    let results = [];
+    if (response.data.results) {
+      results = response.data.results;
+    } else if (Array.isArray(response.data)) {
+      results = response.data;
+    }
+    
+    console.log('â­ Raw articles for featured check:', results);
+    
+    const transformedResults = results.map(transformArticle);
+    
+    // Check each article's featured status
+    const featuredArticles = transformedResults.filter((article: Article) => {
+      const isFeatured = article.is_featured === true || article.featured === true;
+      console.log(`â­ Article "${article.title}": is_featured=${article.is_featured}, featured=${article.featured}, result=${isFeatured}`);
+      return isFeatured;
+    });
+    
+    console.log('â­ Featured articles found:', featuredArticles.length);
+    
+    // If no featured articles, return first 4 as featured
+    const finalArticles = featuredArticles.length > 0 ? featuredArticles : transformedResults.slice(0, 4);
+    
+    return {
+      ...response,
+      data: {
+        results: finalArticles,
+        next: null,
+        previous: null,
+        count: finalArticles.length
+      }
+    } as AxiosResponse<PaginatedArticlesResponse>;
+  } catch (error) {
+    console.error('â­ Failed to get featured articles:', error);
+    throw error;
+  }
+};
+
+export const getTrendingArticles = async () => {
+  console.log('ðŸ”¥ Getting trending articles (using latest)...');
+  
+  try {
+    const response = await getArticles();
+    // Take first 6 articles as "trending"
+    const trendingArticles = response.data.results.slice(0, 6);
+    
+    return {
+      ...response,
+      data: {
+        results: trendingArticles,
+        next: null,
+        previous: null,
+        count: trendingArticles.length
+      }
+    } as AxiosResponse<PaginatedArticlesResponse>;
+  } catch (error) {
+    console.error('ðŸ”¥ Failed to get trending articles:', error);
+    throw error;
+  }
+};
+
+export const getArticlesBySearch = async (query: string, signal?: AbortSignal) => {
+  console.log('ðŸ” Searching articles for:', query);
+  const response = await retryRequest<any>(() =>
+    api.get(`/api/articles/?search=${encodeURIComponent(query)}`, { signal })
+  );
+  
+  let results = [];
+  if (response.data.results) {
+    results = response.data.results;
+  } else if (Array.isArray(response.data)) {
+    results = response.data;
+  }
+  
+  const transformedResults = results.map(transformArticle);
+  
+  return {
+    ...response,
+    data: {
+      results: transformedResults,
+      next: response.data.next || null,
+      previous: response.data.previous || null,
+      count: response.data.count || transformedResults.length
+    }
+  } as AxiosResponse<PaginatedArticlesResponse>;
+};
+
+// FIXED: Article by ID with proper fallback
+export const getArticleById = async (id: number) => {
+  console.log('ðŸ“„ Fetching article by ID:', id);
+  
+  try {
+    // Try direct endpoint first
+    const response = await retryRequest<any>(() =>
+      api.get(`/api/articles/${id}/`)
+    );
+    
+    const transformedArticle = transformArticle(response.data);
+    return {
+      ...response,
+      data: transformedArticle
+    } as AxiosResponse<Article>;
+  } catch (error) {
+    console.warn('ðŸ“„ Direct article endpoint failed, searching in all articles...');
+    
+    // Fallback: Get all articles and find the one with matching ID
+    try {
+      const allArticlesResponse = await getArticles();
+      const allArticles = allArticlesResponse.data.results;
+      
+      const foundArticle = allArticles.find(article => article.id === id);
+      
+      if (!foundArticle) {
+        throw new Error(`Article with ID ${id} not found in articles list`);
+      }
+      
+      console.log('ðŸ“„ Article found in list:', foundArticle.title);
+      
+      return {
+        ...allArticlesResponse,
+        data: foundArticle
+      } as AxiosResponse<Article>;
+    } catch (fallbackError) {
+      console.error('ðŸ“„ Failed to find article in list too:', fallbackError);
+      throw new Error(`Article with ID ${id} not found`);
+    }
+  }
+};
+
+export const getArticleBySlug = async (slug: string) => {
+  console.log('📄 Fetching article by slug:', slug);
+  
+  try {
+    const response = await retryRequest<any>(() =>
+      api.get(`/api/articles/${slug}/`, { params: { include_blocks: '1' } })
+    );
+    
+    console.log('📄 Raw backend response:', response.data);
+    const transformedArticle = transformArticle(response.data);
+    console.log('📄 Transformed article:', transformedArticle);
+    
+    return {
+      ...response,
+      data: transformedArticle,
+    } as AxiosResponse<Article>;
+  } catch (error: any) {
+    console.error('📄 Failed to get article by slug directly:', error);
+
+    const tryMatch = (articles: Article[] | undefined) => {
+      if (!Array.isArray(articles)) return null;
+      return (
+        articles.find((article) => article.slug === slug) ??
+        articles.find((article) => article.slug?.toLowerCase() === slug.toLowerCase()) ??
+        null
+      );
+    };
+
+    try {
+      const filterResponse = await retryRequest<any>(() =>
+        api.get('/api/articles/', { params: { slug, include_blocks: '1' } })
+      );
+      const filterResults = Array.isArray(filterResponse.data?.results)
+        ? filterResponse.data.results
+        : Array.isArray(filterResponse.data)
+          ? filterResponse.data
+          : undefined;
+      const filterMatch = tryMatch(filterResults);
+      if (filterMatch) {
+        return {
+          ...filterResponse,
+          data: filterMatch,
+        } as AxiosResponse<Article>;
+      }
+    } catch (filterError) {
+      console.warn('📄 Slug filter fallback failed:', filterError);
+    }
+
+    try {
+      const searchResponse = await getArticlesBySearch(slug);
+      const searchMatch = tryMatch(searchResponse.data?.results);
+      if (searchMatch) {
+        return {
+          ...searchResponse,
+          data: searchMatch,
+        } as AxiosResponse<Article>;
+      }
+    } catch (searchError) {
+      console.warn('📄 Search fallback failed:', searchError);
+    }
+
+    try {
+      const fallbackResponse = await getArticles();
+      const match = tryMatch(fallbackResponse.data?.results);
+
+      if (!match) {
+        throw new Error(`Article with slug "${slug}" not found in fallback list`);
+      }
+
+      return {
+        ...fallbackResponse,
+        data: match,
+      } as AxiosResponse<Article>;
+    } catch (fallbackError: any) {
+      console.error('📄 Fallback list search failed:', fallbackError);
+      const message =
+        fallbackError?.response?.data?.detail ||
+        fallbackError?.message ||
+        error?.response?.data?.detail ||
+        error.message;
+      throw new Error(`Article with slug "${slug}" not found: ${message}`);
+    }
+  }
+};
+
+type CategoriesApiPayload = PaginatedResponse<Category> | Category[];
+
+interface GetCategoriesOptions {
+  flat?: boolean;
+  page?: number | string;
+  params?: Record<string, string | number | boolean | undefined>;
+}
+
+const normalizeCategoriesPayload = (payload: CategoriesApiPayload) => {
+  if (Array.isArray(payload)) {
+    return {
+      items: payload,
+      meta: {
+        count: payload.length,
+        next: null,
+        previous: null,
+      } as CategoryListMeta,
+    };
+  }
+
+  const results = payload?.results ?? [];
+  return {
+    items: results,
+    meta: {
+      count: payload?.count ?? results.length,
+      next: payload?.next ?? null,
+      previous: payload?.previous ?? null,
+    } as CategoryListMeta,
+  };
+};
+
+export const getCategories = async (options: GetCategoriesOptions = {}) => {
+  console.log('📂 Fetching categories from backend', options);
+
+  const params: Record<string, string> = {};
+
+  if (options.flat) {
+    params.flat = 'true';
+  }
+  if (options.page !== undefined) {
+    params.page = String(options.page);
+  }
+  if (options.params) {
+    Object.entries(options.params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        params[key] = String(value);
+      }
+    });
+  }
+
+  try {
+    const response = await retryRequest<CategoriesApiPayload>(() =>
+      api.get('/api/categories/', { params })
+    );
+
+    const { items, meta } = normalizeCategoriesPayload(response.data);
+
+    console.log('📂 Categories fetched:', { count: meta.count, flat: options.flat });
+
+    return {
+      ...response,
+      data: items,
+      meta,
+      raw: response.data,
+    } as AxiosResponse<Category[]> & { meta: CategoryListMeta; raw: CategoriesApiPayload };
+  } catch (error) {
+    console.error('Failed to fetch categories:', error);
+    throw error;
+  }
+};
+
+
+// FIXED: Simplified category filtering using Django backend first
+export const getArticlesByCategory = async (categorySlug: string, page: number = 1) => {
+  const normalizedSlug = (categorySlug || '').trim().toLowerCase();
+  console.log('📂 Fetching articles for category:', normalizedSlug || categorySlug);
+  
+  try {
+    // First, try the Django filter directly using the backend filterset_fields
+    const response = await retryRequest<any>(() =>
+      api.get('/api/articles/', {
+        params: {
+          category__slug: normalizedSlug,
+          page,
+          include_subs: true,
+        },
+      })
+    );
+    
+    console.log('📂 Direct category filter response:', response.data);
+    
+    let results = [];
+    if (response.data.results) {
+      results = response.data.results;
+    } else if (Array.isArray(response.data)) {
+      results = response.data;
+    }
+    
+    const transformedResults = results.map(transformArticle);
+    
+    console.log(`📂 Category "${normalizedSlug || categorySlug}" articles found:`, transformedResults.length);
+    
+    // If we got results from the backend filter, return them
+    if (transformedResults.length > 0) {
+      return {
+        ...response,
+        data: {
+          results: transformedResults,
+          next: response.data.next || null,
+          previous: response.data.previous || null,
+          count: response.data.count || transformedResults.length
+        }
+      } as AxiosResponse<PaginatedArticlesResponse>;
+    }
+    
+    // Fallback: Get all articles and filter on frontend
+    console.log('📂 No results from backend filter, trying frontend filtering...');
+    throw new Error('No backend results, trying fallback');
+    
+  } catch (error) {
+    console.log('📂 Backend filtering failed, using frontend fallback...');
+    
+    // Fallback: Get all articles and filter on frontend
+    try {
+      const allResponse = await getArticles();
+      const allArticles = allResponse.data.results;
+      
+      console.log('📂 All articles for frontend filtering:', allArticles.length);
+      
+      // Simple category matching
+      const filteredArticles = allArticles.filter(article => {
+        const articleCategorySlug = article.category?.slug?.toLowerCase();
+        const articleCategoryName = article.category?.name?.toLowerCase();
+        const searchSlug = normalizedSlug || (categorySlug ? categorySlug.toLowerCase() : '');
+        
+        // Category mapping for common variations
+        const categoryMappings: { [key: string]: string[] } = {
+          'world': ['world', 'world news', 'global', 'international'],
+          'sports': ['sports', 'sport', 'athletics', 'games'],
+          'opinion': ['opinion', 'editorial', 'commentary', 'perspective'],
+          'politics': ['politics', 'political', 'government', 'policy'],
+          'culture': ['culture', 'arts', 'lifestyle', 'social'],
+          'ai': ['ai', 'artificial intelligence', 'tech', 'technology'],
+          'memes': ['memes', 'humor', 'funny', 'entertainment'],
+          'insights': ['insights', 'analysis', 'deep dive', 'research']
+        };
+        
+        const possibleMatches = categoryMappings[searchSlug] || [searchSlug];
+        
+        const isMatch = possibleMatches.some(match => 
+          articleCategorySlug?.includes(match) ||
+          articleCategoryName?.includes(match) ||
+          articleCategorySlug === match ||
+          articleCategoryName === match
+        );
+        
+        console.log(`📂 Article "${article.title}" category check:`, {
+          articleSlug: articleCategorySlug,
+          articleName: articleCategoryName,
+          searchSlug,
+          isMatch
+        });
+        
+        return isMatch;
+      });
+      
+      console.log(`📂 Frontend filter found ${filteredArticles.length} articles for category "${normalizedSlug || categorySlug}"`);
+      
+      return {
+        ...allResponse,
+        data: {
+          results: filteredArticles,
+          next: null,
+          previous: null,
+          count: filteredArticles.length
+        }
+      } as AxiosResponse<PaginatedArticlesResponse>;
+      
+    } catch (fallbackError) {
+      console.error('📂 Frontend filtering also failed:', fallbackError);
+      throw error;
+    }
+  }
+};
+// NEW: Specific function for opinion articles
+export const getOpinionArticles = async (page: number = 1) => {
+  console.log('ðŸ’­ Fetching opinion articles...');
+  
+  try {
+    // Try to get articles with opinion category first
+    try {
+      const response = await getArticlesByCategory('opinion', page);
+      if (response.data.results.length > 0) {
+        console.log('ðŸ’­ Found articles in opinion category:', response.data.results.length);
+        return response;
+      }
+    } catch (error) {
+      console.log('ðŸ’­ No dedicated opinion category, filtering all articles...');
+    }
+    
+    // Fallback: Get all articles and filter for opinion-related content
+    const allResponse = await getArticles(page);
+    const allArticles = allResponse.data.results;
+    
+    // Keywords that indicate opinion content
+    const opinionKeywords = [
+      'opinion', 'think', 'believe', 'perspective', 'view', 'commentary',
+      'analysis', 'editorial', 'debate', 'argue', 'discuss', 'critic',
+      'review', 'reflect', 'consider', 'examine', 'evaluate', 'assessment',
+      'stance', 'position', 'viewpoint', 'thoughts', 'personal', 'subjective'
+    ];
+    
+    const opinionArticles = allArticles.filter(article => {
+      const blockText = Array.isArray(article.content_blocks)
+        ? article.content_blocks
+            .map((block) => {
+              switch (block.type) {
+                case 'paragraph':
+                case 'heading':
+                case 'quote':
+                  return block.text;
+                case 'image':
+                  return block.caption ?? '';
+                default:
+                  return '';
+              }
+            })
+            .join(' ')
+        : '';
+      const content = (
+        article.title + ' ' + 
+        (article.excerpt || '') + ' ' + 
+        (blockText || article.content || '') + ' ' +
+        (article.category?.name || '')
+      ).toLowerCase();
+      
+      const hasOpinionKeywords = opinionKeywords.some(keyword => content.includes(keyword));
+      
+      console.log(`ðŸ’­ Article "${article.title}" opinion check:`, {
+        hasOpinionKeywords,
+        category: article.category?.name
+      });
+      
+      return hasOpinionKeywords;
+    });
+    
+    console.log(`ðŸ’­ Found ${opinionArticles.length} opinion-related articles`);
+    
+    // If no opinion-related articles found, return first 6 articles as "opinions"
+    const finalArticles = opinionArticles.length > 0 ? opinionArticles : allArticles.slice(0, 6);
+    
+    return {
+      ...allResponse,
+      data: {
+        results: finalArticles,
+        next: null,
+        previous: null,
+        count: finalArticles.length
+      }
+    } as AxiosResponse<PaginatedArticlesResponse>;
+    
+  } catch (error) {
+    console.error('ðŸ’­ Failed to get opinion articles:', error);
+    throw error;
+  }
+};
+
+// Newsletter
+export const subscribeToNewsletter = async (data: string | { email: string; frequency?: string; language?: string }) => {
+  const payload = typeof data === 'string' ? { email: data } : data;
+  console.log('Newsletter subscribe payload:', payload);
+  return retryRequest<SubscribeResponse>(() => api.post('/api/newsletter/subscribe/', payload));
+};
+
+
+export const unsubscribeFromNewsletter = async (id: number): Promise<AxiosResponse> => {
+  return api.post(`/api/newsletter/unsubscribe/${id}/`);
+};
+
+// âœ… IMPROVED: Login with better error handling
+export const loginUser = async (email: string, password: string) => {
+  console.log('ðŸ” Attempting login for:', email);
+  try {
+    const response = await retryRequest<LoginResponse>(() => 
+      api.post('/api/auth/login/', { email, password })
+    );
+    
+    // Validate response data
+    if (!response.data.access || !response.data.refresh) {
+      throw new Error('Invalid login response: missing tokens');
+    }
+    
+    // Store tokens
+    localStorage.setItem('token', response.data.access);
+    localStorage.setItem('refresh', response.data.refresh);
+    
+    return response;
+  } catch (error) {
+    console.error('Login failed:', error);
+    // Clear any existing tokens on login failure
+    localStorage.removeItem('token');
+    localStorage.removeItem('refresh');
+    throw error;
+  }
+};
+
+// âœ… FIXED: Registration function to match what AuthContext expects
+export const registerUser = async (userData: {
+  username: string;
+  email: string;
+  password: string;
+  password_confirm: string;
+  first_name: string;
+  last_name: string;
+}) => {
+  console.log('ðŸ‘¤ Registering user with data:', userData);
+  try {
+    const response = await retryRequest<RegisterResponse>(() =>
+      api.post('/api/auth/register/', userData)
+    );
+    
+    // Validate registration response
+    if (!response.data.user || !response.data.user.id) {
+      throw new Error('Invalid registration response: missing user data');
+    }
+    
+    return response;
+  } catch (error: any) {
+    console.error('Registration failed:', error);
+    // Enhance error message for common issues
+    if (error.response?.data) {
+      const errorData = error.response.data;
+      if (errorData.email) {
+        throw new Error(Array.isArray(errorData.email) ? errorData.email[0] : errorData.email);
+      }
+      if (errorData.username) {
+        throw new Error(Array.isArray(errorData.username) ? errorData.username[0] : errorData.username);
+      }
+      if (errorData.password) {
+        throw new Error(Array.isArray(errorData.password) ? errorData.password[0] : errorData.password);
+      }
+      if (errorData.non_field_errors) {
+        throw new Error(Array.isArray(errorData.non_field_errors) ? errorData.non_field_errors[0] : errorData.non_field_errors);
+      }
+    }
+    throw error;
+  }
+};
+
+// âœ… KEEP the old signature for backward compatibility (if needed elsewhere)
+export const registerUserOld = async (username: string, email: string, password: string, first_name?: string, last_name?: string) => {
+  return registerUser({
+    username,
+    email,
+    password,
+    password_confirm: password,
+    first_name: first_name || '',
+    last_name: last_name || ''
+  });
+};
+
+export const requestPasswordReset = async (email: string) => {
+  console.log('ðŸ”’ Requesting password reset for:', email);
+  return retryRequest<ResetPasswordResponse>(() => 
+    api.post('/api/auth/password-reset/', { email })
+  );
+};
+
+// âœ… ADDED: Additional auth functions
+export const verifyEmail = async (token: string) => {
+  console.log('ðŸ“§ Verifying email with token');
+  return retryRequest<{ message: string }>(() =>
+    api.post('/api/auth/verify-email/', { token })
+  );
+};
+
+export const socialAuth = async (provider: string, access_token: string, email?: string) => {
+  console.log('dY"- Social auth with:', provider);
+  const payload: { provider: string; access_token: string; email?: string } = { provider, access_token };
+  if (email) {
+    payload.email = email;
+  }
+  return retryRequest<LoginResponse>(() =>
+    api.post('/api/auth/social-auth/', payload)
+  );
+};
+
+export const resetPassword = async (uid: string, token: string, password: string) => {
+  console.log('ðŸ”’ Resetting password');
+  return retryRequest<ResetPasswordResponse>(() =>
+    api.post('/api/auth/password-reset/confirm/', { uid, token, password })
+  );
+};
+
+// âœ… ADDED: User profile functions
+export const getUserProfile = async () => {
+  console.log('ðŸ‘¤ Fetching user profile');
+  return retryRequest<any>(() =>
+    api.get('/api/auth/profiles/dashboard/')
+  );
+};
+
+export const updateUserProfile = async (data: any) => {
+  console.log('ðŸ‘¤ Updating user profile');
+  return retryRequest<any>(() =>
+    api.patch('/api/auth/profiles/dashboard/', data)
+  );
+};
+
+export const changePassword = async (oldPassword: string, newPassword: string) => {
+  console.log('ðŸ”’ Changing password');
+  return retryRequest<{ message: string }>(() =>
+    api.post('/api/auth/profiles/change_password/', {
+      old_password: oldPassword,
+      new_password: newPassword
+    })
+  );
+};
+
+// Contact
+export const submitContactForm = async (data: { name: string; email: string; message: string }) => {
+  console.log('ðŸ“¨ Submitting contact form');
+  return retryRequest<any>(() =>
+    api.post('/api/contact/', data)
+  );
+};
+
+
+// Donations
+export const subscribeToPlan = async (plan: string, billingCycle: string, amount: number) => {
+  console.log('ðŸ’³ Creating subscription:', plan, billingCycle, amount);
+  return retryRequest<SubscriptionResponse>(() =>
+    api.post('/api/donation/create/', { amount, plan, billing_cycle: billingCycle })
+  );
+};
+
+export default api;
+
+
+
+

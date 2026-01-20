@@ -1,0 +1,127 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist/client",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "destination": "https://theageofgenz.com/:path*",
+      "statusCode": 308,
+      "has": [
+        {
+          "type": "host",
+          "value": "www.theageofgenz.com"
+        }
+      ]
+    },
+    {
+      "source": "/:category(tech|pop-media|science-discovery|global|politics|business-economy|crime-justice|sports|donate|support|trending|privacy|contact|terms|about)",
+      "destination": "/:category/",
+      "statusCode": 307
+    },
+    {
+      "source": "/articles/:slug",
+      "destination": "/articles/:slug/",
+      "statusCode": 307
+    },
+    {
+      "source": "/article/:slug",
+      "destination": "/articles/:slug/",
+      "statusCode": 307
+    },
+    {
+      "source": "/article/:slug/",
+      "destination": "/articles/:slug/",
+      "statusCode": 307
+    },
+    {
+      "source": "/s/:code",
+      "destination": "https://ageofgenz-backend.onrender.com/s/:code/",
+      "statusCode": 307
+    },
+    {
+      "source": "/s/:code/",
+      "destination": "https://ageofgenz-backend.onrender.com/s/:code/",
+      "statusCode": 307
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://ageofgenz-backend.onrender.com/sitemap.xml",
+      "statusCode": 307
+    },
+    {
+      "source": "/rss.xml",
+      "destination": "https://ageofgenz-backend.onrender.com/rss.xml",
+      "statusCode": 307
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "https://ageofgenz-backend.onrender.com/robots.txt",
+      "statusCode": 307
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/articles/:slug",
+      "destination": "/api/article-proxy?slug=:slug"
+    },
+    {
+      "source": "/articles/:slug/",
+      "destination": "/api/article-proxy?slug=:slug"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://ageofgenz-backend.onrender.com/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/articles/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=3600, max-age=300, stale-while-revalidate=86400"
+        },
+        {
+          "key": "Vary",
+          "value": "User-Agent"
+        }
+      ]
+    },
+    {
+      "source": "/sitemap.xml",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/xml"
+        }
+      ]
+    },
+    {
+      "source": "/robots.txt",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain"
+        }
+      ]
+    },
+    {
+      "source": "/rss.xml",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=3600, max-age=300, stale-while-revalidate=86400"
+        }
+      ]
+    }
+  ],
+  "functions": {
+    "api/article-proxy.js": {
+      "maxDuration": 15
+    }
+  }
+}
