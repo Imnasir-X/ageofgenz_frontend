@@ -20,7 +20,7 @@ type LatestNewsSectionProps = {
   onLoadMore: (page: number, categorySlug?: string) => void;
   onTriggerRefresh: () => void;
   onRetry: () => void;
-  sentinelRef: React.RefObject<HTMLDivElement>;
+  sentinelRef: React.RefObject<HTMLDivElement | null>;
   getImagePosition: (article: Article) => 'top' | 'center' | 'bottom';
   activeTabId: string;
   tabPanelId: string;
