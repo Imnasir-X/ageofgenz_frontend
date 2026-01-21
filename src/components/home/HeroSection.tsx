@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Clock, Pause, Play } from 'lucide-react';
 import type { Article } from '../../types';
@@ -16,6 +16,21 @@ type HeroSectionProps = {
   getArticleCategoryMeta: (article: Article) => CategoryMeta;
 };
 
+const formatRelativeTime = (value?: string | null): string | null => {
+  if (!value) return null;
+  const timestamp = new Date(value).getTime();
+  if (!Number.isFinite(timestamp)) return null;
+  const diffMs = Date.now() - timestamp;
+  if (diffMs < 0) return null;
+  const minutes = Math.floor(diffMs / 60000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+};
+
 const HeroSection: React.FC<HeroSectionProps> = ({ items, isLoading, getArticleCategoryMeta }) => {
   const {
     heroIndex,
@@ -26,6 +41,107 @@ const HeroSection: React.FC<HeroSectionProps> = ({ items, isLoading, getArticleC
     goToPrevHero,
     pointerHandlers,
   } = useHeroCarousel(items.length, HERO_ROTATE_INTERVAL);
+
+  const heroSlides = useMemo(
+    () =>
+      items.map((article) => {
+        const categoryMeta = getArticleCategoryMeta(article);
+        const accent = getCategoryAccent(article.category ?? { name: article.category_name });
+        const href = getArticleHref(article);
+        const image = article.featured_image_url || article.featured_image || article.image || null;
+
+        return {
+          article,
+          categoryMeta,
+          accent,
+          href,
+          image,
+        };
+      }),
+    [items, getArticleCategoryMeta, getArticleHref, getCategoryAccent],
+  );
+
+  const activeSlide = heroSlides[heroIndex] ?? null;
+  const lastViewedKeyRef = useRef<string | null>(null);
+
+  const trackHeroEvent = useCallback((eventName: string, payload: Record<string, unknown>) => {
+    if (typeof window === 'undefined') return;
+    const win = window as typeof window & {
+      gtag?: (...args: unknown[]) => void;
+      dataLayer?: Array<Record<string, unknown>>;
+    };
+    if (typeof win.gtag === 'function') {
+      win.gtag('event', eventName, payload);
+      return;
+    }
+    if (Array.isArray(win.dataLayer)) {
+      win.dataLayer.push({ event: eventName, ...payload });
+    }
+  }, []);
+
+  const getAnalyticsPayload = useCallback(
+    (article?: Article, extra?: Record<string, unknown>) => ({
+      slide_index: heroSlides.length > 0 ? heroIndex + 1 : 0,
+      slide_total: heroSlides.length,
+      article_id: article?.id ?? null,
+      article_slug: article?.slug ?? null,
+      article_title: article?.title ?? null,
+      ...extra,
+    }),
+    [heroIndex, heroSlides.length],
+  );
+
+  const handleTogglePlay = useCallback(() => {
+    setHeroPlaying((playing) => {
+      const nextState = !playing;
+      trackHeroEvent('hero_play_pause_toggled', getAnalyticsPayload(activeSlide?.article, { playing: nextState }));
+      return nextState;
+    });
+  }, [activeSlide, getAnalyticsPayload, setHeroPlaying, trackHeroEvent]);
+
+  const handleHeroKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (event.currentTarget !== event.target) return;
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        goToPrevHero();
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        goToNextHero();
+      } else if (event.key === ' ' || event.key === 'Spacebar' || event.key === 'Space') {
+        event.preventDefault();
+        handleTogglePlay();
+      }
+    },
+    [goToNextHero, goToPrevHero, handleTogglePlay],
+  );
+
+  const preloadImage = useCallback((src?: string | null) => {
+    if (!src) return;
+    const img = new Image();
+    img.src = src;
+  }, []);
+
+  useEffect(() => {
+    if (heroSlides.length < 2) return;
+    const prevIndex = (heroIndex - 1 + heroSlides.length) % heroSlides.length;
+    const nextIndex = (heroIndex + 1) % heroSlides.length;
+    preloadImage(heroSlides[prevIndex]?.image);
+    preloadImage(heroSlides[nextIndex]?.image);
+  }, [heroIndex, heroSlides, preloadImage]);
+
+  useEffect(() => {
+    if (!activeSlide) return;
+    const viewKey =
+      activeSlide.article.id !== undefined && activeSlide.article.id !== null
+        ? `id:${activeSlide.article.id}`
+        : activeSlide.article.slug
+          ? `slug:${activeSlide.article.slug}`
+          : `index:${heroIndex}`;
+    if (lastViewedKeyRef.current === viewKey) return;
+    lastViewedKeyRef.current = viewKey;
+    trackHeroEvent('hero_slide_viewed', getAnalyticsPayload(activeSlide.article));
+  }, [activeSlide, getAnalyticsPayload, heroIndex, trackHeroEvent]);
 
   if (items.length === 0) {
     return (
@@ -38,14 +154,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({ items, isLoading, getArticleC
         ) : (
           <div className="relative w-full rounded-2xl overflow-hidden bg-white border border-dashed border-gray-300 shadow-sm p-6 sm:p-10">
             <div className="max-w-xl space-y-3">
-              <h2 className="text-2xl sm:text-3xl font-semibold text-gray-800">Highlight your top story</h2>
+              <h2 className="text-2xl sm:text-3xl font-semibold text-gray-800">No featured stories yet</h2>
               <p className="text-gray-700">
-                Add a featured article or mark a piece as featured to populate this hero area. We'll showcase your most recent headline automatically.
+                Check back soon for the latest headlines and highlights from our newsroom.
               </p>
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <Clock size={16} className="text-orange-500" aria-hidden="true" />
-                <span>Tip: set at least one article as featured to unlock the carousel experience.</span>
-              </div>
             </div>
           </div>
         )}
@@ -56,24 +168,34 @@ const HeroSection: React.FC<HeroSectionProps> = ({ items, isLoading, getArticleC
   return (
     <section className="mb-10">
       <div
-        className="relative w-full rounded-2xl overflow-hidden bg-white border border-gray-200 shadow-sm"
+        className="group relative w-full rounded-2xl overflow-hidden bg-white border border-gray-200 shadow-sm"
         role="region"
         aria-roledescription="carousel"
         aria-label="Featured stories"
         aria-live={heroPlaying ? 'polite' : 'off'}
         aria-atomic="false"
         style={{ touchAction: 'pan-y' }}
+        tabIndex={0}
+        onKeyDown={handleHeroKeyDown}
         {...pointerHandlers}
       >
-        {items.map((article, idx) => {
+        {heroSlides.map((slide, idx) => {
+          const { article, categoryMeta, accent, href, image } = slide;
           const isActive = idx === heroIndex;
-          const img = article.featured_image_url || article.featured_image || article.image || '/api/placeholder/1200/675';
-          const articleHref = getArticleHref(article);
-          const isNavigable = articleHref !== '#';
+          const articleHref = href;
+          const isNavigable = href !== '#';
           const displayTitle = article.title?.trim() || 'Untitled story';
-          const displayExcerpt = article.excerpt?.trim() || 'Stay tuned for more details as this story develops.';
-          const categoryMeta = getArticleCategoryMeta(article);
-          const accent = getCategoryAccent(article.category ?? { name: article.category_name });
+          const displayExcerpt = article.excerpt?.trim();
+          const relativeTime = formatRelativeTime(
+            article.updated_at || article.published_at || article.date || article.created_at,
+          );
+          const authorName = article.author?.name?.trim() || '';
+          const showAuthor = authorName.length > 0 && !/\bstaff\b/i.test(authorName);
+          const readTime =
+            Number.isFinite(article.estimated_read_time) && article.estimated_read_time > 0
+              ? article.estimated_read_time
+              : null;
+          const categoryLabel = (categoryMeta.topLevelName || categoryMeta.name || '').toUpperCase();
 
           return (
             <div
@@ -84,52 +206,97 @@ const HeroSection: React.FC<HeroSectionProps> = ({ items, isLoading, getArticleC
               aria-label={`Slide ${idx + 1} of ${items.length}`}
             >
               <div className="aspect-[16/7] w-full overflow-hidden">
-                <ProgressiveImage src={img} alt={displayTitle} className="w-full h-full" eager={idx === 0} />
+                <ProgressiveImage
+                  src={image}
+                  alt={displayTitle}
+                  className="w-full h-full"
+                  eager={idx === 0}
+                  fallbackGradient={accent.gradient}
+                />
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 md:p-8">
-                <div className="flex flex-wrap items-center gap-2 mb-3 text-xs text-white/90">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${accent.badge} text-white`}>
-                    {categoryMeta.name}
+              <div className="absolute inset-x-0 bottom-0 p-4 pb-10 sm:p-6 sm:pb-12 md:p-8 md:pb-14">
+                <div className="flex flex-wrap items-center gap-2 mb-2 text-[11px] sm:text-xs text-white/90">
+                  <span className={`px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide ${accent.badge} text-white`}>
+                    {categoryLabel}
                   </span>
-                  <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-white/60" aria-hidden="true" />
-                  <span>By {article.author?.name || 'Staff'}</span>
-                  <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-white/60" aria-hidden="true" />
-                  <span className="inline-flex items-center">
-                    <Clock size={14} className="mr-1" />
-                    {article.estimated_read_time || 3} min read
-                  </span>
+                  {relativeTime && (
+                    <>
+                      <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-white/60" aria-hidden="true" />
+                      <span className="inline-flex items-center gap-1">
+                        <Clock size={13} className="text-white/80" aria-hidden="true" />
+                        <span>Updated {relativeTime}</span>
+                      </span>
+                    </>
+                  )}
+                  {readTime !== null && (
+                    <>
+                      <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-white/60" aria-hidden="true" />
+                      <span>{readTime} min read</span>
+                    </>
+                  )}
+                  {showAuthor && (
+                    <>
+                      <span className="hidden sm:inline-flex h-1 w-1 rounded-full bg-white/60" aria-hidden="true" />
+                      <span>By {authorName}</span>
+                    </>
+                  )}
                 </div>
                 {isNavigable ? (
                   <Link
                     to={articleHref}
                     className="group focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black/40 rounded"
+                    onClick={() =>
+                      trackHeroEvent('hero_article_clicked', getAnalyticsPayload(article, { href: articleHref }))
+                    }
                   >
-                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white leading-tight drop-shadow group-hover:text-white/90 transition-colors">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white leading-tight drop-shadow line-clamp-3 md:line-clamp-4 group-hover:text-white/90 transition-colors">
                       {displayTitle}
                     </h2>
                   </Link>
                 ) : (
-                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white leading-tight drop-shadow">
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white leading-tight drop-shadow line-clamp-3 md:line-clamp-4">
                     {displayTitle}
                   </h2>
                 )}
-                <p className="hidden sm:block mt-2 text-white/90 max-w-3xl line-clamp-2">{displayExcerpt}</p>
+                {displayExcerpt && (
+                  <p className="hidden sm:block mt-2 text-white/90 max-w-3xl line-clamp-2">
+                    {displayExcerpt}
+                  </p>
+                )}
+                {isNavigable && (
+                  <Link
+                    to={articleHref}
+                    className={`group/read hidden md:inline-flex items-center gap-2 text-sm font-semibold text-white/90 hover:text-white transition-colors ${
+                      displayExcerpt ? 'mt-3' : 'mt-2'
+                    }`}
+                    onClick={() =>
+                      trackHeroEvent('hero_article_clicked', getAnalyticsPayload(article, { href: articleHref }))
+                    }
+                  >
+                    <span>Read story</span>
+                    <ChevronRight
+                      size={16}
+                      className="transition-transform group-hover/read:translate-x-0.5"
+                      aria-hidden="true"
+                    />
+                  </Link>
+                )}
               </div>
             </div>
           );
         })}
         <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4 pointer-events-none">
-          <div className="flex items-center justify-between gap-3 pointer-events-auto">
+          <div className="relative flex items-center justify-center gap-3 pointer-events-none">
             <button
               type="button"
               aria-label="Previous slide"
-              className="p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition"
+              className="hidden md:inline-flex pointer-events-none absolute left-0 h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white opacity-0 transition md:group-hover:opacity-100 md:group-hover:pointer-events-auto md:group-focus-within:opacity-100 md:group-focus-within:pointer-events-auto md:focus-visible:opacity-100 md:focus-visible:pointer-events-auto hover:bg-black/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
               onClick={goToPrevHero}
             >
               <ChevronLeft size={18} aria-hidden="true" />
             </button>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 pointer-events-auto">
               {items.map((_, i) => {
                 const isDotActive = i === heroIndex;
                 return (
@@ -149,26 +316,24 @@ const HeroSection: React.FC<HeroSectionProps> = ({ items, isLoading, getArticleC
                   </button>
                 );
               })}
-            </div>
-            <div className="flex items-center gap-2">
               <button
                 type="button"
                 aria-label={heroPlaying ? 'Pause carousel' : 'Play carousel'}
-                aria-pressed={!heroPlaying}
-                className="p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition"
-                onClick={() => setHeroPlaying((playing) => !playing)}
+                aria-pressed={heroPlaying}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white transition hover:bg-black/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 md:opacity-0 md:pointer-events-none md:group-hover:opacity-100 md:group-hover:pointer-events-auto md:group-focus-within:opacity-100 md:group-focus-within:pointer-events-auto md:focus-visible:opacity-100 md:focus-visible:pointer-events-auto"
+                onClick={handleTogglePlay}
               >
-                {heroPlaying ? <Pause size={18} aria-hidden="true" /> : <Play size={18} aria-hidden="true" />}
-              </button>
-              <button
-                type="button"
-                aria-label="Next slide"
-                className="p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition"
-                onClick={goToNextHero}
-              >
-                <ChevronRight size={18} aria-hidden="true" />
+                {heroPlaying ? <Pause size={16} aria-hidden="true" /> : <Play size={16} aria-hidden="true" />}
               </button>
             </div>
+            <button
+              type="button"
+              aria-label="Next slide"
+              className="hidden md:inline-flex pointer-events-none absolute right-0 h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white opacity-0 transition md:group-hover:opacity-100 md:group-hover:pointer-events-auto md:group-focus-within:opacity-100 md:group-focus-within:pointer-events-auto md:focus-visible:opacity-100 md:focus-visible:pointer-events-auto hover:bg-black/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+              onClick={goToNextHero}
+            >
+              <ChevronRight size={18} aria-hidden="true" />
+            </button>
           </div>
         </div>
       </div>

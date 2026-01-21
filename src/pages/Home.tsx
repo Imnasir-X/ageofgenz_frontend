@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import {
   getFeaturedArticles,
   getArticlesBySearch,
-  getLatestArticles,
   getCategories,
   getArticles,
   getArticlesByCategory,
@@ -27,9 +26,41 @@ type HomeCategoryEntry = {
   source: Category;
 };
 
+const getArticleKey = (article: Article): string | null => {
+  if (article?.id !== null && article?.id !== undefined) return `id:${article.id}`;
+  if (article?.slug) return `slug:${article.slug}`;
+  if (article?.canonical_url) return `url:${article.canonical_url}`;
+  return null;
+};
+
+const dedupeArticles = (articles: Article[]): Article[] => {
+  const seen = new Set<string>();
+  const deduped: Article[] = [];
+
+  articles.forEach((article) => {
+    const key = getArticleKey(article);
+    if (key) {
+      if (seen.has(key)) return;
+      seen.add(key);
+    }
+    deduped.push(article);
+  });
+
+  return deduped;
+};
+
+const buildKeySet = (articles: Article[]): Set<string> => {
+  const keys = new Set<string>();
+  articles.forEach((article) => {
+    const key = getArticleKey(article);
+    if (key) keys.add(key);
+  });
+  return keys;
+};
+
 const Home: React.FC = () => {
   const [featuredArticles, setFeaturedArticles] = useState<Article[]>([]);
-  const [latestArticles, setLatestArticles] = useState<Article[]>([]);
+  const [allLatestList, setAllLatestList] = useState<Article[]>([]);
   
   const [searchResults, setSearchResults] = useState<Article[]>([]);
   const [rawCategoryData, setRawCategoryData] = useState<Category[] | null>(null);
@@ -81,7 +112,7 @@ const Home: React.FC = () => {
   }, []);
   
   const [loadingFeatured, setLoadingFeatured] = useState<boolean>(true);
-  const [loadingLatest, setLoadingLatest] = useState<boolean>(true);
+  const [loadingLatest, setLoadingLatest] = useState<boolean>(false);
   const [loadingSearch, setLoadingSearch] = useState<boolean>(false);
   const [loadingCategories, setLoadingCategories] = useState<boolean>(true);
   
@@ -169,12 +200,10 @@ const Home: React.FC = () => {
     return meta.name;
   }, [activeCategory, homeCategories]);
 
-  // Breaking items: prefer latest, fallback to featured
-  const breakingItems = useMemo(() => {
-    const pool = latestArticles.length > 0 ? latestArticles : featuredArticles;
-    return pool.slice(0, 10);
-  }, [latestArticles, featuredArticles]);
-
+  const allocationPool = useMemo(
+    () => dedupeArticles([...allLatestList, ...featuredArticles]),
+    [allLatestList, featuredArticles],
+  );
 
   // Smart image position based on category or content type
   const getImagePosition = useCallback((article: Article): 'top' | 'center' | 'bottom' => {
@@ -188,13 +217,24 @@ const Home: React.FC = () => {
     return 'center';
   }, []);
 
-  // Hero items - prefer featured then latest
-  const heroItems = useMemo(() => {
-    const pool = featuredArticles.length > 0 ? featuredArticles : latestArticles;
-    return pool.slice(0, 5);
-  }, [featuredArticles, latestArticles]);
+  const heroItems = useMemo(() => allocationPool.slice(0, 5), [allocationPool]);
 
-  const displayedFeatured = useMemo(() => {
+  const heroKeys = useMemo(() => buildKeySet(heroItems), [heroItems]);
+
+  const breakingCandidates = useMemo(
+    () =>
+      allocationPool.filter((article) => {
+        const key = getArticleKey(article);
+        return !key || !heroKeys.has(key);
+      }),
+    [allocationPool, heroKeys],
+  );
+
+  const breakingItems = useMemo(() => breakingCandidates.slice(0, 10), [breakingCandidates]);
+
+  const breakingKeys = useMemo(() => buildKeySet(breakingItems), [breakingItems]);
+
+  const featuredCandidates = useMemo(() => {
     if (activeCategory === 'all') return featuredArticles;
     return featuredArticles.filter((article) => {
       const meta = getArticleCategoryMeta(article);
@@ -202,7 +242,36 @@ const Home: React.FC = () => {
     });
   }, [featuredArticles, activeCategory, getArticleCategoryMeta]);
 
+  const displayedFeatured = useMemo(() => {
+    if (featuredCandidates.length === 0) return [];
+    if (heroKeys.size === 0 && breakingKeys.size === 0) {
+      return featuredCandidates;
+    }
+    return featuredCandidates.filter((article) => {
+      const key = getArticleKey(article);
+      return !key || (!heroKeys.has(key) && !breakingKeys.has(key));
+    });
+  }, [featuredCandidates, heroKeys, breakingKeys]);
+
   const secondaryFeatured = useMemo(() => displayedFeatured.slice(1, 4), [displayedFeatured]);
+
+  const featuredKeys = useMemo(() => buildKeySet(displayedFeatured), [displayedFeatured]);
+
+  const reservedKeys = useMemo(() => {
+    const keys = new Set<string>();
+    heroKeys.forEach((key) => keys.add(key));
+    breakingKeys.forEach((key) => keys.add(key));
+    featuredKeys.forEach((key) => keys.add(key));
+    return keys;
+  }, [heroKeys, breakingKeys, featuredKeys]);
+
+  const displayLatest = useMemo(() => {
+    if (reservedKeys.size === 0) return latestList;
+    return latestList.filter((article) => {
+      const key = getArticleKey(article);
+      return !key || !reservedKeys.has(key);
+    });
+  }, [latestList, reservedKeys]);
 
 
 
@@ -268,35 +337,10 @@ const Home: React.FC = () => {
       }
     };
 
-    const fetchLatestArticles = async () => {
-      setLoadingLatest(true);
-      setErrorLatest(null);
-      try {
-        console.log('?? Fetching latest articles...');
-        const response = await getLatestArticles();
-        console.log('Latest Articles Response:', response.data);
-        
-        const articles = response.data.results || [];
-        if (articles.length === 0) {
-          setErrorLatest('No latest articles found.');
-        } else {
-          setLatestArticles(articles);
-          // Seed infinite list with first batch if empty
-          if (latestList.length === 0) setLatestList(articles);
-        }
-      } catch (err: any) {
-        console.error('Latest Articles Error:', err);
-        setErrorLatest(`Failed to load latest articles: ${err.response?.data?.detail || err.message}`);
-      } finally {
-        setLoadingLatest(false);
-      }
-    };
-
     // Load all in parallel for better perceived performance
     void Promise.allSettled([
       fetchCategories(),
       fetchFeaturedArticles(),
-      fetchLatestArticles(),
     ]);
   }, []);
 
@@ -370,27 +414,15 @@ const Home: React.FC = () => {
     return () => window.clearTimeout(t);
   }, [showNewsletterCard]);
 
-  const retryLatest = useCallback(async () => {
-    setLoadingLatest(true);
-    setErrorLatest(null);
-    try {
-      const response = await getLatestArticles();
-      const articles = response.data.results || [];
-      if (articles.length === 0) {
-        setErrorLatest('No latest articles found.');
-      } else {
-        setLatestArticles(articles);
-      }
-    } catch (err: any) {
-      setErrorLatest(`Failed to load latest articles: ${err.response?.data?.detail || err.message}`);
-    } finally {
-      setLoadingLatest(false);
-    }
-  }, []);
-
   // Load a page for infinite scroll (all or by category)
   const loadLatestPage = useCallback(async (page: number, categorySlug?: string) => {
-    setLoadingMoreLatest(true);
+    if (page === 1) {
+      setLoadingLatest(true);
+      setLoadingMoreLatest(false);
+      setErrorLatest(null);
+    } else {
+      setLoadingMoreLatest(true);
+    }
     try {
       let response;
       if (categorySlug && categorySlug !== 'all') {
@@ -400,15 +432,29 @@ const Home: React.FC = () => {
       }
       const results = response.data.results || [];
       setLatestList((prev) => (page === 1 ? results : [...prev, ...results]));
+      if (page === 1 && (!categorySlug || categorySlug === 'all')) {
+        setAllLatestList(results);
+      }
       setLatestHasMore(Boolean(response.data.next));
       setLatestPage(page);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Load latest page error:', err);
+      if (page === 1) {
+        setErrorLatest(`Failed to load latest articles: ${err.response?.data?.detail || err.message}`);
+      }
       setLatestHasMore(false);
     } finally {
-      setLoadingMoreLatest(false);
+      if (page === 1) {
+        setLoadingLatest(false);
+      } else {
+        setLoadingMoreLatest(false);
+      }
     }
   }, []);
+
+  const retryLatest = useCallback(async () => {
+    await loadLatestPage(1, activeCategory !== 'all' ? activeCategory : undefined);
+  }, [activeCategory, loadLatestPage]);
 
   const refreshLatest = useCallback(async () => {
     await loadLatestPage(1, activeCategory !== 'all' ? activeCategory : undefined);
@@ -498,14 +544,6 @@ const Home: React.FC = () => {
     observer.observe(el);
     return () => observer.disconnect();
   }, [latestHasMore, loadingMoreLatest, latestPage, activeCategory, loadLatestPage, isRefreshing]);
-
-  // Initialize infinite list
-  useEffect(() => {
-    // If nothing loaded yet, load first page
-    if (latestList.length === 0 && !loadingLatest) {
-      loadLatestPage(1);
-    }
-  }, [loadingLatest, latestList.length, loadLatestPage]);
 
   // React to category changes
   useEffect(() => {
@@ -644,7 +682,7 @@ const Home: React.FC = () => {
 
             {/* Enhanced Latest News Section */}
             <LatestNewsSection
-              latestList={latestList}
+              latestList={displayLatest}
               loading={loadingLatest}
               error={errorLatest}
               liveUpdatesCount={liveUpdatesCount}
