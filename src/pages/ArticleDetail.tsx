@@ -872,50 +872,51 @@ const ArticleDetail: React.FC = () => {
         </div>
       )}
 
-      <div className="mx-auto max-w-5xl px-5 py-8 md:px-12 md:py-12 lg:px-16 lg:py-16">
+      <div className="mx-auto max-w-6xl px-5 py-8 md:px-12 md:py-12 lg:px-16 lg:py-16">
         <div className="space-y-12 xl:flex xl:gap-12 xl:space-y-0">
           {/* Main Article Content */}
           <article className="xl:w-2/3">
             <div ref={articleBodyRef} className="bg-white rounded-2xl shadow-sm px-6 py-8 md:px-12 md:py-12 lg:px-14 lg:py-16">
               {/* Article Header */}
-              <header className="mb-4">
-                <div className="article-meta mb-3 font-semibold">
-                  <Link
-                    to={categoryLink}
-                    className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[0.7rem] uppercase tracking-[0.28em] text-white shadow-sm ${categoryAccent.badge}`}
-                  >
-                    {topLevelCategoryName.toUpperCase()}
-                  </Link>
-                  <span className="text-gray-400" aria-hidden="true">&bull;</span>
-                  <span className="text-gray-500">{publishedDate}</span>
-                  <span className="text-gray-400" aria-hidden="true">&bull;</span>
-                  <span className="text-gray-500">The Age of GenZ</span>
+              <header className="mb-0">
+                <div className="space-y-[12px]">
+                  <div className="article-meta">
+                    <Link
+                      to={categoryLink}
+                      className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[0.7rem] uppercase tracking-[0.28em] text-white shadow-sm font-semibold ${categoryAccent.badge}`}
+                    >
+                      {topLevelCategoryName.toUpperCase()}
+                    </Link>
+                    <span className="text-gray-400" aria-hidden="true">&bull;</span>
+                    <span className="text-gray-500">{publishedDate}</span>
+                    <span className="text-gray-400" aria-hidden="true">&bull;</span>
+                    <span className="text-gray-500">The Age of GenZ</span>
+                  </div>
+                  
+                  {/* Article Title */}
+                  <h1 className="article-title text-gray-900">
+                    {article.title}
+                  </h1>
+                  
+                  {/* Article Subtitle/Excerpt */}
+                  {article.excerpt && (
+                    <p className="article-subtitle">
+                      {article.excerpt}
+                    </p>
+                  )}
                 </div>
-                
-                {/* Article Title */}
-                <h1 className="article-title text-gray-900">
-                  {article.title}
-                </h1>
-                
-                {/* Article Subtitle/Excerpt */}
-                {article.excerpt && (
-                  <p className="text-lg md:text-xl text-gray-600 leading-relaxed tracking-[0.01em] mb-6 max-w-2xl">
-                    {article.excerpt}
-                  </p>
-                )}
 
-                <div className="mb-3 flex items-center justify-between gap-2 text-xs text-gray-500 flex-nowrap whitespace-nowrap overflow-visible sm:gap-3 sm:text-sm md:gap-6">
-                  <div className="flex shrink-0 items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-hide sm:gap-3 md:gap-5 md:overflow-visible">
+                <div className="mt-[14px] mb-[12px] flex items-baseline justify-between gap-2 border-t border-gray-200/70 py-2.5 text-xs text-gray-500 flex-nowrap whitespace-nowrap overflow-visible sm:gap-3 sm:text-sm md:gap-6">
+                  <div className="flex shrink-0 items-center gap-2 whitespace-nowrap sm:gap-3 md:gap-5">
                     <span className="inline-flex items-center gap-1 sm:gap-2" title="Estimated read time">
                       <BookOpen className="h-3.5 w-3.5 text-orange-500 sm:h-4 sm:w-4" aria-hidden="true" />
                       <span className="inline sm:hidden">{estimatedReadTime} min</span>
                       <span className="hidden sm:inline">{estimatedReadTime} min read</span>
                     </span>
                     {viewCount !== null && (
-                      <span className="inline-flex items-center gap-1 sm:gap-2" title="View count">
+                      <span className="hidden sm:inline-flex items-center gap-1 sm:gap-2" title="View count">
                         <Eye className="h-3.5 w-3.5 text-orange-400 sm:h-4 sm:w-4" aria-hidden="true" />
-                        <span className="inline sm:hidden">{viewCount.toLocaleString()}</span>
-                        <span className="hidden sm:inline">{viewCount.toLocaleString()} views</span>
+                        <span>{viewCount.toLocaleString()} views</span>
                       </span>
                     )}
                   </div>
@@ -1015,7 +1016,7 @@ const ArticleDetail: React.FC = () => {
               {/* Featured Image */}
               {(article.featured_image_url || article.featured_image) && (
                 <div className="-mx-6 md:-mx-12 lg:-mx-14">
-                  <figure className="relative">
+                  <figure className="relative overflow-hidden rounded-none md:rounded-xl lg:rounded-2xl">
                     {!imageLoaded && (
                       <div className="absolute inset-0 bg-gray-200 animate-pulse aspect-[16/9]"></div>
                     )}
@@ -1033,7 +1034,7 @@ const ArticleDetail: React.FC = () => {
                       loading="eager"
                     />
                     {(article.featured_image_caption || article.caption) && (
-                      <figcaption className="px-6 md:px-12 lg:px-14 mt-2 text-sm text-gray-500 italic">
+                      <figcaption className="px-6 md:px-12 lg:px-14 mt-2 text-xs md:text-sm text-gray-500 italic">
                         {article.featured_image_caption || article.caption}
                       </figcaption>
                     )}
