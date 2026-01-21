@@ -38,8 +38,18 @@ const ArticleContentBlocks: React.FC<ArticleContentBlocksProps> = ({
   fallbackContent,
   className,
 }) => {
-  const normalizedBlocks =
-    Array.isArray(blocks) && blocks.length > 0 ? blocks : buildFallbackBlocks(fallbackContent);
+  const hasBlocks = Array.isArray(blocks) && blocks.length > 0;
+  const htmlFallback =
+    !hasBlocks &&
+    typeof fallbackContent === 'string' &&
+    /<\/?[a-z][\s\S]*>/i.test(fallbackContent);
+
+  if (htmlFallback) {
+    // HTML content is sanitized server-side before rendering.
+    return <div className={className} dangerouslySetInnerHTML={{ __html: fallbackContent }} />;
+  }
+
+  const normalizedBlocks = hasBlocks ? blocks : buildFallbackBlocks(fallbackContent);
   const safeBlocks = normalizedBlocks.filter(isKnownBlock);
   const renderedBlocks = safeBlocks.length > 0 ? safeBlocks : buildFallbackBlocks(fallbackContent);
 
