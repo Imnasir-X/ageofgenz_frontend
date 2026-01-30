@@ -337,7 +337,7 @@ const Header: React.FC = () => {
   }, [showSearch]);
 
   const navLinkClasses = ({ isActive }: { isActive: boolean }): string =>
-    `transition-colors ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'} font-medium uppercase tracking-normal line-clamp-1 ${isActive ? 'text-orange-500' : 'text-white/80'} hover:text-orange-500`;
+    `transition-colors ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'} font-semibold uppercase tracking-wide line-clamp-1 ${isActive ? 'text-orange-500' : 'text-white'} hover:text-orange-500`;
 
   const mobileNavLinkClasses = ({ isActive }: { isActive: boolean }): string => `block py-2 px-3 text-sm ${isActive ? 'text-orange-500 font-semibold bg-gray-800 rounded' : 'text-white'} hover:text-orange-500 hover:bg-gray-800 rounded transition-all duration-200`;
 
@@ -658,8 +658,8 @@ const Header: React.FC = () => {
   };
 
   const mobileNavRef = useRef<HTMLDivElement | null>(null);
-  const navGapBase = isDesktop ? 10 : 10;
-  const navGapExpanded = isDesktop ? 16 : 12;
+  const navGapBase = isDesktop ? 16 : 12;
+  const navGapExpanded = isDesktop ? 24 : 16;
   const navFontCompact = 0.75;
   const navFontExpanded = isDesktop ? 0.8 : 0.75;
   const navFontDelta = navFontExpanded - navFontCompact;
@@ -816,7 +816,7 @@ const Header: React.FC = () => {
                 </span>
               )}
               <ul
-                className={`flex items-center whitespace-nowrap overflow-x-auto transition-all ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'}`}
+                className={`flex items-center transition-all ${prefersReducedMotion ? 'duration-0' : 'duration-200 ease-out'}`}
                 style={{
                   gap: `calc(var(--nav-gap-base) + (var(--nav-gap-expanded) - var(--nav-gap-base)) * ${1 - shrink * 0.8})`,
                   fontSize: 'var(--nav-font-size)',
