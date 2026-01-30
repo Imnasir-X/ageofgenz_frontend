@@ -367,7 +367,12 @@ const Home: React.FC = () => {
   useEffect(() => {
     const dismissed = typeof window !== 'undefined' && localStorage.getItem('newsletterDismissed') === '1';
     const subscribed = typeof window !== 'undefined' && localStorage.getItem('newsletterSubscribed') === '1';
+    const dismissedAtRaw = typeof window !== 'undefined' ? localStorage.getItem('newsletterDismissedAt') : null;
+    const dismissedAt = dismissedAtRaw ? Number(dismissedAtRaw) : 0;
+    const cooldownMs = 7 * 24 * 60 * 60 * 1000;
+    const withinCooldown = dismissedAt > 0 && Date.now() - dismissedAt < cooldownMs;
     if (dismissed || subscribed) return;
+    if (withinCooldown) return;
 
     let triggered = false;
     const triggerNewsletter = () => {
