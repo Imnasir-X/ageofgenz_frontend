@@ -3,7 +3,7 @@ import { subscribeToNewsletter } from '../utils/api';
 import { Mail, CheckCircle, AlertCircle, Send, Sparkles, Users } from 'lucide-react';
 
 interface NewsletterProps {
-  variant?: 'default' | 'compact' | 'featured';
+  variant?: 'default' | 'compact' | 'featured' | 'banner';
   showBenefits?: boolean;
   onSubscribed?: () => void;
 }
@@ -61,6 +61,51 @@ const Newsletter: React.FC<NewsletterProps> = ({
       }
     }
   };
+
+  // Banner variant for prompt cards
+  if (variant === 'banner') {
+    return (
+      <div className="w-full">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Your email"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder-gray-500 transition focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/30 sm:min-w-[220px]"
+            required
+            disabled={status === 'loading'}
+          />
+          <button
+            type="submit"
+            disabled={status === 'loading' || !email}
+            className="inline-flex items-center justify-center rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {status === 'loading' ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            ) : (
+              <>
+                <Send size={14} className="mr-1" />
+                Subscribe
+              </>
+            )}
+          </button>
+        </form>
+        {status === 'success' && (
+          <div className="mt-2 flex items-center gap-2 text-xs text-green-700">
+            <CheckCircle size={14} />
+            <span>Subscribed successfully!</span>
+          </div>
+        )}
+        {status === 'error' && (
+          <div className="mt-2 flex items-center gap-2 text-xs text-red-700">
+            <AlertCircle size={14} />
+            <span>{message}</span>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   // Compact variant for inline use
   if (variant === 'compact') {

@@ -32,7 +32,7 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
         <span className="inline-flex h-2 w-2 rounded-full bg-orange-500" aria-hidden="true" />
         <h3 className="text-base font-semibold text-gray-800">Browse by Category</h3>
       </div>
-      <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-700">
+      <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-gray-500">
         <SlidersHorizontal className="h-3.5 w-3.5 text-orange-500" aria-hidden="true" />
         <span>Tap a category to filter</span>
       </div>
@@ -40,14 +40,14 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
     {loading ? (
       <div className="flex flex-wrap gap-3">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <span key={`cat-skel-${i}`} className="h-10 w-24 rounded-full bg-gray-200 animate-pulse" />
+          <span key={`cat-skel-${i}`} className="h-9 w-24 rounded-full bg-gray-200 animate-pulse" />
         ))}
       </div>
     ) : (
-      <div className="relative -mx-2 overflow-hidden rounded-full bg-orange-50/60 px-2 py-2 shadow-inner">
+      <div className="relative -mx-2 overflow-hidden rounded-full bg-orange-50/40 px-3 py-2">
         <div
           id={tabListId}
-          className="flex gap-2 overflow-x-auto pb-1 pl-1 pr-4 md:justify-center"
+          className="flex gap-2 overflow-x-auto pb-1 pl-2 pr-3 scroll-px-3 md:justify-center"
           role="tablist"
           aria-label="Article categories"
           aria-orientation="horizontal"
@@ -61,7 +61,9 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
             tabIndex={activeCategory === 'all' ? 0 : -1}
             onClick={() => onSelectCategory('all')}
             onKeyDown={(event) => onTabKeyDown(event, 'all')}
-            className={getCategoryButtonClasses(activeCategory === 'all')}
+            className={`${getCategoryButtonClasses(activeCategory === 'all')} shrink-0 ${
+              activeCategory === 'all' ? 'ring-1 ring-orange-200 shadow-sm' : ''
+            }`}
           >
             All
           </button>
@@ -79,7 +81,9 @@ const CategoryTabs: React.FC<CategoryTabsProps> = ({
                 tabIndex={isActive ? 0 : -1}
                 onClick={() => onSelectCategory(cat.slug)}
                 onKeyDown={(event) => onTabKeyDown(event, cat.slug)}
-                className={getCategoryButtonClasses(isActive)}
+                className={`${getCategoryButtonClasses(isActive)} shrink-0 ${
+                  isActive ? 'ring-1 ring-orange-200 shadow-sm' : ''
+                }`}
               >
                 {cat.name}
               </button>
