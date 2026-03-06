@@ -5,7 +5,6 @@ import { getArticleBySlug, getArticles } from '../utils/api';
 import ArticleContentBlocks from '../components/ArticleContentBlocks';
 import DonationPlaceholder from '../components/DonationPlaceholder';
 import {
-  Eye,
   Tag,
   BookOpen,
   Facebook,
@@ -469,7 +468,6 @@ const ArticleDetail: React.FC = () => {
     article?.featured_image_url ||
     article?.featured_image ||
     'https://theageofgenz.com/og-image.jpg';
-  const viewCount = article?.view_count ?? article?.views ?? null;
   const encodedShareUrl = encodeURIComponent(shareUrl);
   const encodedShareTitle = encodeURIComponent(article?.title ?? 'The Age of GenZ');
   const shareMenuItemClass =
@@ -913,12 +911,6 @@ const ArticleDetail: React.FC = () => {
                       <span className="inline sm:hidden">{estimatedReadTime} min</span>
                       <span className="hidden sm:inline">{estimatedReadTime} min read</span>
                     </span>
-                    {viewCount !== null && (
-                      <span className="hidden sm:inline-flex items-center gap-1 sm:gap-2" title="View count">
-                        <Eye className="h-3.5 w-3.5 text-orange-400 sm:h-4 sm:w-4" aria-hidden="true" />
-                        <span>{viewCount.toLocaleString()} views</span>
-                      </span>
-                    )}
                   </div>
                   <div className="flex shrink-0 items-center gap-2 sm:gap-3">
                     <button

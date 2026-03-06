@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Clock, Eye, Loader2, ChevronRight } from 'lucide-react';
+import { Clock, Loader2, ChevronRight } from 'lucide-react';
 import { getArticlesByCategory, getCategories } from '../utils/api';
 import type { Article, Category, PaginatedResponse } from '../types';
 import {
@@ -394,10 +394,6 @@ const CategoryPage: React.FC = () => {
                               {article.formattedDate}
                             </span>
                           </div>
-                          <span className="flex items-center gap-1 text-xs text-gray-500">
-                            <Eye size={14} aria-hidden="true" />
-                            {article.views || article.view_count || 0}
-                          </span>
                         </div>
                         <h3 className="text-lg font-semibold text-slate-900 transition-colors group-hover:text-orange-500 line-clamp-2">
                           {article.title || 'Untitled'}
