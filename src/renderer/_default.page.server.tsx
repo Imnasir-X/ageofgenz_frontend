@@ -58,5 +58,12 @@ export async function render(pageContext: PageContext) {
       initialData.article || initialData.articleMissing ? `<script id="__AGZ_DATA__" type="application/json">${escapeJson(initialData)}</script>` : '',
     );
 
-  return { documentHtml: dangerouslySkipEscape(html) };
+  return { documentHtml: dangerouslySkipEscape(html), injectFilter };
+}
+
+/** Do not let vite-plugin-ssr preload every font file: only the two critical faces above are preloaded. */
+function injectFilter(assets: { assetType: string | null; src: string; inject: false | 'HTML_BEGIN' | 'HTML_END' }[]) {
+  assets.forEach((asset) => {
+    if (asset.assetType === 'font') asset.inject = false;
+  });
 }

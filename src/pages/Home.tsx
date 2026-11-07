@@ -59,7 +59,7 @@ function QuickBriefing({ stories, digest }: { stories: Article[]; digest: Digest
 function TrendingBand({ stories }: { stories: Article[] }) {
   if (stories.length === 0) return null;
   return (
-    <section className="h-full rounded-lg border bg-card p-6 sm:p-8" aria-labelledby="trending-now">
+    <section className="rounded-lg border bg-card p-6 sm:p-8" aria-labelledby="trending-now">
       <div className="flex items-center justify-between gap-4 border-b pb-3">
         <h2 id="trending-now" className="flex items-center gap-2 font-display text-[1.6rem] font-medium leading-none tracking-[-0.015em]">
           <TrendingUp className="size-5 text-primary" /> Trending now
@@ -148,7 +148,7 @@ export default function Home() {
           </section>
         )}
 
-        <div className="mt-16 grid gap-6 lg:grid-cols-12 lg:gap-8">
+        <div className="mt-16 grid gap-6 lg:grid-cols-12 lg:items-start lg:gap-8">
           <div className="lg:col-span-8">{latest.loading && !stories.length ? <StoryGridSkeleton count={2} /> : <TrendingBand stories={stories} />}</div>
           <div className="lg:col-span-4">
             <AiExplainerEntry article={featured} />
