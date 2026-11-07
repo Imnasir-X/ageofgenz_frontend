@@ -1,0 +1,252 @@
+/* Metric-matched local fallbacks keep layout shift low while web fonts swap in. */
+@font-face {
+  font-family: 'Newsreader Fallback';
+  src: local('Georgia'), local('Times New Roman');
+  size-adjust: 96%;
+  ascent-override: 92%;
+  descent-override: 24%;
+}
+@font-face {
+  font-family: 'Geist Fallback';
+  src: local('Arial'), local('Helvetica');
+  size-adjust: 104%;
+  ascent-override: 92%;
+  descent-override: 22%;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * The Age of GenZ — Signal Blue design tokens.
+ * Channels are space-separated RGB so Tailwind can apply opacity (bg-primary/10).
+ *
+ * Signal Blue  #0047FF  brand, links, primary actions
+ * Deep Ink     #121723  headlines, dark surfaces
+ * Soft Canvas  #F6F7F3  page background
+ * Electric Lime#D7FF66  rare highlights, mostly on dark
+ * Mist Blue    #E9EFFF  AI panels, selected states
+ * Muted Slate  #637086  secondary text and metadata
+ * Pure White   #FFFFFF  cards and reading surfaces
+ * Night Surface#0F1423  dark mode background
+ */
+@layer base {
+  :root {
+    --signal: 0 71 255;
+    --ink: 18 23 35;
+    --ink-foreground: 246 247 243;
+    --lime: 215 255 102;
+    --lime-foreground: 18 23 35;
+    --mist: 233 239 255;
+    --mist-foreground: 18 23 35;
+    --slate: 99 112 134;
+
+    --background: 246 247 243;
+    --foreground: 18 23 35;
+    --card: 255 255 255;
+    --card-foreground: 18 23 35;
+    --popover: 255 255 255;
+    --popover-foreground: 18 23 35;
+    --primary: 0 71 255;
+    --primary-foreground: 255 255 255;
+    --secondary: 233 239 255;
+    --secondary-foreground: 0 46 168;
+    --muted: 236 238 231;
+    --muted-foreground: 99 112 134;
+    --accent: 233 239 255;
+    --accent-foreground: 0 46 168;
+    --destructive: 190 32 46;
+    --destructive-foreground: 255 255 255;
+    --border: 223 226 216;
+    --input: 210 214 204;
+    --ring: 0 71 255;
+    --radius: 0.625rem;
+
+    --header-h: 3.5rem;
+    color-scheme: light;
+  }
+
+  .dark {
+    --ink: 6 9 18;
+    --ink-foreground: 236 239 245;
+    --mist: 26 37 74;
+    --mist-foreground: 226 233 255;
+    --slate: 152 163 184;
+
+    --background: 15 20 35;
+    --foreground: 236 239 245;
+    --card: 22 28 46;
+    --card-foreground: 236 239 245;
+    --popover: 22 28 46;
+    --popover-foreground: 236 239 245;
+    --primary: 108 152 255;
+    --primary-foreground: 8 12 24;
+    --secondary: 26 37 74;
+    --secondary-foreground: 200 214 255;
+    --muted: 28 35 56;
+    --muted-foreground: 152 163 184;
+    --accent: 26 37 74;
+    --accent-foreground: 200 214 255;
+    --destructive: 248 113 113;
+    --destructive-foreground: 8 12 24;
+    --border: 40 48 72;
+    --input: 52 61 88;
+    --ring: 108 152 255;
+    color-scheme: dark;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: calc(var(--header-h) + 1rem);
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: clip;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display font-medium tracking-[-0.015em] text-foreground;
+    font-optical-sizing: auto;
+    text-wrap: balance;
+  }
+
+  a {
+    text-underline-offset: 3px;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  ::selection {
+    background: rgb(var(--mist));
+    color: rgb(var(--foreground));
+  }
+
+  .dark ::selection {
+    background: rgb(var(--primary) / 0.35);
+  }
+
+  :lang(bn) {
+    font-family: 'Noto Sans Bengali', 'Geist Variable', system-ui, sans-serif;
+  }
+  :lang(bn) .font-serif,
+  :lang(bn).font-serif,
+  :lang(bn) .article-body {
+    font-family: 'Noto Serif Bengali', 'Newsreader Variable', Georgia, serif;
+  }
+}
+
+@layer components {
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-[100] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-primary-foreground;
+  }
+
+  .eyebrow {
+    @apply font-mono text-[0.7rem] font-medium uppercase tracking-[0.12em] text-muted-foreground;
+  }
+
+  .data {
+    @apply font-mono text-xs tabular-nums;
+  }
+
+  .link-underline {
+    @apply underline decoration-primary/30 decoration-2 underline-offset-4 transition-colors hover:decoration-primary;
+  }
+
+  /* Long-form reading: Source Serif 4 at a comfortable measure. */
+  .article-body {
+    @apply font-serif text-[1.125rem] leading-[1.6] text-foreground sm:text-[1.1875rem];
+    font-optical-sizing: auto;
+  }
+  .article-body > * + * {
+    margin-top: 1.25em;
+  }
+  .article-body h2 {
+    @apply mt-10 font-display text-[1.6rem] font-semibold leading-snug;
+  }
+  .article-body h3 {
+    @apply mt-8 font-display text-xl font-semibold leading-snug;
+  }
+  .article-body a {
+    @apply font-medium text-primary underline decoration-primary/30 underline-offset-4 hover:decoration-primary;
+  }
+  .article-body blockquote {
+    @apply border-l-2 border-primary pl-5 font-serif text-xl italic leading-relaxed text-foreground/90;
+  }
+  .article-body blockquote cite {
+    @apply mt-3 block font-sans text-sm not-italic text-muted-foreground;
+  }
+  .article-body figure img {
+    @apply w-full rounded-lg bg-muted;
+  }
+  .article-body figcaption {
+    @apply mt-2 font-sans text-sm text-muted-foreground;
+  }
+  .article-body ul,
+  .article-body ol {
+    @apply pl-6;
+  }
+  .article-body ul {
+    @apply list-disc;
+  }
+  .article-body ol {
+    @apply list-decimal;
+  }
+  .article-body li + li {
+    @apply mt-2;
+  }
+  .article-body img {
+    @apply h-auto max-w-full rounded-lg;
+  }
+  .article-body iframe,
+  .article-body video {
+    @apply w-full max-w-full rounded-lg;
+  }
+  .article-body pre {
+    @apply overflow-x-auto rounded-lg bg-muted p-4 font-mono text-sm;
+  }
+  .article-body table {
+    @apply block w-full overflow-x-auto font-sans text-sm;
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  header,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+    color: #000;
+  }
+}

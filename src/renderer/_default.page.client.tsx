@@ -1,30 +1,48 @@
 import type { ComponentType } from 'react';
-import { hydrateRoot } from 'react-dom/client';
+import { createRoot, hydrateRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import { HelmetProvider } from 'react-helmet-async';
-import { AuthProvider } from '../context/AuthContext';
-import '../index.css';
+import { AppProviders } from '../App';
+import type { InitialData } from '../components/seo/context';
+import { normalizeArticle } from '../lib/api/normalize';
+import '../styles/fonts';
+import '../styles/globals.css';
 
-type PageContext = {
-  Page: ComponentType;
-};
+type PageContext = { Page: ComponentType };
+
+const normalize = (p: string) => (p.endsWith('/') ? p : `${p}/`);
+
+function readInitialData(): InitialData {
+  const el = document.getElementById('__AGZ_DATA__');
+  if (!el?.textContent) return {};
+  try {
+    const data = JSON.parse(el.textContent) as InitialData;
+    if (data.articleRaw && !data.article) data.article = normalizeArticle(data.articleRaw);
+    return data;
+  } catch {
+    return {};
+  }
+}
 
 export function render(pageContext: PageContext) {
   const { Page } = pageContext;
   const root = document.getElementById('root');
+  if (!root) throw new Error('Missing #root');
 
-  if (!root) {
-    throw new Error('Missing root element for hydration.');
-  }
-
-  hydrateRoot(
-    root,
-    <HelmetProvider>
-      <AuthProvider>
-        <BrowserRouter>
-          <Page />
-        </BrowserRouter>
-      </AuthProvider>
-    </HelmetProvider>,
+  const app = (
+    <AppProviders initialData={readInitialData()}>
+      <BrowserRouter>
+        <Page />
+      </BrowserRouter>
+    </AppProviders>
   );
+
+  // Hydrate only when this HTML was prerendered for this exact URL. HTML served for other
+  // URLs (edge-rendered new articles, rewrites, unknown paths) is replaced by a fresh render,
+  // which avoids hydration mismatches.
+  if (root.dataset.path && root.dataset.path === normalize(window.location.pathname) && !window.location.search && root.hasChildNodes()) {
+    hydrateRoot(root, app);
+  } else {
+    root.textContent = '';
+    createRoot(root).render(app);
+  }
 }

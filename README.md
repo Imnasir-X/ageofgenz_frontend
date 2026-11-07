@@ -52,3 +52,9 @@ export default tseslint.config({
 })
 
 Deploy trigger.
+
+## AI features (optional)
+
+The article page reads Hermes newsroom endpoints from the backend (`/api/newsroom/`, see `src/lib/api/client.ts`):
+summary (`tldr`, `why_it_matters`), approved Bangla translation, reader Q&A (answers grounded only on the article, with quotes) and related stories.
+Each feature hides itself when its endpoint returns 404 or 503, so the site works with or without Hermes.

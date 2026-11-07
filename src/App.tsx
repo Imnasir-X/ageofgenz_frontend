@@ -1,186 +1,129 @@
-import React, { Suspense, lazy } from 'react';
-import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
-  Navigate,
-  useParams,
-  useLocation,
-} from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import { Helmet, HelmetProvider } from 'react-helmet-async';
-import Header from './components/Header';
-import Footer from './components/Footer';
-import CategoryPage from './components/CategoryPage';
-import { resolveCategoryMeta } from './utils/categoryHelpers';
+import { Suspense, lazy, useEffect, type ReactNode } from 'react';
+import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
+import { AuthProvider } from '@/context/AuthContext';
+import { InitialDataContext, SeoContext, type InitialData, type SeoCollector } from '@/components/seo/context';
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
+import { Analytics } from '@/components/layout/Analytics';
+import { ErrorBoundary } from '@/components/layout/ErrorBoundary';
+import { Skeleton } from '@/components/ui/skeleton';
+import { SECTIONS } from '@/constants/sections';
 
 const Home = lazy(() => import('./pages/Home'));
-const Trending = lazy(() => import('./pages/Trending'));
-const Opinion = lazy(() => import('./pages/Opinion'));
-const AI = lazy(() => import('./pages/AI'));
+const Section = lazy(() => import('./pages/Section'));
+const Category = lazy(() => import('./pages/Category'));
+const ArticleDetail = lazy(() => import('./pages/ArticleDetail'));
+const SearchResults = lazy(() => import('./pages/SearchResults'));
 const About = lazy(() => import('./pages/About'));
 const Contact = lazy(() => import('./pages/Contact'));
-const Category = lazy(() => import('./pages/Category'));
 const Privacy = lazy(() => import('./pages/Privacy'));
-const Login = lazy(() => import('./pages/Login'));
-const ArticleDetail = lazy(() => import('./pages/ArticleDetail'));
-const Subscribe = lazy(() => import('./pages/Subscribe'));
-const SearchResults = lazy(() => import('./pages/SearchResults'));
-const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
-const Politics = lazy(() => import('./pages/Politics'));
-const Culture = lazy(() => import('./pages/Culture'));
-const Sports = lazy(() => import('./pages/Sports'));
-const World = lazy(() => import('./pages/world'));
-const Insights = lazy(() => import('./pages/Insights'));
-const Memes = lazy(() => import('./pages/Memes'));
 const Terms = lazy(() => import('./pages/Terms'));
+const Login = lazy(() => import('./pages/Login'));
+const Signup = lazy(() => import('./pages/Signup'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const Subscribe = lazy(() => import('./pages/Subscribe'));
+const Donate = lazy(() => import('./pages/Donate'));
 const ThankYou = lazy(() => import('./pages/ThankYou'));
 const Cancel = lazy(() => import('./pages/Cancel'));
-const DonationPlaceholder = lazy(() => import('./components/DonationPlaceholder'));
-const Signup = lazy(() => import('./pages/Signup'));
+const Unsubscribe = lazy(() => import('./pages/Unsubscribe'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
-const DEFAULT_TITLE = 'The Age of GenZ | NEWS YOU CAN VIBE WITH';
-const DEFAULT_DESCRIPTION =
-  'The Age of GenZ delivers NEWS YOU CAN VIBE WITH - breaking news, politics, culture & technology from a generational perspective.';
-const DEFAULT_OG_IMAGE = 'https://theageofgenz.com/og-image.jpg';
-const DEFAULT_TWITTER_IMAGE = 'https://theageofgenz.com/twitter-card.jpg';
-
-const CATEGORY_ROUTE_SLUGS = [
+/** Section URLs preserved from the previous site. */
+export const SECTION_ROUTES = [
+  'trending',
+  'opinion',
+  'ai',
+  'culture',
+  'politics',
+  'world',
+  'sports',
+  'insights',
+  'memes',
   'tech',
   'pop-media',
   'science-discovery',
   'global',
-  'middle-east',
   'business-economy',
   'crime-justice',
-];
+] as const;
 
-const buildCategoryMeta = (name: string) => ({
-  metaTitle: `${name} | The Age of GenZ`,
-  metaDescription: `Latest ${name} stories, analysis, and updates from The Age of GenZ.`,
-  description: `The latest ${name} coverage, insights, and Gen Z perspectives in one place.`,
-});
-
-const CategoryAlias: React.FC<{ slug: string }> = ({ slug }) => {
-  const meta = resolveCategoryMeta({ slug });
-  const copy = buildCategoryMeta(meta.name);
-
-  return (
-    <CategoryPage
-      slug={meta.slug}
-      title={meta.name}
-      description={copy.description}
-      metaTitle={copy.metaTitle}
-      metaDescription={copy.metaDescription}
-      emptyMessage={`No ${meta.name.toLowerCase()} articles available yet.`}
-    />
-  );
-};
-
-const LegacyArticleRedirect: React.FC = () => {
+function LegacyArticleRedirect() {
   const { slug } = useParams<{ slug: string }>();
-  if (!slug) {
-    return <Navigate to="/" replace />;
-  }
-  return <Navigate to={`/articles/${slug}/`} replace />;
-};
+  return <Navigate to={slug ? `/articles/${slug}/` : '/'} replace />;
+}
 
-export const AppRoutes: React.FC = () => {
-  const location = useLocation();
-  const canonicalPath = location.pathname.endsWith('/')
-    ? location.pathname
-    : `${location.pathname}/`;
-  const canonicalUrl = `https://theageofgenz.com${canonicalPath}`;
-  const structuredData = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'The Age of GenZ',
-    url: 'https://theageofgenz.com',
-    logo: 'https://theageofgenz.com/logo.png',
-    sameAs: ['https://theageofgenz.com'],
-  };
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    if (!window.location.hash) window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
 
+function PageFallback() {
   return (
-    <div className="flex flex-col min-h-screen">
-      <Helmet>
-        <title>{DEFAULT_TITLE}</title>
-        <meta name="description" content={DEFAULT_DESCRIPTION} />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="canonical" href={canonicalUrl} />
-        <meta property="og:site_name" content="The Age of GenZ" />
-        <meta property="og:title" content={DEFAULT_TITLE} />
-        <meta property="og:description" content={DEFAULT_DESCRIPTION} />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content={DEFAULT_OG_IMAGE} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={DEFAULT_TITLE} />
-        <meta name="twitter:description" content={DEFAULT_DESCRIPTION} />
-        <meta name="twitter:image" content={DEFAULT_TWITTER_IMAGE} />
-        <link
-          rel="alternate"
-          type="application/rss+xml"
-          title="The Age of GenZ RSS Feed"
-          href="https://theageofgenz.com/rss.xml"
-        />
-        <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
-        <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
-      </Helmet>
+    <div className="container space-y-4 pt-12" aria-busy="true" aria-label="Loading">
+      <Skeleton className="h-3 w-40" />
+      <Skeleton className="h-14 w-3/4" />
+      <Skeleton className="h-5 w-1/2" />
+    </div>
+  );
+}
+
+export function AppRoutes() {
+  return (
+    <div className="flex min-h-screen flex-col">
+      <ScrollToTop />
+      <Analytics />
       <Header />
-      <main className="flex-grow">
-        <Suspense fallback={<div className="p-6 text-center text-gray-500">Loading...</div>}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/trending" element={<Trending />} />
-            <Route path="/opinion" element={<Opinion />} />
-            <Route path="/ai" element={<AI />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
-
-            {/* Category-specific routes that map to your components */}
-            <Route path="/culture" element={<Culture />} />
-            <Route path="/sports" element={<Sports />} />
-            <Route path="/politics" element={<Politics />} />
-            <Route path="/world" element={<World />} />
-            <Route path="/insights" element={<Insights />} />
-            <Route path="/memes" element={<Memes />} />
-
-            {/* Generic category route for any other categories */}
-            <Route path="/category/:slug" element={<Category />} />
-
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/subscribe" element={<Subscribe />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/search" element={<SearchResults />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/articles/:slug/*" element={<ArticleDetail />} />
-            <Route path="/article/:slug" element={<LegacyArticleRedirect />} />
-            {CATEGORY_ROUTE_SLUGS.map((slug) => (
-              <Route key={slug} path={`/${slug}`} element={<CategoryAlias slug={slug} />} />
-            ))}
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/donate" element={<DonationPlaceholder />} />
-            <Route path="/support" element={<DonationPlaceholder />} />
-            <Route path="/donation/success" element={<ThankYou />} />
-            <Route path="/donation/cancelled" element={<Cancel />} />
-            <Route path="/signup" element={<Signup />} />
-          </Routes>
-        </Suspense>
+      <main id="main" className="flex-1 outline-none" tabIndex={-1}>
+        <ErrorBoundary>
+          <Suspense fallback={<PageFallback />}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/home" element={<Home />} />
+              {SECTION_ROUTES.map((key) => (
+                <Route key={key} path={SECTIONS[key].path} element={<Section sectionKey={key} />} />
+              ))}
+              <Route path="/category/:slug" element={<Category />} />
+              <Route path="/articles/:slug/*" element={<ArticleDetail />} />
+              <Route path="/article/:slug" element={<LegacyArticleRedirect />} />
+              <Route path="/search" element={<SearchResults />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/subscribe" element={<Subscribe />} />
+              <Route path="/donate" element={<Donate />} />
+              <Route path="/support" element={<Donate />} />
+              <Route path="/donation/success" element={<ThankYou />} />
+              <Route path="/donation/cancelled" element={<Cancel />} />
+              <Route path="/unsubscribe" element={<Unsubscribe />} />
+              <Route path="/newsletter/unsubscribe" element={<Unsubscribe />} />
+              {/* Neutral shell used by the article edge function and dynamic rewrites. */}
+              <Route path="/__shell" element={<PageFallback />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </ErrorBoundary>
       </main>
       <Footer />
     </div>
   );
-};
+}
 
-const App: React.FC = () => (
-  <HelmetProvider>
-    <AuthProvider>
-      <Router>
-        <AppRoutes />
-      </Router>
-    </AuthProvider>
-  </HelmetProvider>
-);
-
-export default App;
+export function AppProviders({ children, initialData = {}, seo = null }: { children: ReactNode; initialData?: InitialData; seo?: SeoCollector | null }) {
+  return (
+    <SeoContext.Provider value={seo}>
+      <InitialDataContext.Provider value={initialData}>
+        <AuthProvider>{children}</AuthProvider>
+      </InitialDataContext.Provider>
+    </SeoContext.Provider>
+  );
+}
