@@ -195,6 +195,7 @@ export const normalizeArticle = (input: unknown): Article => {
     publishedAt: str(raw.published_at) || str(raw.created_at),
     updatedAt: str(raw.updated_at) || str(raw.published_at) || str(raw.created_at),
     readMinutes,
+    ...(Number.isFinite(Number(raw.view_count)) && raw.view_count !== null && raw.view_count !== undefined ? { views: Number(raw.view_count) } : {}),
     metaTitle: fixTitleCase(str(raw.meta_title) || str(raw.title)),
     metaDescription: stripHtml(str(raw.meta_description)) || excerpt,
     tags,

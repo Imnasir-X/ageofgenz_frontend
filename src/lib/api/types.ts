@@ -102,6 +102,8 @@ export interface Article {
   publishedAt: string;
   updatedAt: string;
   readMinutes: number;
+  /** Total views, when the API includes view_count. */
+  views?: number;
   metaTitle: string;
   metaDescription: string;
   tags: string[];
