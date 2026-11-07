@@ -361,8 +361,9 @@ export const authApi = {
       anonymous: true,
     });
   },
-  xLoginUrl(next: string) {
-    return buildUrl('/api/auth/social-auth/x/login/', { next });
+  /** The backend's X OAuth flow requires the user's email up front. */
+  xLoginUrl(email: string) {
+    return buildUrl('/api/auth/social-auth/x/login/', { email });
   },
   requestPasswordReset(email: string) {
     return request<{ message?: string }>('/api/auth/password-reset/', { method: 'POST', body: { email }, anonymous: true });

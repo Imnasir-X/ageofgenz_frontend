@@ -36,7 +36,7 @@ export function render(pageContext: PageContext) {
   // Hydrate only when this HTML was prerendered for this exact URL. HTML served for other
   // URLs (edge-rendered new articles, rewrites, unknown paths) is replaced by a fresh render,
   // which avoids hydration mismatches.
-  if (root.dataset.path && root.dataset.path === normalize(window.location.pathname) && root.hasChildNodes()) {
+  if (root.dataset.path && root.dataset.path === normalize(window.location.pathname) && !window.location.search && root.hasChildNodes()) {
     hydrateRoot(root, app);
   } else {
     root.textContent = '';

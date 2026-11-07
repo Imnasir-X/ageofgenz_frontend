@@ -30,7 +30,6 @@ const Unsubscribe = lazy(() => import('./pages/Unsubscribe'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 /** Section URLs preserved from the previous site. */
-// eslint-disable-next-line react-refresh/only-export-components
 export const SECTION_ROUTES = [
   'trending',
   'opinion',
