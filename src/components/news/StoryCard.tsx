@@ -45,7 +45,7 @@ export function StoryCard({ article, variant = 'standard', className, index, pri
   if (variant === 'lead' && !article.image) {
     // Text-led cover for stories without art: no placeholder blocks.
     return (
-      <article className={cn('group relative isolate overflow-hidden rounded-lg bg-ink px-6 py-8 text-ink-foreground sm:px-10 sm:py-12', press, className)}>
+      <article className={cn('group relative isolate flex min-h-[34rem] flex-col justify-center overflow-hidden rounded-lg bg-ink px-6 py-8 text-ink-foreground sm:px-10 sm:py-12 md:min-h-[30rem]', press, className)}>
         <CoverArt category={article.category.slug} size="lg" className="-z-10 opacity-90" />
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           {article.isOpinion && (
@@ -69,7 +69,7 @@ export function StoryCard({ article, variant = 'standard', className, index, pri
           </p>
         )}
         {/* Von Restorff: the one Electric Lime element in the view is the lead story's call to action. */}
-        <p className="mt-9 inline-flex min-h-11 items-center gap-2 rounded-md bg-lime px-4 text-sm font-semibold text-lime-foreground" aria-hidden="true">
+        <p className="mt-9 inline-flex min-h-11 w-fit items-center gap-2 rounded-md bg-lime px-4 text-sm font-semibold text-lime-foreground" aria-hidden="true">
           Read the story <ArrowRight className="size-4 transition-transform duration-base ease-standard group-hover:translate-x-0.5" />
         </p>
       </article>

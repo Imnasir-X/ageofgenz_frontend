@@ -84,7 +84,8 @@ export function StoryRowSkeleton({ count = 3, className }: { count?: number; cla
 /** Matches StoryCard variant="lead" with art: 7/5 split, 3:2 image. */
 export function LeadSkeleton() {
   return (
-    <div className="grid gap-5 md:grid-cols-12 md:gap-8" aria-busy="true" aria-label="Loading top story">
+    // Same minimum height as the text-led lead cover, so either kind of lead replaces it without a jump.
+    <div className="grid min-h-[34rem] content-start gap-5 md:min-h-[30rem] md:grid-cols-12 md:gap-8" aria-busy="true" aria-label="Loading top story">
       <Skeleton className="aspect-[3/2] w-full md:col-span-7" />
       <div className="space-y-3 md:col-span-5 md:py-2">
         <Skeleton className="h-3 w-32" />
