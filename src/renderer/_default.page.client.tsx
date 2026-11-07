@@ -2,6 +2,7 @@ import type { ComponentType } from 'react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { AppProviders } from '../App';
+import { preloadRoute } from '../routes';
 import type { InitialData } from '../components/seo/context';
 import { normalizeArticle } from '../lib/api/normalize';
 import '../styles/fonts';
@@ -23,7 +24,7 @@ function readInitialData(): InitialData {
   }
 }
 
-export function render(pageContext: PageContext) {
+export async function render(pageContext: PageContext) {
   const { Page } = pageContext;
   const root = document.getElementById('root');
   if (!root) throw new Error('Missing #root');
@@ -40,6 +41,8 @@ export function render(pageContext: PageContext) {
   // URLs (edge-rendered new articles, rewrites, unknown paths) is replaced by a fresh render,
   // which avoids hydration mismatches.
   if (root.dataset.path && root.dataset.path === normalize(window.location.pathname) && !window.location.search && root.hasChildNodes()) {
+    // Load the page's code first so hydration never suspends (see lib/lazyRoute.ts).
+    await preloadRoute(window.location.pathname).catch(() => undefined);
     hydrateRoot(root, app);
   } else {
     root.textContent = '';

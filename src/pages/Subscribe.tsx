@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Check, Loader2 } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { PageIntro } from '@/components/layout/PageShell';
 import { Alert } from '@/components/ui/alert';
@@ -133,12 +133,12 @@ export default function Subscribe() {
               )}
             </div>
             {current.cancel_at_period_end ? (
-              <Button onClick={() => manage('reactivate')} disabled={pending !== null}>
-                {pending === 'reactivate' && <Loader2 className="animate-spin" />} Reactivate
+              <Button onClick={() => manage('reactivate')} disabled={pending !== null} loading={pending === 'reactivate'}>
+                Reactivate
               </Button>
             ) : (
-              <Button variant="outline" onClick={() => manage('cancel')} disabled={pending !== null}>
-                {pending === 'cancel' && <Loader2 className="animate-spin" />} Cancel subscription
+              <Button variant="outline" onClick={() => manage('cancel')} disabled={pending !== null} loading={pending === 'cancel'}>
+                Cancel subscription
               </Button>
             )}
           </section>
@@ -187,8 +187,8 @@ export default function Subscribe() {
                         </li>
                       ))}
                     </ul>
-                    <Button className="mt-8 w-full" variant={plan.is_popular ? 'default' : 'outline'} onClick={() => checkout(id)} disabled={pending !== null}>
-                      {pending === id && <Loader2 className="animate-spin" />} {isAuthenticated ? 'Continue to checkout' : 'Sign in to subscribe'}
+                    <Button className="mt-8 w-full" variant={plan.is_popular ? 'default' : 'outline'} onClick={() => checkout(id)} disabled={pending !== null} loading={pending === id}>
+                      {isAuthenticated ? 'Continue to checkout' : 'Sign in to subscribe'}
                     </Button>
                   </article>
                 );

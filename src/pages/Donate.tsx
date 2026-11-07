@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart, Loader2 } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { PageIntro } from '@/components/layout/PageShell';
 import { Alert } from '@/components/ui/alert';
@@ -88,8 +88,8 @@ export default function Donate() {
                 {error}
               </Alert>
             )}
-            <Button size="lg" className="mt-8 w-full sm:w-auto" onClick={donate} disabled={busy}>
-              {busy ? <Loader2 className="animate-spin" /> : <Heart />} Give ${Number.isFinite(value) ? value : 0}
+            <Button size="lg" className="mt-8 w-full sm:w-auto" onClick={donate} loading={busy}>
+              <Heart aria-hidden="true" /> Give ${Number.isFinite(value) ? value : 0}
               {recurring ? ' a month' : ''}
             </Button>
             <p className="mt-4 text-xs text-muted-foreground">Secure checkout by Stripe. Monthly gifts can be cancelled anytime.</p>
@@ -98,9 +98,9 @@ export default function Donate() {
             <div className="rounded-lg bg-ink p-7 text-ink-foreground">
               <p className="eyebrow text-lime">Where it goes</p>
               <ul className="mt-4 space-y-4 text-sm text-ink-foreground/80">
-                <li className="flex gap-3"><span className="data text-lime">01</span> Reporting and fact-checking time</li>
-                <li className="flex gap-3"><span className="data text-lime">02</span> Explainers and source lists on every story</li>
-                <li className="flex gap-3"><span className="data text-lime">03</span> Keeping the site fast, accessible and free to read</li>
+                <li className="flex gap-3"><span className="data text-ink-foreground/50">01</span> Reporting and fact-checking time</li>
+                <li className="flex gap-3"><span className="data text-ink-foreground/50">02</span> Explainers and source lists on every story</li>
+                <li className="flex gap-3"><span className="data text-ink-foreground/50">03</span> Keeping the site fast, accessible and free to read</li>
               </ul>
             </div>
           </aside>

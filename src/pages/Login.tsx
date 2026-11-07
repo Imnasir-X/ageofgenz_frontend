@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { AuthShell, Field } from '@/components/layout/PageShell';
 import { Alert } from '@/components/ui/alert';
@@ -141,11 +140,11 @@ export default function Login() {
           </Alert>
         )}
         <div className="grid gap-2 sm:grid-cols-2">
-          <Button variant="outline" onClick={google} disabled={Boolean(busy)}>
-            {busy === 'google' && <Loader2 className="animate-spin" />} Continue with Google
+          <Button variant="outline" onClick={google} disabled={Boolean(busy)} loading={busy === 'google'}>
+            Continue with Google
           </Button>
-          <Button variant="outline" onClick={xLogin} disabled={Boolean(busy)}>
-            {busy === 'x' && <Loader2 className="animate-spin" />} Continue with X
+          <Button variant="outline" onClick={xLogin} disabled={Boolean(busy)} loading={busy === 'x'}>
+            Continue with X
           </Button>
         </div>
         <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground">
@@ -166,8 +165,8 @@ export default function Login() {
           >
             <Input id="login-password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           </Field>
-          <Button type="submit" className="w-full" size="lg" disabled={Boolean(busy)}>
-            {busy === 'email' && <Loader2 className="animate-spin" />} Sign in
+          <Button type="submit" className="w-full" size="lg" disabled={Boolean(busy)} loading={busy === 'email'}>
+            Sign in
           </Button>
         </form>
       </AuthShell>

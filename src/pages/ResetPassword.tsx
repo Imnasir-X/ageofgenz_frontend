@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { CheckCircle2, Loader2 } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { AuthShell, Field } from '@/components/layout/PageShell';
 import { Alert } from '@/components/ui/alert';
@@ -75,8 +75,8 @@ export default function ResetPassword() {
             <Field id="rp-pass2" label="Confirm new password">
               <Input id="rp-pass2" type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
             </Field>
-            <Button type="submit" className="w-full" size="lg" disabled={busy}>
-              {busy && <Loader2 className="animate-spin" />} Update password
+            <Button type="submit" className="w-full" size="lg" disabled={busy} loading={busy}>
+              Update password
             </Button>
           </form>
         )}

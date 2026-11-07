@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, Loader2 } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { AuthShell, Field } from '@/components/layout/PageShell';
 import { Alert } from '@/components/ui/alert';
@@ -77,8 +77,8 @@ export default function Signup() {
             <Field id="su-pass2" label="Confirm password">
               <Input id="su-pass2" type="password" autoComplete="new-password" value={form.password_confirm} onChange={set('password_confirm')} required />
             </Field>
-            <Button type="submit" className="w-full" size="lg" disabled={busy}>
-              {busy && <Loader2 className="animate-spin" />} Create account
+            <Button type="submit" className="w-full" size="lg" disabled={busy} loading={busy}>
+              Create account
             </Button>
             <p className="text-xs text-muted-foreground">
               By creating an account you agree to our{' '}

@@ -64,6 +64,12 @@
     --radius: 0.625rem;
 
     --header-h: 3.5rem;
+
+    /* Motion tokens (see tailwind.config.ts) */
+    --motion-fast: 150ms;
+    --motion-base: 200ms;
+    --motion-slow: 250ms;
+    --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
     color-scheme: light;
   }
 
@@ -229,6 +235,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 0ms;
+    --motion-base: 0ms;
+    --motion-slow: 0ms;
+  }
   *,
   *::before,
   *::after {

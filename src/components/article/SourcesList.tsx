@@ -1,7 +1,7 @@
 import { ExternalLink } from 'lucide-react';
 import type { Article } from '@/lib/api/types';
 import { CONTACT_EMAIL } from '@/lib/utils';
-import { extractLinks } from './ArticleBody';
+import { extractLinks } from '@/lib/article/html';
 
 /** Sources and perspectives. Falls back to links cited in the body, then to a corrections note. */
 export function SourcesList({ article }: { article: Article }) {

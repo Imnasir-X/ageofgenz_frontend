@@ -25,9 +25,9 @@ export function AuthShell({ title, dek, children, footer }: { title: string; dek
         <div>
           <p className="font-display text-[2.5rem] font-medium leading-[1.05] tracking-[-0.025em] text-ink-foreground">{TAGLINE}</p>
           <ul className="mt-8 space-y-3 text-sm text-ink-foreground/75">
-            <li className="flex gap-3"><span className="data text-lime">01</span> A quick briefing on the stories that matter</li>
-            <li className="flex gap-3"><span className="data text-lime">02</span> The original reporting and its sources</li>
-            <li className="flex gap-3"><span className="data text-lime">03</span> Follow a story as it develops</li>
+            <li className="flex gap-3"><span className="data text-ink-foreground/50">01</span> A quick briefing on the stories that matter</li>
+            <li className="flex gap-3"><span className="data text-ink-foreground/50">02</span> The original reporting and its sources</li>
+            <li className="flex gap-3"><span className="data text-ink-foreground/50">03</span> Follow a story as it develops</li>
           </ul>
         </div>
         <p className="data text-ink-foreground/50">theageofgenz.com</p>

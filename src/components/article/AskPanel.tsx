@@ -98,7 +98,7 @@ export function AskPanel({ article, className }: { article: Article; className?:
       {turns.length === 0 && (
         <div className="mt-4 flex flex-wrap gap-2">
           {SUGGESTIONS.map((s) => (
-            <button key={s} type="button" onClick={() => ask(s)} className="rounded-full border border-primary/25 bg-card px-3 py-1.5 text-left text-xs font-medium hover:border-primary">
+            <button key={s} type="button" onClick={() => ask(s)} className="inline-flex min-h-11 items-center rounded-full border border-primary/25 bg-card px-3 text-left text-xs font-medium transition-colors duration-fast hover:border-primary motion-safe:active:scale-[0.97] sm:min-h-8">
               {s}
             </button>
           ))}
@@ -130,8 +130,8 @@ export function AskPanel({ article, className }: { article: Article; className?:
           placeholder="Ask a question about this story"
           className="min-h-[2.75rem] resize-none bg-card"
         />
-        <Button type="submit" size="icon" disabled={busy || !question.trim()} aria-label="Ask">
-          {busy ? <Loader2 className="animate-spin" /> : <Send />}
+        <Button type="submit" size="icon" disabled={!question.trim()} loading={busy} aria-label="Ask">
+          <Send aria-hidden="true" />
         </Button>
       </form>
     </section>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Loader2, MailCheck } from 'lucide-react';
+import { MailCheck } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { AuthShell, Field } from '@/components/layout/PageShell';
 import { Alert } from '@/components/ui/alert';
@@ -52,8 +52,8 @@ export default function ForgotPassword() {
             <Field id="fp-email" label="Email">
               <Input id="fp-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </Field>
-            <Button type="submit" className="w-full" size="lg" disabled={busy}>
-              {busy && <Loader2 className="animate-spin" />} Send reset link
+            <Button type="submit" className="w-full" size="lg" disabled={busy} loading={busy}>
+              Send reset link
             </Button>
           </form>
         )}

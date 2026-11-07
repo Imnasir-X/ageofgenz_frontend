@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Loader2, Scale } from 'lucide-react';
+import { ChevronRight, Scale } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { Button } from '@/components/ui/button';
 import { StoryCard } from './StoryCard';
@@ -136,7 +136,7 @@ export function SectionPage({ section, trail }: { section: Section; trail?: stri
                 <Link
                   key={child.slug}
                   to={`/category/${child.slug}/`}
-                  className="shrink-0 rounded-full border bg-card px-3 py-1.5 text-sm font-medium transition-colors hover:border-primary hover:text-primary"
+                  className="inline-flex min-h-11 shrink-0 items-center rounded-full border bg-card px-3.5 text-sm font-medium transition-colors duration-fast hover:border-primary hover:text-primary lg:min-h-9"
                 >
                   {child.name}
                 </Link>
@@ -210,8 +210,8 @@ export function SectionPage({ section, trail }: { section: Section; trail?: stri
                   )}
                   {next && (
                     <div className="mt-12 flex justify-center">
-                      <Button variant="outline" onClick={loadMore} disabled={loadingMore}>
-                        {loadingMore && <Loader2 className="animate-spin" />} More {section.title} stories
+                      <Button variant="outline" onClick={loadMore} disabled={loadingMore} loading={loadingMore}>
+                        More {section.title} stories
                       </Button>
                     </div>
                   )}
@@ -231,7 +231,7 @@ export function SectionPage({ section, trail }: { section: Section; trail?: stri
                     <ul className="mt-3 flex flex-wrap gap-2">
                       {otherSections.map((k) => (
                         <li key={k}>
-                          <Link to={SECTIONS[k].path} className="inline-block rounded-full bg-muted px-3 py-1.5 text-sm font-medium hover:bg-mist hover:text-secondary-foreground">
+                          <Link to={SECTIONS[k].path} className="inline-flex min-h-11 items-center rounded-full bg-muted px-3.5 text-sm font-medium transition-colors duration-fast hover:bg-mist hover:text-secondary-foreground lg:min-h-9">
                             {SECTIONS[k].label}
                           </Link>
                         </li>
