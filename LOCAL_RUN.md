@@ -38,10 +38,10 @@ cd ageofgenz_frontend && npm ci && npm run dev:local
 ```
 
 `npm run dev:local` (`scripts/dev-local.mjs`) runs the Vite dev server on http://localhost:3000 with
-`VITE_API_URL=http://localhost:8000` for both the browser and server-side rendering. It loads
-`scripts/vite.local.config.mjs`, a dev-only overlay on `vite.config.ts` that makes server-side
-rendering in dev pick react-router's ESM build (plain `npm run dev` fails with
-"Named export 'useParams' not found"). Production builds never read the overlay. Override it
+`VITE_API_URL=http://localhost:8000` for both the browser and server-side rendering. Plain
+`npm run dev` also works (it uses the production API unless `VITE_API_URL` is set): the dev-server
+SSR fix for react-router's export conditions lives in `vite.config.ts` and applies to `vite serve`
+only, so `npm run build` output is byte-for-byte unchanged. Override the API
 with `VITE_API_URL=http://other-host:8000 npm run dev:local`. Extra Vite flags go after `--`,
 for example `npm run dev:local -- --host` to open it from your phone on the same Wi-Fi
 (the API URL must then also be reachable from the phone).
