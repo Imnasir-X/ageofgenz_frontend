@@ -48,7 +48,7 @@ export function NewsletterForm({ tone = 'light', source = 'site', className }: {
           placeholder="you@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className={cn('sm:flex-1', dark && 'border-ink-foreground/20 bg-ink-foreground/5 text-ink-foreground placeholder:text-ink-foreground/45')}
+          className={cn('sm:flex-1', dark && 'border-ink-foreground/20 bg-ink-foreground/5 text-ink-foreground placeholder:text-ink-foreground/60')}
           aria-describedby={message ? `${id}-msg` : undefined}
           aria-invalid={state === 'error' || undefined}
           disabled={state === 'loading'}

@@ -160,7 +160,7 @@ export function Header() {
               </div>
               <nav aria-label="All sections" className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-3">
                 <NavLink to="/" end className={sheetLink}>
-                  Today’s briefing
+                  Latest
                 </NavLink>
                 {[...PRIMARY_NAV, ...SECONDARY_NAV].map((key) => (
                   <NavLink key={key} to={SECTIONS[key].path} className={sheetLink}>
@@ -191,10 +191,14 @@ export function Header() {
         </div>
       </div>
 
-      <nav aria-label="Sections (compact)" className="no-scrollbar overflow-x-auto border-t xl:hidden">
-        <div className="container flex h-11 items-center gap-1">
+      {/* Swipeable category tabs. The right edge fades out so it reads as "more to the side". */}
+      <nav
+        aria-label="Sections (compact)"
+        className="no-scrollbar overflow-x-auto border-t [mask-image:linear-gradient(to_right,#000_calc(100%-3rem),transparent)] xl:hidden"
+      >
+        <div className="container flex h-10 items-center gap-0.5 pr-10">
           <NavLink to="/" end className={navClass}>
-            Briefing
+            Latest
           </NavLink>
           {PRIMARY_NAV.map((key) => (
             <NavLink key={key} to={SECTIONS[key].path} className={navClass}>

@@ -3,6 +3,7 @@ import type { Article } from '@/lib/api/types';
 import { Badge } from '@/components/ui/badge';
 import { categoryHref } from '@/constants/sections';
 import { cn, timeAgo } from '@/lib/utils';
+import { meaningfulUpdate } from '@/lib/dates';
 
 export function OpinionLabel({ className }: { className?: string }) {
   return (
@@ -21,14 +22,24 @@ export function CategoryLink({ article, className }: { article: Article; classNa
 }
 
 export function StoryMeta({ article, className, showCategory = true }: { article: Article; className?: string; showCategory?: boolean }) {
+  const updated = meaningfulUpdate(article);
   return (
     <div className={cn('flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground', className)}>
       {article.isOpinion && <OpinionLabel />}
       {showCategory && <CategoryLink article={article} />}
-      {article.publishedAt && (
-        <time dateTime={article.publishedAt} className="data" suppressHydrationWarning>
-          {timeAgo(article.publishedAt)}
-        </time>
+      {updated ? (
+        <span className="data" title={`Published ${new Date(article.publishedAt).toUTCString()}`}>
+          <span className="font-medium text-foreground/80">Updated</span>{' '}
+          <time dateTime={updated.toISOString()} suppressHydrationWarning>
+            {timeAgo(updated.toISOString())}
+          </time>
+        </span>
+      ) : (
+        article.publishedAt && (
+          <time dateTime={article.publishedAt} className="data" suppressHydrationWarning>
+            {timeAgo(article.publishedAt)}
+          </time>
+        )
       )}
       <span aria-hidden="true" className="data">·</span>
       <span className="data">{article.readMinutes} min</span>

@@ -101,6 +101,12 @@ export interface Article {
   isOpinion: boolean;
   publishedAt: string;
   updatedAt: string;
+  /** When the text itself last changed (backend content_updated_at), when the API sends it. */
+  contentUpdatedAt?: string;
+  /** The backend's own verdict on whether the story was meaningfully updated after publication. */
+  isUpdated?: boolean;
+  /** Alt text for the featured image, when the newsroom wrote one. */
+  imageAlt?: string;
   readMinutes: number;
   /** Total views, when the API includes view_count. */
   views?: number;

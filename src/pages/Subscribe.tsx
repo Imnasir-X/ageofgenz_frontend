@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { NewsletterForm } from '@/components/news/NewsletterForm';
+import { MarketingConsent } from '@/components/news/MarketingConsent';
 import { useAuth } from '@/context/AuthContext';
 import { subscriptionApi } from '@/lib/api/client';
 import type { SubscriptionPlan, UserSubscription } from '@/lib/api/types';
@@ -34,6 +35,8 @@ export default function Subscribe() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [pending, setPending] = useState<string | null>(null);
+  // Marketing consent is opt-in: unchecked until the reader ticks it.
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
 
   useEffect(() => {
     subscriptionApi
@@ -52,16 +55,16 @@ export default function Subscribe() {
   useEffect(loadCurrent, [loadCurrent]);
 
   const checkout = useCallback(
-    async (planId: string) => {
+    async (planId: string, optIn: boolean) => {
       setError('');
       if (!isAuthenticated) {
-        sessionStorage.setItem('subscriptionIntent', planId);
+        sessionStorage.setItem('subscriptionIntent', JSON.stringify({ planId, optIn }));
         navigate('/login');
         return;
       }
       setPending(planId);
       try {
-        const res = await subscriptionApi.createCheckout(planId);
+        const res = await subscriptionApi.createCheckout(planId, optIn);
         const url = res.checkout_url || res.url;
         if (!url) throw new Error('Checkout is unavailable right now.');
         window.location.assign(url);
@@ -79,7 +82,19 @@ export default function Subscribe() {
     const intent = sessionStorage.getItem('subscriptionIntent');
     if (intent) {
       sessionStorage.removeItem('subscriptionIntent');
-      void checkout(intent);
+      let planId = intent;
+      let optIn = false;
+      try {
+        const parsed = JSON.parse(intent) as { planId?: unknown; optIn?: unknown };
+        if (parsed && typeof parsed === 'object' && parsed.planId !== undefined) {
+          planId = String(parsed.planId);
+          optIn = parsed.optIn === true;
+        }
+      } catch {
+        // Older plain plan-id intents carry no consent: treat as not opted in.
+      }
+      setMarketingOptIn(optIn);
+      void checkout(planId, optIn);
     }
   }, [isAuthenticated, isLoading, checkout]);
 
@@ -145,6 +160,9 @@ export default function Subscribe() {
         )}
 
         <section className="mt-10" aria-label="Plans">
+          {plans && plans.length > 0 && (
+            <MarketingConsent checked={marketingOptIn} onChange={setMarketingOptIn} className="mb-6 max-w-2xl rounded-lg border bg-card p-5" />
+          )}
           {plans === null ? (
             <div className="grid gap-6 md:grid-cols-3">
               {[0, 1, 2].map((i) => (
@@ -187,7 +205,7 @@ export default function Subscribe() {
                         </li>
                       ))}
                     </ul>
-                    <Button className="mt-8 w-full" variant={plan.is_popular ? 'default' : 'outline'} onClick={() => checkout(id)} disabled={pending !== null} loading={pending === id}>
+                    <Button className="mt-8 w-full" variant={plan.is_popular ? 'default' : 'outline'} onClick={() => checkout(id, marketingOptIn)} disabled={pending !== null} loading={pending === id}>
                       {isAuthenticated ? 'Continue to checkout' : 'Sign in to subscribe'}
                     </Button>
                   </article>

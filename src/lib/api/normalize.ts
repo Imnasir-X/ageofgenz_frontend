@@ -154,7 +154,7 @@ export const normalizeArticle = (input: unknown): Article => {
   const excerpt = stripHtml(richText(raw.excerpt ?? raw.summary ?? raw.description));
   const category = normalizeCategory(raw);
   const words = (blocksText(contentBlocks) || stripHtml(content)).split(/\s+/).filter(Boolean).length;
-  const apiRead = Number(raw.estimated_read_time);
+  const apiRead = Number(raw.reading_time_minutes ?? raw.estimated_read_time);
   // Reading time from the text itself (~230 wpm). The API value is only used when there is no
   // body to count (list payloads), and only when it is plausible.
   const readMinutes = words >= 50 ? Math.max(1, Math.ceil(words / WPM)) : apiRead > 0 && apiRead < 120 ? Math.round(apiRead) : 1;
@@ -200,8 +200,11 @@ export const normalizeArticle = (input: unknown): Article => {
     metaDescription: stripHtml(str(raw.meta_description)) || excerpt,
     tags,
   };
+  if (typeof raw.is_updated === 'boolean') article.isUpdated = raw.is_updated;
+  if (str(raw.content_updated_at)) article.contentUpdatedAt = str(raw.content_updated_at);
+  if (str(raw.image_alt).trim()) article.imageAlt = str(raw.image_alt).trim();
 
-  const tldr = stringList(pick('tldr') ?? pick('tl_dr') ?? pick('summary_points'));
+  const tldr = stringList(pick('tldr_points') ?? pick('tldr') ?? pick('tl_dr') ?? pick('summary_points'));
   if (tldr) article.tldr = tldr;
   const reviewed = pick('tldr_reviewed') ?? pick('summary_reviewed') ?? pick('reviewed_by_editor') ?? pick('is_reviewed');
   if (reviewed === true) article.aiReviewed = true;

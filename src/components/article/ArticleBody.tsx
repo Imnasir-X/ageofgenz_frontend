@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { ContentBlock, ParagraphBlock } from '@/lib/api/types';
-import { optimizeImage } from '@/lib/image';
+import { imageSrcSet, optimizeImage } from '@/lib/image';
 import { htmlToBlocks, sanitizeHtml } from '@/lib/article/html';
 import { cn } from '@/lib/utils';
 
@@ -64,7 +64,20 @@ export function ArticleBody({ blocks, content, className }: { blocks: ContentBlo
             if (!src) return null;
             return (
               <figure key={key} className={cn(block.position === 'center' && 'mx-auto max-w-md')}>
-                <img src={optimizeImage(src, 1200)} alt={block.alt?.trim() || block.caption?.trim() || ''} loading="lazy" decoding="async" />
+                {/* Fixed 16:9 box (image letterboxed inside), so lazy images never push the text around. */}
+                <div className="relative aspect-video w-full overflow-hidden rounded-md bg-mist">
+                  <img
+                    src={optimizeImage(src, 800)}
+                    srcSet={imageSrcSet(src, 800)}
+                    sizes="(max-width: 720px) calc(100vw - 2.5rem), 680px"
+                    alt={block.alt?.trim() || block.caption?.trim() || ''}
+                    width={800}
+                    height={450}
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 m-0 h-full w-full object-contain"
+                  />
+                </div>
                 {block.caption && <figcaption>{block.caption}</figcaption>}
               </figure>
             );

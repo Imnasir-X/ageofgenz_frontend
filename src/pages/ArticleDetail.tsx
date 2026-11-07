@@ -23,6 +23,7 @@ import { articleJsonLd } from '@/lib/article/jsonLd';
 import { loadArticle } from '@/lib/prefetch';
 import { categoryHref } from '@/constants/sections';
 import { formatDate } from '@/lib/utils';
+import { meaningfulUpdate } from '@/lib/dates';
 import NotFound from './NotFound';
 
 function BodySkeleton() {
@@ -57,7 +58,7 @@ function ArticleSkeleton() {
 }
 
 function ArticleHeader({ a }: { a: Article }) {
-  const updated = a.updatedAt && a.publishedAt && new Date(a.updatedAt).getTime() - new Date(a.publishedAt).getTime() > 3_600_000;
+  const updated = meaningfulUpdate(a);
   return (
     <>
       <header className="container max-w-[64rem]">
@@ -97,7 +98,7 @@ function ArticleHeader({ a }: { a: Article }) {
             )}
             {updated && (
               <span className="data text-muted-foreground">
-                · Updated <time dateTime={a.updatedAt}>{formatDate(a.updatedAt, { month: 'long' })}</time>
+                · Updated <time dateTime={updated.toISOString()}>{formatDate(updated.toISOString(), { month: 'long' })}</time>
               </span>
             )}
             <span className="data text-muted-foreground">· {a.readMinutes} min read</span>
@@ -108,7 +109,7 @@ function ArticleHeader({ a }: { a: Article }) {
 
       {a.image && (
         <figure className="container mt-8 max-w-[64rem]">
-          <StoryImage src={a.image} alt={a.imageCaption || a.title} width={1400} priority ratio="video" />
+          <StoryImage src={a.image} alt={a.imageAlt || a.imageCaption || a.title} width={1024} sizes="(max-width: 1088px) calc(100vw - 2.5rem), 1024px" priority ratio="video" />
           {(a.imageCaption || a.imageCredit) && (
             <figcaption className="mt-2 text-sm text-muted-foreground">
               {a.imageCaption}
