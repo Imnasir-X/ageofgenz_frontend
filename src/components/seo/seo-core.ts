@@ -17,6 +17,7 @@ export const DEFAULT_TITLE = `${SITE_NAME} — ${TAGLINE}`;
 export const DEFAULT_DESCRIPTION =
   'The Age of GenZ is a youth-focused news platform that helps you understand the stories that matter: quick briefings, the original reporting, multiple perspectives and AI-assisted explanations.';
 export const DEFAULT_IMAGE = `${SITE_URL}/og-image.jpg`;
+export const DEFAULT_TWITTER_IMAGE = `${SITE_URL}/twitter-card.jpg`;
 
 export const ORGANIZATION_LD = {
   '@context': 'https://schema.org',
@@ -24,7 +25,7 @@ export const ORGANIZATION_LD = {
   '@id': `${SITE_URL}/#organization`,
   name: SITE_NAME,
   url: `${SITE_URL}/`,
-  logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png`, width: 512, height: 512 },
+  logo: { '@type': 'ImageObject', url: `${SITE_URL}/icons/logo-1024.png`, width: 1024, height: 1024 },
   slogan: TAGLINE,
   email: 'contact@theageofgenz.com',
   sameAs: [
@@ -82,7 +83,7 @@ export function buildSeoTags(props: SeoProps, currentPath = '/'): SeoTag[] {
     { tag: 'meta', attrs: { name: 'twitter:site', content: '@TheAgeOfGenZ' } },
     { tag: 'meta', attrs: { name: 'twitter:title', content: title } },
     { tag: 'meta', attrs: { name: 'twitter:description', content: description } },
-    { tag: 'meta', attrs: { name: 'twitter:image', content: image } },
+    { tag: 'meta', attrs: { name: 'twitter:image', content: props.image ? image : DEFAULT_TWITTER_IMAGE } },
     { tag: 'meta', attrs: { name: 'robots', content: props.noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large, max-snippet:-1' } },
   ];
   if (props.article) {

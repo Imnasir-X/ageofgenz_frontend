@@ -64,7 +64,7 @@ function headTags(a, url) {
       datePublished: published,
       dateModified: modified,
       author: [{ '@type': 'Organization', name: NEWSROOM, url: `${SITE}/about/` }],
-      publisher: { '@type': 'NewsMediaOrganization', name: SITE_NAME, logo: { '@type': 'ImageObject', url: `${SITE}/logo.png` } },
+      publisher: { '@type': 'NewsMediaOrganization', name: SITE_NAME, logo: { '@type': 'ImageObject', url: `${SITE}/icons/logo-1024.png`, width: 1024, height: 1024 } },
       mainEntityOfPage: { '@type': 'WebPage', '@id': url },
       articleSection: category,
       isAccessibleForFree: true,

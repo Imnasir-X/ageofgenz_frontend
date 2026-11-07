@@ -24,7 +24,7 @@ export function articleJsonLd(a: Article) {
         '@type': 'NewsMediaOrganization',
         '@id': `${SITE_URL}/#organization`,
         name: SITE_NAME,
-        logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png`, width: 512, height: 512 },
+        logo: { '@type': 'ImageObject', url: `${SITE_URL}/icons/logo-1024.png`, width: 1024, height: 1024 },
       },
       mainEntityOfPage: { '@type': 'WebPage', '@id': url },
       url,
