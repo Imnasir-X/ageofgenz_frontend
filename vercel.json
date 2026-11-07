@@ -55,6 +55,14 @@
       "destination": "https://ageofgenz-backend.onrender.com/sitemap.xml"
     },
     {
+      "source": "/sitemap-news.xml",
+      "destination": "https://ageofgenz-backend.onrender.com/sitemap-news.xml"
+    },
+    {
+      "source": "/sitemap-index.xml",
+      "destination": "https://ageofgenz-backend.onrender.com/sitemap-index.xml"
+    },
+    {
       "source": "/robots.txt",
       "destination": "https://ageofgenz-backend.onrender.com/robots.txt"
     },
@@ -116,6 +124,32 @@
     },
     {
       "source": "/sitemap.xml",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/xml; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=3600, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/sitemap-news.xml",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/xml; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=3600, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/sitemap-index.xml",
       "headers": [
         {
           "key": "Content-Type",

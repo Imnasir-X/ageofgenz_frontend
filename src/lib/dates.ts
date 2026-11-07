@@ -24,9 +24,15 @@ export function isTodayInDhaka(iso: string | null | undefined, now: Date = new D
  * Masthead label for the home page. "Today's briefing" only when the newest story really is from
  * today (Asia/Dhaka); otherwise "Latest" with the real date of the newest story.
  */
-export function homeFreshnessLabel(newestIso: string | null | undefined, now: Date = new Date()): { label: string; date: string; isToday: boolean } {
+export function homeFreshnessLabel(
+  newestIso: string | null | undefined,
+  now: Date = new Date(),
+  /** Server verdict (/api/home/ published_today and freshness.is_stale) when available; it wins over the client clock. */
+  serverToday?: boolean,
+): { label: string; date: string; isToday: boolean } {
   const newest = valid(newestIso);
-  if (newest && dayKey(newest) === dayKey(now)) {
+  const today = serverToday ?? Boolean(newest && dayKey(newest) === dayKey(now));
+  if (today) {
     return { label: 'Today’s briefing', date: formatNewsroomDate(now), isToday: true };
   }
   if (!newest) return { label: 'Latest', date: '', isToday: false };

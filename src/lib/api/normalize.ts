@@ -64,7 +64,8 @@ const sourceList = (value: unknown): ArticleSource[] | undefined => {
       const url = str(v.url) || str(v.link) || str(v.href);
       if (!/^https?:\/\//.test(url)) return null;
       const publisher = str(v.publisher) || str(v.source) || str(v.name) || hostOf(url);
-      return { title: str(v.title) || publisher || url, url, publisher: publisher || undefined };
+      const kind = str(v.kind).trim();
+      return { title: str(v.title) || publisher || url, url, publisher: publisher || undefined, ...(kind ? { kind } : {}) };
     })
     .filter((x): x is ArticleSource => x !== null);
   return list.length ? list : undefined;
@@ -125,6 +126,8 @@ const normalizeAuthor = (raw: Raw): Author => {
     if (str(a.avatar)) author.avatar = str(a.avatar);
     const url = str(a.url) || str(a.profile_url);
     if (/^(https?:\/\/|\/)/.test(url)) author.url = url;
+    if (str(a.role).trim()) author.role = str(a.role).trim();
+    if (typeof a.is_desk === 'boolean') author.isDesk = a.is_desk;
   }
   return author;
 };
@@ -201,6 +204,7 @@ export const normalizeArticle = (input: unknown): Article => {
     tags,
   };
   if (typeof raw.is_updated === 'boolean') article.isUpdated = raw.is_updated;
+  if (typeof raw.published_today === 'boolean') article.publishedToday = raw.published_today;
   if (str(raw.content_updated_at)) article.contentUpdatedAt = str(raw.content_updated_at);
   if (str(raw.image_alt).trim()) article.imageAlt = str(raw.image_alt).trim();
 

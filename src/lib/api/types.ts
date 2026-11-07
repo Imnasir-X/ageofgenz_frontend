@@ -67,12 +67,18 @@ export interface Author {
   avatar?: string;
   /** Author profile page, when the backend provides one. */
   url?: string;
+  /** Job title, e.g. "Staff writer" (backend content-trust author payload). */
+  role?: string;
+  /** True for the newsroom desk byline rather than a named person. */
+  isDesk?: boolean;
 }
 
 export interface ArticleSource {
   title: string;
   url: string;
   publisher?: string;
+  /** Source type from the backend, e.g. primary, report, wire. */
+  kind?: string;
 }
 
 export interface Perspective {
@@ -105,6 +111,8 @@ export interface Article {
   contentUpdatedAt?: string;
   /** The backend's own verdict on whether the story was meaningfully updated after publication. */
   isUpdated?: boolean;
+  /** Server flag on home cards: published today in the newsroom time zone. */
+  publishedToday?: boolean;
   /** Alt text for the featured image, when the newsroom wrote one. */
   imageAlt?: string;
   readMinutes: number;

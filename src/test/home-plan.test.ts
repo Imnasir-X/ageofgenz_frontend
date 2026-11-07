@@ -76,13 +76,14 @@ describe('parseHomeFeed', () => {
       briefing: [],
       trending: [],
       sections: [{ key: 'ai', label: 'AI', category_slug: 'ai-models-and-agents', articles: [{ id: 3, slug: 'c', title: 'C' }] }],
-      freshness: { latest_published_at: '2026-11-07T08:00:00Z' },
+      freshness: { latest_published_at: '2026-11-07T08:00:00Z', is_stale: true },
     });
     expect(feed?.lead?.whyItMatters).toBe('Because');
     expect(feed?.lead?.isUpdated).toBe(true);
     expect(feed?.secondary[0].readMinutes).toBe(4);
     expect(feed?.sections[0].articles[0].slug).toBe('c');
     expect(feed?.latestPublishedAt).toBe('2026-11-07T08:00:00Z');
+    expect(feed?.isStale).toBe(true);
     expect(parseHomeFeed({ results: [] })).toBeNull();
     expect(parseHomeFeed(null)).toBeNull();
   });
@@ -97,6 +98,8 @@ describe('freshness and updated labels', () => {
     const old = homeFreshnessLabel('2026-11-05T12:00:00Z', now);
     expect(old.label).toBe('Latest');
     expect(old.date).toContain('November 5');
+    // The server verdict (published_today, not stale) wins over the client clock.
+    expect(homeFreshnessLabel('2026-11-07T02:00:00Z', now, false).label).toBe('Latest');
   });
 
   it('flags a meaningful update only past the grace period, preferring the backend verdict', () => {

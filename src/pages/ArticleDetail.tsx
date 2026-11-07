@@ -90,6 +90,7 @@ function ArticleHeader({ a }: { a: Article }) {
               ) : (
                 a.author.name
               )}
+              {a.author.role && !a.author.isDesk && <span className="font-normal text-muted-foreground">, {a.author.role}</span>}
             </span>
             {a.publishedAt && (
               <time dateTime={a.publishedAt} className="data text-muted-foreground">

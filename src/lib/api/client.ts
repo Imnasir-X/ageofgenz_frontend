@@ -256,6 +256,8 @@ export interface HomeFeed {
   trending: Article[];
   sections: { key: string; label: string; categorySlug: string | null; articles: Article[] }[];
   latestPublishedAt: string | null;
+  /** Server verdict: newest story older than stale_after_hours (36 h). */
+  isStale: boolean;
 }
 
 const asList = (v: unknown): Article[] => (Array.isArray(v) ? v.filter((x) => x && typeof x === 'object').map(normalizeArticle) : []);
@@ -282,6 +284,7 @@ export function parseHomeFeed(data: unknown): HomeFeed | null {
     trending: asList(d.trending),
     sections,
     latestPublishedAt: typeof freshness.latest_published_at === 'string' ? freshness.latest_published_at : null,
+    isStale: freshness.is_stale === true,
   };
 }
 

@@ -25,6 +25,8 @@ interface HomeData {
   plan: HomePlan;
   newest: string | null;
   source: 'server' | 'client';
+  /** Server freshness verdict: a story on the page was published today and the feed is not stale. */
+  today?: boolean;
 }
 
 const newestOf = (list: Article[]) =>
@@ -53,7 +55,8 @@ async function loadHome(signal: AbortSignal): Promise<HomeData> {
       })),
     });
     const all = [plan.lead, ...plan.secondary, ...plan.briefing, ...plan.trending].filter((a): a is Article => Boolean(a));
-    return { plan, newest: feed.latestPublishedAt ?? newestOf(all), source: 'server' };
+    const today = !feed.isStale && all.some((a) => a.publishedToday === true);
+    return { plan, newest: feed.latestPublishedAt ?? newestOf(all), source: 'server', today };
   }
   const latest = await latestP;
   return { plan: planHome(latest), newest: newestOf(latest), source: 'client' };
@@ -212,7 +215,7 @@ export default function Home() {
   const plan = base && needsSections && pools.data ? addSections(base, pools.data) : base;
   const loading = home.loading && !plan;
   const sectionsLoading = needsSections && (pools.loading || pools.data === undefined);
-  const fresh = homeFreshnessLabel(home.data?.newest ?? null);
+  const fresh = homeFreshnessLabel(home.data?.newest ?? null, new Date(), home.data?.today);
 
   return (
     <>
