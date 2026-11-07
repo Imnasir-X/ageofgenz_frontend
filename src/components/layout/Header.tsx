@@ -77,13 +77,16 @@ function MoreMenu() {
   );
 }
 
-/** Opens the search palette. Desktop shows the shortcut so the faster path is discoverable. */
+/**
+ * Opens the search palette. Between lg and xl (section nav hidden) a wide button shows the "/" shortcut;
+ * from xl the section nav needs the room, so search collapses to the icon (shortcuts still work).
+ */
 function SearchButton() {
   const { open } = useSearchPalette();
   const { t } = useI18n();
   return (
     <>
-      <Button variant="ghost" size="icon" className="lg:hidden" aria-label={t('nav.search')} aria-keyshortcuts="Control+K Meta+K /" onClick={() => open()}>
+      <Button variant="ghost" size="icon" className="lg:hidden xl:inline-flex" aria-label={t('nav.search')} aria-keyshortcuts="Control+K Meta+K /" onClick={() => open()}>
         <Search />
       </Button>
       <button
@@ -91,7 +94,7 @@ function SearchButton() {
         onClick={() => open()}
         aria-label={t('nav.searchStories')}
         aria-keyshortcuts="Control+K Meta+K /"
-        className="mr-1 hidden h-9 w-52 items-center gap-2 rounded-md border bg-card px-3 text-sm text-muted-foreground transition-colors duration-fast ease-standard hover:border-foreground/30 hover:text-foreground lg:flex"
+        className="mr-1 hidden h-9 w-52 items-center gap-2 rounded-md border bg-card px-3 text-sm text-muted-foreground transition-colors duration-fast ease-standard hover:border-foreground/30 hover:text-foreground lg:flex xl:hidden"
       >
         <Search className="size-4" aria-hidden="true" />
         <span>{t('nav.search')}</span>
@@ -114,7 +117,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur-sm supports-[backdrop-filter]:bg-background/85">
-      <div className="container flex h-[var(--header-h)] items-center gap-3">
+      <div className="container flex h-[var(--header-h)] items-center gap-2 sm:gap-3">
         <Link to="/" className="shrink-0" aria-label={t('nav.homeLink')}>
           <Wordmark />
         </Link>
@@ -131,7 +134,8 @@ export function Header() {
         <div className="ml-auto flex items-center gap-0.5">
           <SearchButton />
           <LanguageToggle />
-          <Button variant="ghost" size="icon" onClick={toggle} aria-label={theme === 'dark' ? t('nav.themeLight') : t('nav.themeDark')}>
+          {/* Phones keep the theme switch in the menu sheet so the header row fits 360px in both languages. */}
+          <Button variant="ghost" size="icon" className="max-sm:hidden" onClick={toggle} aria-label={theme === 'dark' ? t('nav.themeLight') : t('nav.themeDark')}>
             {theme === 'dark' ? <Sun /> : <Moon />}
           </Button>
           <div className="hidden items-center gap-1 sm:flex">
@@ -177,6 +181,9 @@ export function Header() {
               {/* Primary actions sit at the bottom of the sheet: the thumb zone on a phone. */}
               <Separator />
               <div className="flex flex-col gap-2 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                <Button variant="ghost" className="sm:hidden" onClick={toggle}>
+                  {theme === 'dark' ? <Sun /> : <Moon />} {theme === 'dark' ? t('nav.themeLight') : t('nav.themeDark')}
+                </Button>
                 {isAuthenticated ? (
                   <Button variant="outline" onClick={logout}>
                     <LogOut /> {t('nav.signOut')}
