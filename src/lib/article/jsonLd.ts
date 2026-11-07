@@ -1,14 +1,64 @@
-import type { Article } from '@/lib/api/types';
+import type { Article, Author, AuthorProfile } from '@/lib/api/types';
 import { NEWSROOM } from '@/lib/api/normalize';
 import { categoryHref } from '@/constants/sections';
 import { SITE_NAME, SITE_URL, absoluteUrl } from '@/lib/utils';
 
+const isDesk = (author: Author) => author.isDesk === true || author.name === NEWSROOM;
+
+/** schema.org entity for a byline: the newsroom desk is an Organization, a named author a Person. */
+export function authorEntity(author: Author) {
+  const url = author.slug ? absoluteUrl(`/author/${author.slug}/`) : isDesk(author) ? `${SITE_URL}/about/` : undefined;
+  if (isDesk(author)) return { '@type': 'Organization', name: author.name || NEWSROOM, ...(url ? { url } : {}) };
+  return {
+    '@type': 'Person',
+    name: author.name,
+    ...(url ? { url } : {}),
+    ...(author.role ? { jobTitle: author.role } : {}),
+    ...(author.bio ? { description: author.bio } : {}),
+    ...(author.avatar ? { image: author.avatar } : {}),
+    worksFor: { '@id': `${SITE_URL}/#organization` },
+  };
+}
+
+/** /author/<slug>/ : ProfilePage about the author (Person, or the desk as Organization) + breadcrumbs. */
+export function authorJsonLd(profile: AuthorProfile) {
+  const { author } = profile;
+  const url = absoluteUrl(`/author/${author.slug}/`);
+  const entity = { ...authorEntity(author), '@id': `${url}#author`, url };
+  return [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'ProfilePage',
+      '@id': url,
+      url,
+      name: `${author.name} | ${SITE_NAME}`,
+      isPartOf: { '@id': `${SITE_URL}/#website` },
+      mainEntity: entity,
+      ...(profile.articles.length
+        ? {
+            hasPart: profile.articles.slice(0, 12).map((a) => ({
+              '@type': a.isOpinion ? 'OpinionNewsArticle' : 'NewsArticle',
+              headline: a.title.slice(0, 110),
+              url: absoluteUrl(a.href),
+              ...(a.publishedAt ? { datePublished: a.publishedAt } : {}),
+            })),
+          }
+        : {}),
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+        { '@type': 'ListItem', position: 2, name: author.name, item: url },
+      ],
+    },
+  ];
+}
+
 export function articleJsonLd(a: Article) {
   const url = absoluteUrl(a.href);
-  const author =
-    a.author.name === NEWSROOM
-      ? { '@type': 'Organization', name: NEWSROOM, url: `${SITE_URL}/about/` }
-      : { '@type': 'Person', name: a.author.name, ...(a.author.slug ? { url: absoluteUrl(`/author/${a.author.slug}/`) } : {}) };
+  const author = authorEntity(a.author);
   return [
     {
       '@context': 'https://schema.org',

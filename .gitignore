@@ -28,3 +28,4 @@ dist-ssr
 
 # Never track nested git data
 .git_disabled/
+.eslintcache

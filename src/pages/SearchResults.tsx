@@ -13,17 +13,17 @@ import { addRecentSearch, getRecentSearches } from '@/lib/search/recent';
 import { toast } from '@/lib/toast';
 import { PRIMARY_NAV, SECTIONS } from '@/constants/sections';
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n/useI18n';
 
 /** Category filters the backend supports (category__slug + include_subs). Unique slugs only. */
 const FILTERS = Array.from(
   new Map(
-    PRIMARY_NAV.map((k) => SECTIONS[k])
-      .filter((s) => s.category)
-      .map((s) => [s.category as string, s.label]),
+    PRIMARY_NAV.filter((k) => SECTIONS[k].category).map((k) => [SECTIONS[k].category as string, k as string]),
   ),
-).map(([slug, label]) => ({ slug, label }));
+).map(([slug, key]) => ({ slug, key }));
 
 export default function SearchResults() {
+  const { t, section } = useI18n();
   const [params, setParams] = useSearchParams();
   const urlQ = (params.get('q') || '').trim();
   const urlCat = params.get('cat') || undefined;
@@ -80,7 +80,7 @@ export default function SearchResults() {
       setNext(r.next);
       setPage((p) => p + 1);
     } catch {
-      toast('Couldn’t load more results', { tone: 'error', description: 'Check your connection and try again.' });
+      toast(t('searchPage.loadMoreFail'), { tone: 'error', description: t('searchPage.loadMoreFailBody') });
     } finally {
       setLoadingMore(false);
     }
@@ -106,16 +106,17 @@ export default function SearchResults() {
 
   const busy = typing && (search.pending || search.status === 'loading');
   const results = search.results.concat(extra);
-  const activeFilter = FILTERS.find((f) => f.slug === urlCat);
+  const found = FILTERS.find((f) => f.slug === urlCat);
+  const activeFilter = found ? { ...found, label: section(found.key).label } : undefined;
 
   return (
     <>
       <Seo title={urlQ ? `Search: ${urlQ}` : 'Search'} description="Search The Age of GenZ stories by topic, place or person." path="/search/" noindex={Boolean(urlQ)} />
       <div className="container max-w-4xl pt-8 sm:pt-12">
-        <p className="eyebrow text-primary">Search</p>
+        <p className="eyebrow text-primary">{t('nav.search')}</p>
         <form onSubmit={submit} role="search" className="mt-4">
           <label htmlFor="search-q" className="sr-only">
-            Search stories
+            {t('nav.searchStories')}
           </label>
           <div className="relative">
             <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
@@ -125,7 +126,7 @@ export default function SearchResults() {
               type="search"
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder="Search stories, topics, places"
+              placeholder={t('search.placeholder')}
               autoComplete="off"
               enterKeyHint="search"
               autoFocus={!urlQ}
@@ -139,21 +140,21 @@ export default function SearchResults() {
                   inputRef.current?.focus();
                 }}
                 className="absolute right-1.5 top-1/2 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors duration-fast hover:bg-muted hover:text-foreground"
-                aria-label="Clear search"
+                aria-label={t('search.clear')}
               >
-                <X className="size-4" />
+                <X className="size-4" aria-hidden="true" />
               </button>
             )}
           </div>
         </form>
 
-        <div className="no-scrollbar -mx-4 mt-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label="Filter by section">
+        <div className="no-scrollbar -mx-4 mt-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label={t('searchPage.filter')}>
           <FilterChip active={!urlCat} onClick={() => setCategory(undefined)}>
-            All sections
+            {t('searchPage.allSections')}
           </FilterChip>
           {FILTERS.map((f) => (
             <FilterChip key={f.slug} active={urlCat === f.slug} onClick={() => setCategory(f.slug)}>
-              {f.label}
+              {section(f.key).label}
             </FilterChip>
           ))}
         </div>
@@ -161,20 +162,20 @@ export default function SearchResults() {
         <div className="mt-8 min-h-[2rem]" aria-live="polite">
           {typing && !busy && search.status === 'success' && (
             <p className="font-display text-2xl font-medium">
-              {search.count} {search.count === 1 ? 'result' : 'results'} for “<Highlight text={q} query={q} />”
-              {activeFilter && <span className="text-muted-foreground"> in {activeFilter.label}</span>}
+              {search.count === 1 ? t('searchPage.result') : t('searchPage.results', { n: search.count })} “<Highlight text={q} query={q} />”
+              {activeFilter && <span className="text-muted-foreground"> {t('searchPage.in', { label: activeFilter.label })}</span>}
             </p>
           )}
-          {busy && <p className="sr-only">Searching</p>}
+          {busy && <p className="sr-only">{t('search.searching')}</p>}
         </div>
 
         <div className="mt-4">
           {!typing ? (
             <div className="rounded-lg border bg-card p-6">
-              <p className="font-display text-xl font-medium">Try a topic, a place or a person.</p>
+              <p className="font-display text-xl font-medium">{t('searchPage.prompt')}</p>
               {recents.length > 0 && (
                 <>
-                  <p className="mt-4 text-sm text-muted-foreground">Your recent searches</p>
+                  <p className="mt-4 text-sm text-muted-foreground">{t('searchPage.recent')}</p>
                   <ul className="mt-2 flex flex-wrap gap-2">
                     {recents.map((r) => (
                       <li key={r}>
@@ -190,7 +191,7 @@ export default function SearchResults() {
                   </ul>
                 </>
               )}
-              <p className="mt-4 text-sm text-muted-foreground">Or browse a section</p>
+              <p className="mt-4 text-sm text-muted-foreground">{t('searchPage.browse')}</p>
               <ul className="mt-2 flex flex-wrap gap-2">
                 {PRIMARY_NAV.map((k) => (
                   <li key={k}>
@@ -198,14 +199,14 @@ export default function SearchResults() {
                       to={SECTIONS[k].path}
                       className="inline-flex min-h-11 items-center rounded-full bg-muted px-3.5 text-sm font-medium transition-colors duration-fast hover:bg-mist sm:min-h-9"
                     >
-                      {SECTIONS[k].label}
+                      {section(k).label}
                     </Link>
                   </li>
                 ))}
               </ul>
               <p className="mt-6 hidden text-xs text-muted-foreground sm:block">
-                Tip: press <kbd className="rounded border bg-muted px-1 font-mono">/</kbd> or{' '}
-                <kbd className="rounded border bg-muted px-1 font-mono">Ctrl K</kbd> on any page to search.
+                {t('searchPage.tipBefore')} <kbd className="rounded border bg-muted px-1 font-mono">/</kbd> {t('searchPage.tipOr')}{' '}
+                <kbd className="rounded border bg-muted px-1 font-mono">Ctrl K</kbd> {t('searchPage.tipAfter')}
               </p>
             </div>
           ) : busy && results.length === 0 ? (
@@ -214,11 +215,11 @@ export default function SearchResults() {
             <ErrorState message={search.error ?? undefined} onRetry={search.retry} />
           ) : search.status === 'success' && results.length === 0 ? (
             <EmptyState
-              title="Nothing matches yet"
+              title={t('searchPage.empty')}
               body={
                 activeFilter
-                  ? `No ${activeFilter.label} stories match. Try all sections, fewer words, or a different spelling.`
-                  : 'Try fewer words, a different spelling, or a broader topic.'
+                  ? t('searchPage.emptyFiltered', { label: activeFilter.label })
+                  : t('searchPage.emptyBody')
               }
             />
           ) : (
@@ -231,7 +232,7 @@ export default function SearchResults() {
               {next && !busy && (
                 <div className="mt-10 flex justify-center">
                   <Button variant="outline" onClick={loadMore} loading={loadingMore}>
-                    More results
+                    {t('searchPage.more')}
                   </Button>
                 </div>
               )}

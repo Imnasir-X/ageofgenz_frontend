@@ -9,6 +9,7 @@ import { keyPoints } from '@/lib/article/keyPoints';
 import { articleLinkProps } from '@/lib/prefetch';
 import { categoryHref } from '@/constants/sections';
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n/useI18n';
 
 /**
  * Peak-end rule: the last moments of a read decide how it is remembered. The article closes
@@ -16,17 +17,19 @@ import { cn } from '@/lib/utils';
  * instead of trailing off into an endless feed.
  */
 export function ArticleEnd({ article, related, className }: { article: Article; related: Article[] | null; className?: string }) {
+  const { t, category } = useI18n();
+  const categoryName = category(article.category.slug, article.category.name);
   const recap = article.tldr?.length ? article.tldr.slice(0, 3) : keyPoints(article, 3);
   const [next, ...more] = related ?? [];
 
   return (
-    <section className={cn('space-y-12', className)} aria-label="End of article">
+    <section className={cn('space-y-12', className)} aria-label={t('end.label')}>
       {recap.length > 0 && (
         <div className="rounded-lg border bg-card p-6 sm:p-8">
           <p className="eyebrow flex items-center gap-2 text-primary">
-            <CheckCircle2 className="size-3.5" aria-hidden="true" /> You’re up to speed
+            <CheckCircle2 className="size-3.5" aria-hidden="true" /> {t('end.upToSpeed')}
           </p>
-          <h2 className="mt-2 font-display text-[1.6rem] font-medium leading-tight">The short version</h2>
+          <h2 className="mt-2 font-display text-[1.6rem] font-medium leading-tight">{t('end.short')}</h2>
           <ul className="mt-4 space-y-3">
             {recap.map((p, i) => (
               <li key={i} className="flex gap-3 font-serif text-[1.05rem] leading-[1.55]">
@@ -39,7 +42,7 @@ export function ArticleEnd({ article, related, className }: { article: Article; 
           </ul>
           {article.whyItMatters && (
             <p className="mt-5 border-l-2 border-primary pl-3 text-[0.95rem] leading-relaxed">
-              <span className="font-semibold">Why it matters: </span>
+              <span className="font-semibold">{t('story.whyItMattersColon')}</span>
               {article.whyItMatters}
             </p>
           )}
@@ -48,14 +51,14 @@ export function ArticleEnd({ article, related, className }: { article: Article; 
 
       <div>
         <div className="mb-4 flex items-end justify-between gap-4 border-b border-foreground pb-3">
-          <h2 className="font-display text-[1.65rem] font-medium leading-none tracking-[-0.015em] sm:text-[1.9rem]">What to read next</h2>
+          <h2 className="font-display text-[1.65rem] font-medium leading-none tracking-[-0.015em] sm:text-[1.9rem]">{t('end.next')}</h2>
           <Link to={categoryHref(article.category.slug)} className="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-primary hover:underline sm:min-h-0">
-            More {article.category.name} <ArrowRight className="size-4" aria-hidden="true" />
+            {t('end.moreIn', { name: categoryName })} <ArrowRight className="size-4" aria-hidden="true" />
           </Link>
         </div>
 
         {related === null ? (
-          <div className="grid gap-6 md:grid-cols-12" aria-busy="true" aria-label="Loading what to read next">
+          <div className="grid gap-6 md:grid-cols-12" aria-busy="true" aria-label={t('end.loadingNext')}>
             <Skeleton className="aspect-[3/2] w-full md:col-span-6" />
             <div className="space-y-3 md:col-span-6">
               <Skeleton className="h-3 w-24" />
@@ -68,9 +71,9 @@ export function ArticleEnd({ article, related, className }: { article: Article; 
           <>
             {/* One primary next read (Hick's law), large and fully clickable (Fitts's law). */}
             <article className="group relative grid gap-5 rounded-lg border bg-card p-4 transition-[transform,box-shadow] duration-base ease-standard hover:shadow-md motion-safe:hover:-translate-y-0.5 motion-safe:active:scale-[0.995] sm:p-5 md:grid-cols-12 md:gap-8">
-              <StoryImage src={next.image} alt={next.title} width={800} ratio="wide" className="md:col-span-5" category={next.category.slug} categoryLabel={next.category.name} />
+              <StoryImage src={next.image} alt={next.imageAlt || next.title} width={800} ratio="wide" className="md:col-span-5" category={next.category.slug} categoryLabel={category(next.category.slug, next.category.name)} />
               <div className="flex flex-col justify-center gap-2 md:col-span-7">
-                <p className="eyebrow text-primary">Up next</p>
+                <p className="eyebrow text-primary">{t('end.upNext')}</p>
                 <h3 className="font-display text-[1.6rem] font-medium leading-[1.12] tracking-[-0.015em] sm:text-[1.9rem]">
                   <Link {...articleLinkProps(next)} className="transition-colors duration-fast after:absolute after:inset-0 group-hover:text-primary">
                     {next.title}
@@ -90,11 +93,11 @@ export function ArticleEnd({ article, related, className }: { article: Article; 
           </>
         ) : (
           <p className="text-sm text-muted-foreground">
-            That’s the latest on this. Browse{' '}
+            {t('end.latestOnThis')}{' '}
             <Link to={categoryHref(article.category.slug)} className="link-underline">
-              {article.category.name}
+              {categoryName}
             </Link>{' '}
-            for more.
+            {t('end.forMore')}
           </p>
         )}
       </div>

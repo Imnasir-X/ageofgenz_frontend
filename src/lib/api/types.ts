@@ -73,12 +73,37 @@ export interface Author {
   isDesk?: boolean;
 }
 
+/** Backend source kinds (content trust contract): the outlet a rewritten story came from, research, or a reference. */
+export type SourceKind = 'original' | 'research' | 'reference';
+
 export interface ArticleSource {
   title: string;
   url: string;
   publisher?: string;
-  /** Source type from the backend, e.g. primary, report, wire. */
-  kind?: string;
+  /** Source kind from the backend, when it sends a known one. */
+  kind?: SourceKind;
+}
+
+/** An approved translation of an article (backend /api/newsroom/articles/<slug>/translations/<lang>/). */
+export interface ArticleTranslation {
+  language: string;
+  title?: string;
+  excerpt?: string;
+  /** HTML body, sanitised by ArticleBody like the original. */
+  content?: string;
+  tldr?: string[];
+  whyItMatters?: string;
+}
+
+/** GET /api/authors/<slug>/?page= : the author plus one page of their live articles (12 per page). */
+export interface AuthorProfile {
+  author: Author & { articleCount: number };
+  articles: Article[];
+  count: number;
+  page: number;
+  pages: number;
+  next: string | null;
+  previous: string | null;
 }
 
 export interface Perspective {

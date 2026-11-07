@@ -5,8 +5,10 @@ import { Input } from '@/components/ui/input';
 import { newsletterApi } from '@/lib/api/client';
 import { cn } from '@/lib/utils';
 import { toast } from '@/lib/toast';
+import { useI18n } from '@/lib/i18n/useI18n';
 
 export function NewsletterForm({ tone = 'light', source = 'site', className }: { tone?: 'light' | 'dark'; source?: string; className?: string }) {
+  const { t, lang } = useI18n();
   const [email, setEmail] = useState('');
   const [state, setState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
   const [message, setMessage] = useState('');
@@ -17,27 +19,27 @@ export function NewsletterForm({ tone = 'light', source = 'site', className }: {
     e.preventDefault();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       setState('error');
-      setMessage('Enter a valid email address.');
+      setMessage(t('newsletter.invalid'));
       return;
     }
     setState('loading');
     try {
       const res = await newsletterApi.subscribe(email.trim());
       setState('done');
-      const msg = res?.already_subscribed ? 'You’re already on the list.' : 'You’re in. Look out for the next briefing.';
+      const msg = res?.already_subscribed ? t('newsletter.already') : t('newsletter.done');
       setMessage(msg);
       setEmail('');
-      toast(res?.already_subscribed ? 'Already subscribed' : 'Subscribed', { description: msg });
+      toast(res?.already_subscribed ? t('newsletter.toastAlready') : t('newsletter.toastDone'), { description: msg });
     } catch (err) {
       setState('error');
-      setMessage(err instanceof Error ? err.message : 'Something went wrong. Try again.');
+      setMessage(lang === 'en' && err instanceof Error ? err.message : t('newsletter.error'));
     }
   };
 
   return (
     <form onSubmit={submit} className={cn('w-full', className)} noValidate>
       <label htmlFor={id} className="sr-only">
-        Email address
+        {t('newsletter.email')}
       </label>
       <div className="flex flex-col gap-2 sm:flex-row">
         <Input
@@ -55,7 +57,7 @@ export function NewsletterForm({ tone = 'light', source = 'site', className }: {
         />
         <Button type="submit" loading={state === 'loading'} className="shrink-0">
           {state === 'done' ? <Check aria-hidden="true" /> : <ArrowRight aria-hidden="true" />}
-          Subscribe
+          {t('newsletter.subscribe')}
         </Button>
       </div>
       {message && (

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n/useI18n';
 
 /**
  * Thin Signal Blue progress line at the top of the viewport, plus a quiet "N min left"
@@ -7,6 +8,7 @@ import { cn } from '@/lib/utils';
  * reading time is stated in the article meta).
  */
 export function ReadingProgress({ targetId, minutes }: { targetId: string; minutes?: number }) {
+  const { t } = useI18n();
   const [progress, setProgress] = useState(0);
   useEffect(() => {
     let frame = 0;
@@ -47,7 +49,7 @@ export function ReadingProgress({ targetId, minutes }: { targetId: string; minut
             showPill ? 'opacity-100' : 'opacity-0',
           )}
         >
-          {left} min left
+          {t('progress.left', { n: left })}
         </div>
       ) : null}
     </>

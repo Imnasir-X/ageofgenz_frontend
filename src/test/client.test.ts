@@ -59,8 +59,15 @@ describe('API client paths match the Django backend', () => {
     expect(await aiApi.brief('x')).toEqual({ tldr: ['One', 'Two'], whyItMatters: 'Because.' });
     expect(new URL(calls[0].url).pathname).toBe('/api/newsroom/articles/x/summary/');
 
-    mockFetch(200, { article_slug: 'x', language: 'bn', title: 'শিরোনাম', tldr: 'এক', is_approved: true });
-    expect(await aiApi.translate('x')).toEqual({ title: 'শিরোনাম', tldr: ['এক'] });
+    mockFetch(200, { article_slug: 'x', language: 'bn', title: 'শিরোনাম', excerpt: '<p>সারাংশ</p>', content: '<p>লেখা</p>', tldr: 'এক। দুই।', why_it_matters: 'কারণ।', is_approved: true });
+    expect(await aiApi.translate('x')).toEqual({
+      language: 'bn',
+      title: 'শিরোনাম',
+      excerpt: 'সারাংশ',
+      content: '<p>লেখা</p>',
+      tldr: ['এক।', 'দুই।'],
+      whyItMatters: 'কারণ।',
+    });
     expect(new URL(calls[0].url).pathname).toBe('/api/newsroom/articles/x/translations/bn/');
 
     mockFetch(200, { question: 'q', answer: 'A.', answerable: true, quotes: ['Quoted.'], grounded_on: 'x', ai_generated: true });

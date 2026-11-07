@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/button';
 import type { Article } from '@/lib/api/types';
 import { absoluteUrl, cn } from '@/lib/utils';
 import { toast } from '@/lib/toast';
+import { useI18n } from '@/lib/i18n/useI18n';
 
 export function ShareBar({ article, className }: { article: Article; className?: string }) {
+  const { t } = useI18n();
   const [copied, setCopied] = useState(false);
   const [canShare, setCanShare] = useState(false);
   useEffect(() => setCanShare(typeof navigator.share === 'function'), []);
@@ -23,10 +25,10 @@ export function ShareBar({ article, className }: { article: Article; className?:
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
-      toast('Link copied', { description: 'Paste it anywhere to share this story.' });
+      toast(t('share.copiedToast'), { description: t('share.copiedBody') });
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast('Couldn’t copy the link', { tone: 'error', description: 'Your browser blocked clipboard access. Copy it from the address bar.' });
+      toast(t('share.copyFail'), { tone: 'error', description: t('share.copyFailBody') });
     }
   };
 
@@ -45,16 +47,16 @@ export function ShareBar({ article, className }: { article: Article; className?:
       {/* Phones get the native share sheet as the main action; everywhere else, copy link. */}
       {canShare ? (
         <Button size="sm" onClick={nativeShare}>
-          <Share2 aria-hidden="true" /> Share
+          <Share2 aria-hidden="true" /> {t('share.share')}
         </Button>
       ) : (
         <Button variant="outline" size="sm" onClick={copy}>
-          {copied ? <Check aria-hidden="true" /> : <Link2 aria-hidden="true" />} <span>{copied ? 'Copied' : 'Copy link'}</span>
+          {copied ? <Check aria-hidden="true" /> : <Link2 aria-hidden="true" />} <span>{copied ? t('share.copied') : t('share.copy')}</span>
         </Button>
       )}
       {canShare && (
-        <Button variant="ghost" size="sm" onClick={copy} aria-label="Copy link">
-          {copied ? <Check aria-hidden="true" /> : <Link2 aria-hidden="true" />} <span className="sr-only sm:not-sr-only">{copied ? 'Copied' : 'Copy link'}</span>
+        <Button variant="ghost" size="sm" onClick={copy} aria-label={t('share.copy')}>
+          {copied ? <Check aria-hidden="true" /> : <Link2 aria-hidden="true" />} <span className="sr-only sm:not-sr-only">{copied ? t('share.copied') : t('share.copy')}</span>
         </Button>
       )}
       {links.map((l) => (
@@ -63,7 +65,7 @@ export function ShareBar({ article, className }: { article: Article; className?:
           href={l.href}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label={`Share on ${l.label} (opens in a new tab)`}
+          aria-label={t('share.on', { network: l.label })}
           className={cn(
             'min-h-11 items-center rounded-md px-2 text-xs font-medium text-muted-foreground transition-colors duration-fast hover:bg-muted hover:text-foreground sm:min-h-8',
             // Phones keep one tidy row (Share or Copy link); the network links are for wider screens.

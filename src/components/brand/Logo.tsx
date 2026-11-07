@@ -27,7 +27,7 @@ export function Wordmark({ className, inverted = false }: { className?: string; 
   return (
     <span className={cn('flex items-center gap-2', className)}>
       <LogoMark className="size-[28px]" inverted={inverted} />
-      <span className={cn('font-display text-[1.2rem] font-semibold leading-none tracking-[-0.02em]', inverted ? 'text-ink-foreground' : 'text-foreground')}>
+      <span className={cn('font-display text-[1.1rem] font-semibold sm:text-[1.2rem] leading-none tracking-[-0.02em]', inverted ? 'text-ink-foreground' : 'text-foreground')}>
         The Age of <span className={inverted ? 'text-lime' : 'text-primary'}>GenZ</span>
       </span>
     </span>

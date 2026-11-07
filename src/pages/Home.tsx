@@ -17,6 +17,7 @@ import { SECTIONS, categoryHref } from '@/constants/sections';
 import { addSections, planHome, sanitizePlan, type HomePlan, type SectionPool } from '@/lib/home/plan';
 import { homeFreshnessLabel } from '@/lib/dates';
 import { SITE_NAME, TAGLINE, cn, truncate } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n/useI18n';
 
 /** Section rows on the home page, in order. */
 const HOME_SECTION_KEYS = ['ai', 'tech', 'politics', 'world'] as const;
@@ -76,12 +77,13 @@ async function loadSectionPools(): Promise<SectionPool[]> {
 }
 
 function QuickBriefing({ stories }: { stories: Article[] }) {
+  const { t } = useI18n();
   if (!stories.length) return null;
   return (
     <aside className="rounded-lg border bg-card p-6 sm:p-7" aria-labelledby="quick-briefing">
-      <p className="eyebrow text-primary">In two minutes</p>
+      <p className="eyebrow text-primary">{t('home.inTwoMinutes')}</p>
       <h2 id="quick-briefing" className="mt-2 font-display text-[1.6rem] font-medium leading-none tracking-[-0.015em]">
-        Quick briefing
+        {t('home.quickBriefing')}
       </h2>
       <ol className="mt-5 divide-y">
         {stories.slice(0, 5).map((a, i) => {
@@ -97,7 +99,7 @@ function QuickBriefing({ stories }: { stories: Article[] }) {
                 </Link>
                 {line && (
                   <p className="mt-1 truncate text-[0.86rem] leading-relaxed text-muted-foreground" title={line}>
-                    {a.whyItMatters && <span className="font-medium text-foreground/80">Why it matters: </span>}
+                    {a.whyItMatters && <span className="font-medium text-foreground/80">{t('story.whyItMattersColon')}</span>}
                     {line}
                   </p>
                 )}
@@ -111,10 +113,11 @@ function QuickBriefing({ stories }: { stories: Article[] }) {
 }
 
 function SecondaryGrid({ stories }: { stories: Article[] }) {
+  const { t } = useI18n();
   if (!stories.length) return null;
   return (
-    <section className="mt-14" aria-label="Top stories">
-      <SectionHeader title="Top stories" />
+    <section className="mt-14" aria-label={t('home.topStories')}>
+      <SectionHeader title={t('home.topStories')} />
       {stories.length === 1 ? (
         <StoryCard article={stories[0]} variant="feature" className="pt-5" />
       ) : (
@@ -129,9 +132,10 @@ function SecondaryGrid({ stories }: { stories: Article[] }) {
 }
 
 function TrendingList({ stories, byViews }: { stories: Article[]; byViews: boolean }) {
+  const { t, category } = useI18n();
   if (!stories.length) return null;
   // Called "Trending" only when the list really is ranked by readership.
-  const title = byViews ? 'Trending now' : 'More stories';
+  const title = byViews ? t('home.trendingNow') : t('home.moreStories');
   return (
     <section className="rounded-lg border bg-card p-6 sm:p-8" aria-labelledby="trending-now">
       <div className="flex items-center justify-between gap-4 border-b pb-3">
@@ -139,7 +143,7 @@ function TrendingList({ stories, byViews }: { stories: Article[]; byViews: boole
           {byViews && <TrendingUp className="size-5 text-primary" aria-hidden="true" />} {title}
         </h2>
         <Link to="/trending/" className="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline sm:min-h-0">
-          See all
+          {t('home.seeAll')}
         </Link>
       </div>
       <ol>
@@ -153,7 +157,7 @@ function TrendingList({ stories, byViews }: { stories: Article[]; byViews: boole
                 {a.title}
               </Link>
               <p className="data mt-1 text-muted-foreground">
-                {a.category.name} · {a.readMinutes} min
+                {category(a.category.slug, a.category.name)} · {t('story.min', { n: a.readMinutes })}
               </p>
             </div>
             <StoryImage src={a.image} alt="" width={64} sizes="64px" ratio="square" className="w-16 shrink-0" category={a.category.slug} />
@@ -164,7 +168,9 @@ function TrendingList({ stories, byViews }: { stories: Article[]; byViews: boole
   );
 }
 
-function SectionRow({ title, href, stories }: { title: string; href: string; stories: Article[] }) {
+function SectionRow({ sectionKey, title: rawTitle, href, stories }: { sectionKey: string; title: string; href: string; stories: Article[] }) {
+  const { t, lang, section } = useI18n();
+  const title = lang === 'bn' && SECTIONS[sectionKey] ? section(sectionKey).title : rawTitle;
   if (!stories.length) return null;
   return (
     <section aria-label={title} className="mt-14">
@@ -172,7 +178,7 @@ function SectionRow({ title, href, stories }: { title: string; href: string; sto
         title={title}
         action={
           <Link to={href} className="group/all inline-flex min-h-11 items-center gap-1 text-sm font-medium text-primary hover:underline sm:min-h-0">
-            All {title} <ArrowRight className="size-4 transition-transform duration-base ease-standard group-hover/all:translate-x-0.5" aria-hidden="true" />
+            {t('home.allIn', { title })} <ArrowRight className="size-4 transition-transform duration-base ease-standard group-hover/all:translate-x-0.5" aria-hidden="true" />
           </Link>
         }
       />
@@ -186,8 +192,9 @@ function SectionRow({ title, href, stories }: { title: string; href: string; sto
 }
 
 function SectionRowsSkeleton() {
+  const { t } = useI18n();
   return (
-    <div className="mt-14" aria-busy="true" aria-label="Loading sections">
+    <div className="mt-14" aria-busy="true" aria-label={t('home.loadingSections')}>
       <div className="mb-2 flex items-end justify-between gap-4 border-b border-foreground pb-3">
         <Skeleton className="h-8 w-32" />
         <Skeleton className="h-4 w-20" />
@@ -207,6 +214,7 @@ function SectionRowsSkeleton() {
 }
 
 export default function Home() {
+  const { t, lang } = useI18n();
   const home = useAsync((signal) => cached('home', () => loadHome(signal)), 'home');
   const needsSections = home.data?.source === 'client';
   const pools = useAsync(() => cached('home-sections', loadSectionPools), 'home-sections', { enabled: needsSections });
@@ -215,7 +223,7 @@ export default function Home() {
   const plan = base && needsSections && pools.data ? addSections(base, pools.data) : base;
   const loading = home.loading && !plan;
   const sectionsLoading = needsSections && (pools.loading || pools.data === undefined);
-  const fresh = homeFreshnessLabel(home.data?.newest ?? null, new Date(), home.data?.today);
+  const fresh = homeFreshnessLabel(home.data?.newest ?? null, new Date(), home.data?.today, lang);
 
   return (
     <>
@@ -232,11 +240,11 @@ export default function Home() {
                   {fresh.date && <span className="text-muted-foreground"> · {fresh.date}</span>}
                 </>
               ) : (
-                'Latest'
+                t('nav.latest')
               )}
             </p>
             <h1 className="mt-2 font-display text-[1.9rem] font-medium leading-[1.02] tracking-[-0.025em] sm:text-[2.6rem]">
-              Understand what’s happening. <span className="italic text-muted-foreground">Not just what’s trending.</span>
+              {t('home.headline1')} <span className="italic text-muted-foreground">{t('home.headline2')}</span>
             </h1>
           </div>
         </header>
@@ -272,18 +280,18 @@ export default function Home() {
         )}
 
         {plan?.sections.map((s) => (
-          <SectionRow key={s.key} title={s.title} href={s.href} stories={s.stories} />
+          <SectionRow key={s.key} sectionKey={s.key} title={s.title} href={s.href} stories={s.stories} />
         ))}
         {plan && sectionsLoading && <SectionRowsSkeleton />}
 
         {/* Serial position: the strongest story opens the page, the one ask (newsletter) closes it. */}
         <section className="mt-16 grid gap-6 rounded-lg border bg-mist/60 p-7 sm:p-12 lg:grid-cols-12 lg:items-center" aria-labelledby="newsletter-home">
           <div className="lg:col-span-7">
-            <p className="eyebrow text-primary">The weekly briefing</p>
+            <p className="eyebrow text-primary">{t('newsletter.eyebrow')}</p>
             <h2 id="newsletter-home" className="mt-3 font-display text-[2rem] font-medium leading-[1.08] tracking-[-0.02em] sm:text-[2.5rem]">
-              The week’s news, explained in five minutes.
+              {t('newsletter.title')}
             </h2>
-            <p className="mt-3 max-w-xl text-muted-foreground">One email with the stories that matter and why. No endless feed. Unsubscribe anytime.</p>
+            <p className="mt-3 max-w-xl text-muted-foreground">{t('newsletter.body')}</p>
           </div>
           <div className="lg:col-span-5">
             <NewsletterForm source="home" />

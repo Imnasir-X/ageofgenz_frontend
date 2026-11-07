@@ -1,4 +1,4 @@
-import type { Article, ArticleSource, Author, Category, ContentBlock, Perspective } from './types';
+import type { Article, ArticleSource, ArticleTranslation, Author, AuthorProfile, Category, ContentBlock, Perspective } from './types';
 import { stripHtml } from '@/lib/utils';
 
 type Raw = Record<string, unknown>;
@@ -64,8 +64,9 @@ const sourceList = (value: unknown): ArticleSource[] | undefined => {
       const url = str(v.url) || str(v.link) || str(v.href);
       if (!/^https?:\/\//.test(url)) return null;
       const publisher = str(v.publisher) || str(v.source) || str(v.name) || hostOf(url);
-      const kind = str(v.kind).trim();
-      return { title: str(v.title) || publisher || url, url, publisher: publisher || undefined, ...(kind ? { kind } : {}) };
+      const kind = str(v.kind).trim().toLowerCase();
+      const known = kind === 'original' || kind === 'research' || kind === 'reference' ? kind : undefined;
+      return { title: str(v.title) || publisher || url, url, publisher: publisher || undefined, ...(known ? { kind: known } : {}) };
     })
     .filter((x): x is ArticleSource => x !== null);
   return list.length ? list : undefined;
@@ -109,6 +110,11 @@ export function fixTitleCase(title: string): string {
 export const NEWSROOM = 'The Age of GenZ Newsroom';
 export const WPM = 230;
 
+export const normalizeAuthorObject = (a: unknown): Author | null => {
+  if (!isObj(a)) return null;
+  return normalizeAuthor({ author: a });
+};
+
 const normalizeAuthor = (raw: Raw): Author => {
   const a = raw.author;
   let name = '';
@@ -129,6 +135,8 @@ const normalizeAuthor = (raw: Raw): Author => {
     if (str(a.role).trim()) author.role = str(a.role).trim();
     if (typeof a.is_desk === 'boolean') author.isDesk = a.is_desk;
   }
+  // Every author with a slug has a public page at /author/<slug>/ (GET /api/authors/<slug>/).
+  if (!author.url && author.slug && /^[a-z0-9][a-z0-9-]*$/i.test(author.slug)) author.url = `/author/${author.slug}/`;
   return author;
 };
 
@@ -243,4 +251,45 @@ export const normalizeList = (payload: unknown): { results: Article[]; count: nu
     return { results, count: Number(payload.count) || results.length, next: typeof payload.next === 'string' ? payload.next : null };
   }
   return { results: [], count: 0, next: null };
+};
+
+/** Articles per page on /api/authors/<slug>/ (backend AuthorPagination). */
+export const AUTHOR_PAGE_SIZE = 12;
+
+/** GET /api/authors/<slug>/?page= payload -> AuthorProfile. Returns null for anything that is not an author. */
+export const normalizeAuthorProfile = (payload: unknown, page = 1): AuthorProfile | null => {
+  if (!isObj(payload) || !str(payload.name).trim()) return null;
+  const author = normalizeAuthor({ author: payload });
+  const articles = Array.isArray(payload.articles) ? payload.articles.map(normalizeArticle).filter((a) => a.slug) : [];
+  const count = Number(payload.count ?? payload.article_count) || articles.length;
+  return {
+    author: { ...author, articleCount: Number(payload.article_count ?? count) || count },
+    articles,
+    count,
+    page,
+    pages: Math.max(1, Math.ceil(count / AUTHOR_PAGE_SIZE)),
+    next: typeof payload.next === 'string' ? payload.next : null,
+    previous: typeof payload.previous === 'string' ? payload.previous : null,
+  };
+};
+
+/** Split a Bangla/English summary given as one string into sentences (keeps the danda). */
+export const sentenceList = (value: unknown): string[] | undefined => {
+  const list = stringList(value);
+  if (!list || list.length !== 1) return list;
+  const parts = list[0].split(/(?<=[।.!?])\s+/).map((s) => s.trim()).filter(Boolean);
+  return parts.length ? parts : undefined;
+};
+
+/** Approved translation payload -> ArticleTranslation (null when unapproved or empty). */
+export const normalizeTranslation = (data: unknown, language = 'bn'): ArticleTranslation | null => {
+  if (!isObj(data) || data.is_approved === false) return null;
+  const t: ArticleTranslation = { language: str(data.language) || language };
+  if (str(data.title).trim()) t.title = str(data.title).trim();
+  if (str(data.excerpt).trim()) t.excerpt = stripHtml(str(data.excerpt));
+  if (str(data.content).trim()) t.content = str(data.content);
+  const tldr = sentenceList(data.tldr);
+  if (tldr) t.tldr = tldr;
+  if (str(data.why_it_matters).trim()) t.whyItMatters = str(data.why_it_matters).trim();
+  return t.title || t.content || t.tldr ? t : null;
 };

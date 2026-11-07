@@ -1,11 +1,25 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Wordmark } from '@/components/brand/Logo';
+import { Languages } from 'lucide-react';
 import { TAGLINE, cn } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n/useI18n';
+
+/** In the Bangla interface, says plainly that this page's text is English only (policy and account pages). */
+export function EnglishOnlyNote({ className }: { className?: string }) {
+  const { lang, t } = useI18n();
+  if (lang !== 'bn') return null;
+  return (
+    <p lang="bn" className={cn('flex items-center gap-2 rounded-md border bg-mist/60 px-3 py-2 text-sm text-mist-foreground', className)}>
+      <Languages className="size-4 shrink-0 text-primary" aria-hidden="true" /> {t('lang.englishOnlyPage')}
+    </p>
+  );
+}
 
 export function PageIntro({ eyebrow, title, dek, className, children }: { eyebrow?: string; title: string; dek?: ReactNode; className?: string; children?: ReactNode }) {
   return (
     <header className={cn('border-b border-foreground pb-8', className)}>
+      <EnglishOnlyNote className="mb-5 w-fit" />
       {eyebrow && <p className="eyebrow text-primary">{eyebrow}</p>}
       <h1 className="mt-3 max-w-4xl font-display text-[2.75rem] font-medium leading-[0.98] tracking-[-0.03em] sm:text-[4rem]">{title}</h1>
       {dek && <div className="mt-5 max-w-2xl font-serif text-xl leading-[1.5] text-muted-foreground">{dek}</div>}
@@ -33,6 +47,7 @@ export function AuthShell({ title, dek, children, footer }: { title: string; dek
         <p className="data text-ink-foreground/50">theageofgenz.com</p>
       </aside>
       <div className="mx-auto w-full max-w-md lg:col-span-6 lg:col-start-7">
+        <EnglishOnlyNote className="mb-5 w-fit" />
         <h1 className="font-display text-[2.5rem] font-medium leading-[1.02] tracking-[-0.025em]">{title}</h1>
         {dek && <p className="mt-3 text-muted-foreground">{dek}</p>}
         <div className="mt-8">{children}</div>

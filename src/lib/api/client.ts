@@ -6,9 +6,11 @@
  * backend does not expose them (404/405/5xx/network), the helpers resolve to
  * `null` and the UI hides the feature instead of erroring.
  */
-import { normalizeArticle, normalizeList } from './normalize';
+import { normalizeArticle, normalizeAuthorProfile, normalizeList, normalizeTranslation } from './normalize';
 import type {
   Article,
+  ArticleTranslation,
+  AuthorProfile,
   AskResponse,
   AuthUser,
   Category,
@@ -299,6 +301,16 @@ export const homeApi = {
   },
 };
 
+// GET /api/authors/<slug>/?page= -> { id, name, slug, bio, avatar, role, is_desk, article_count, articles[], count, next, previous }
+export const authorsApi = {
+  async bySlug(slug: string, page = 1, signal?: AbortSignal): Promise<AuthorProfile> {
+    const data = await request<unknown>(`/api/authors/${encodeURIComponent(slug)}/`, { params: page > 1 ? { page } : undefined, signal, anonymous: true });
+    const profile = normalizeAuthorProfile(data, page);
+    if (!profile) throw new ApiError('Author not found', 404, null);
+    return profile;
+  },
+};
+
 export const categoriesApi = {
   async list(signal?: AbortSignal): Promise<Category[]> {
     const data = await request<Category[] | { results?: Category[] }>('/api/categories/', { params: { flat: 'true' }, signal });
@@ -336,14 +348,12 @@ export const aiApi = {
     return { tldr: a.tldr, whyItMatters: a.whyItMatters };
   },
 
-  /** Approved translation (Bangla by default). 404 when none is approved yet. */
-  async translate(slug: string, lang = 'bn', signal?: AbortSignal): Promise<{ title?: string; tldr?: string[] } | null> {
+  /** Approved translation (Bangla by default): title, standfirst, body, TL;DR. 404 when none is approved yet. */
+  async translate(slug: string, lang = 'bn', signal?: AbortSignal): Promise<ArticleTranslation | null> {
     const data = await optional(
       request<Record<string, unknown>>(`${slugPath(slug)}/translations/${encodeURIComponent(lang)}/`, { signal, retries: 0, anonymous: true }),
     );
-    if (!data || data.is_approved === false) return null;
-    const a = normalizeArticle({ slug, translations: { bn: { title: data.title, tldr: data.tldr } } });
-    return a.titleBn || a.tldrBn ? { title: a.titleBn, tldr: a.tldrBn } : null;
+    return data ? normalizeTranslation(data, lang) : null;
   },
 
   /** Is the Q&A endpoint deployed? A GET on the POST-only view answers 405; a missing route 404; disabled 503. */

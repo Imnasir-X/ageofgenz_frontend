@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { aiApi, ApiError } from '@/lib/api/client';
 import type { Article } from '@/lib/api/types';
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n/useI18n';
 
 interface Turn {
   q: string;
@@ -14,7 +15,7 @@ interface Turn {
   error?: string;
 }
 
-const SUGGESTIONS = ['What happened, in one paragraph?', 'Why does this matter to me?', 'What should I watch for next?'];
+const SUGGESTIONS = ['ask.s1', 'ask.s2', 'ask.s3'] as const;
 
 /**
  * "Ask about this article". Renders nothing until the backend confirms the Q&A endpoint
@@ -34,6 +35,7 @@ export function AskPanel({
 }) {
   const [checked, setAvailable] = useState(false);
   const available = known ?? checked;
+  const { t } = useI18n();
   const [turns, setTurns] = useState<Turn[]>([]);
   const [question, setQuestion] = useState('');
   const [busy, setBusy] = useState(false);
@@ -62,14 +64,14 @@ export function AskPanel({
     const settle = (patch: Partial<Turn>) => setTurns((t) => t.map((turn, i) => (i === t.length - 1 ? { ...turn, ...patch } : turn)));
     try {
       const res = await aiApi.ask(article.slug, text, controller.current.signal);
-      settle({ a: res.answer || 'No answer this time.', quotes: res.quotes, answerable: res.answerable });
+      settle({ a: res.answer || t('ask.noAnswer'), quotes: res.quotes, answerable: res.answerable });
     } catch (err) {
       if (err instanceof ApiError && (err.status === 404 || err.status === 503)) {
         setAvailable(false);
         onUnavailable?.();
         return;
       }
-      settle({ error: err instanceof Error ? err.message : 'Something went wrong.' });
+      settle({ error: err instanceof Error ? err.message : t('ask.error') });
     } finally {
       setBusy(false);
     }
@@ -78,9 +80,9 @@ export function AskPanel({
   return (
     <section id="ask" className={cn('rounded-lg bg-mist p-5 text-mist-foreground', className)} aria-labelledby="ask-title">
       <h2 id="ask-title" className="flex items-center gap-2 font-display text-xl font-medium">
-        <MessagesSquare className="size-4 text-primary" /> Ask about this article
+        <MessagesSquare className="size-4 text-primary" aria-hidden="true" /> {t('ask.title')}
       </h2>
-      <p className="mt-1 text-xs text-mist-foreground/75">Answers draw only on this story’s text. AI can make mistakes, so check the article.</p>
+      <p className="mt-1 text-xs text-mist-foreground/75">{t('ask.note')}</p>
 
       {turns.length > 0 && (
         <div className="mt-4 max-h-[26rem] space-y-4 overflow-y-auto pr-1" aria-live="polite">
@@ -91,7 +93,7 @@ export function AskPanel({
               {turn.error && <p className="text-destructive">{turn.error}</p>}
               {!turn.a && !turn.error && (
                 <p className="flex items-center gap-2 text-mist-foreground/70">
-                  <Loader2 className="size-3.5 animate-spin" /> Reading the article…
+                  <Loader2 className="size-3.5 animate-spin" aria-hidden="true" /> {t('ask.reading')}
                 </p>
               )}
               {turn.quotes && turn.quotes.length > 0 && (
@@ -110,7 +112,7 @@ export function AskPanel({
 
       {turns.length === 0 && (
         <div className="mt-4 flex flex-wrap gap-2">
-          {SUGGESTIONS.map((s) => (
+          {SUGGESTIONS.map((key) => t(key)).map((s) => (
             <button key={s} type="button" onClick={() => ask(s)} className="inline-flex min-h-11 items-center rounded-full border border-primary/25 bg-card px-3 text-left text-xs font-medium transition-colors duration-fast hover:border-primary motion-safe:active:scale-[0.97] sm:min-h-8">
               {s}
             </button>
@@ -126,7 +128,7 @@ export function AskPanel({
         }}
       >
         <label htmlFor="ask-input" className="sr-only">
-          Your question
+          {t('ask.yourQuestion')}
         </label>
         <Textarea
           id="ask-input"
@@ -140,10 +142,10 @@ export function AskPanel({
           }}
           rows={2}
           maxLength={500}
-          placeholder="Ask a question about this story"
+          placeholder={t('ask.placeholder')}
           className="min-h-[2.75rem] resize-none bg-card"
         />
-        <Button type="submit" size="icon" disabled={!question.trim()} loading={busy} aria-label="Ask">
+        <Button type="submit" size="icon" disabled={!question.trim()} loading={busy} aria-label={t('ask.submit')}>
           <Send aria-hidden="true" />
         </Button>
       </form>

@@ -1,6 +1,7 @@
 import type React from 'react';
 import { Link } from 'react-router-dom';
 import { Seo } from '@/components/seo/Seo';
+import { EnglishOnlyNote } from '@/components/layout/PageShell';
 import { Lock, RefreshCw, ShieldCheck } from 'lucide-react';
 
 const Privacy: React.FC = () => {
@@ -9,6 +10,7 @@ const Privacy: React.FC = () => {
       <Seo title="Privacy Policy" description="How The Age of GenZ collects, uses and protects your personal data, and your privacy rights." path="/privacy/" />
 
       <div className="container mx-auto px-4 max-w-5xl">
+        <EnglishOnlyNote className="mx-auto mb-6 w-fit" />
         <section className="mb-8 text-center">
           <h1 className="font-display text-5xl font-medium tracking-[-0.025em] text-foreground md:text-6xl mb-4">
             Privacy Policy
@@ -269,7 +271,7 @@ const Privacy: React.FC = () => {
               </div>
             </div>
             
-            <div className="mt-6 p-4 bg-primary border border-primary rounded-lg">
+            <div className="mt-6 p-4 bg-mist border border-primary/30 rounded-lg">
               <h4 className="font-semibold text-primary mb-2">How to Exercise Your Rights</h4>
               <p className="text-primary text-sm">
                 Contact us at <a href="mailto:contact@theageofgenz.com" className="underline">contact@theageofgenz.com</a> 

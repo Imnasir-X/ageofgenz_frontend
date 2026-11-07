@@ -6,12 +6,14 @@ import { StoryImage } from './StoryImage';
 import { CoverArt } from './CoverArt';
 import { StoryMeta } from './StoryMeta';
 import { articleLinkProps } from '@/lib/prefetch';
+import { useI18n } from '@/lib/i18n/useI18n';
 
 export function WhyItMatters({ text, className }: { text?: string; className?: string }) {
+  const { t } = useI18n();
   if (!text) return null;
   return (
     <p className={cn('border-l-2 border-primary pl-3 text-sm leading-relaxed text-foreground/85', className)}>
-      <span className="font-semibold text-foreground">Why it matters: </span>
+      <span className="font-semibold text-foreground">{t('story.whyItMattersColon')}</span>
       {text}
     </p>
   );
@@ -36,6 +38,8 @@ const press = 'transition-transform duration-fast ease-standard motion-safe:acti
 
 /** Whole-card link: the headline link stretches over the card; category links sit above it. */
 export function StoryCard({ article, variant = 'standard', className, index, priority, showWhy = true, sizes }: StoryCardProps) {
+  const { t, category } = useI18n();
+  const categoryName = category(article.category.slug, article.category.name);
   const headline = (size: string) => (
     <h3 className={cn('font-display font-medium leading-[1.2] tracking-[-0.01em] text-foreground', size)}>
       <Link {...articleLinkProps(article)} className="transition-colors duration-fast after:absolute after:inset-0 group-hover:text-primary">
@@ -56,7 +60,7 @@ export function StoryCard({ article, variant = 'standard', className, index, pri
           priority={priority}
           ratio="video"
           category={article.category.slug}
-          categoryLabel={article.category.name}
+          categoryLabel={categoryName}
         />
         <div className="flex flex-col gap-2.5">
           <StoryMeta article={article} />
@@ -79,10 +83,10 @@ export function StoryCard({ article, variant = 'standard', className, index, pri
         <CoverArt category={article.category.slug} size="lg" className="-z-10 opacity-90" />
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           {article.isOpinion && (
-            <span className="rounded-full border border-ink-foreground/60 px-2 py-0.5 font-mono text-[0.68rem] uppercase tracking-wider">Opinion</span>
+            <span className="rounded-full border border-ink-foreground/60 px-2 py-0.5 font-mono text-[0.68rem] uppercase tracking-wider">{t('story.opinion')}</span>
           )}
-          <span className="eyebrow text-ink-foreground/70">{article.category.name}</span>
-          <span className="data text-ink-foreground/60">{article.readMinutes} min read</span>
+          <span className="eyebrow text-ink-foreground/70">{categoryName}</span>
+          <span className="data text-ink-foreground/60">{t('story.minRead', { n: article.readMinutes })}</span>
         </div>
         <h2 className="mt-5 max-w-4xl font-display text-[2.1rem] font-medium leading-[1.04] tracking-[-0.022em] text-ink-foreground sm:text-[3.25rem] lg:text-[3.75rem]">
           <Link {...articleLinkProps(article)} className="decoration-ink-foreground/40 decoration-2 underline-offset-[8px] after:absolute after:inset-0 group-hover:underline">
@@ -94,13 +98,13 @@ export function StoryCard({ article, variant = 'standard', className, index, pri
         )}
         {showWhy && article.whyItMatters && (
           <p className="mt-6 max-w-2xl border-l-2 border-ink-foreground/30 pl-3 text-sm leading-relaxed text-ink-foreground/90">
-            <span className="font-semibold text-ink-foreground">Why it matters: </span>
+            <span className="font-semibold text-ink-foreground">{t('story.whyItMattersColon')}</span>
             {article.whyItMatters}
           </p>
         )}
         {/* Von Restorff: the one Electric Lime element in the view is the lead story's call to action. */}
         <p className="mt-9 inline-flex min-h-11 w-fit items-center gap-2 rounded-md bg-lime px-4 text-sm font-semibold text-lime-foreground" aria-hidden="true">
-          Read the story <ArrowRight className="size-4 transition-transform duration-base ease-standard group-hover:translate-x-0.5" />
+          {t('story.readStory')} <ArrowRight className="size-4 transition-transform duration-base ease-standard group-hover:translate-x-0.5" />
         </p>
       </article>
     );
@@ -109,7 +113,7 @@ export function StoryCard({ article, variant = 'standard', className, index, pri
   if (variant === 'lead') {
     return (
       <article className={cn('group relative grid gap-5 md:grid-cols-12 md:gap-8', press, className)}>
-        <StoryImage src={article.image} alt={article.imageAlt || article.title} width={720} sizes="(min-width: 768px) 55vw, calc(100vw - 2.5rem)" priority={priority} className="md:col-span-7" ratio="wide" category={article.category.slug} categoryLabel={article.category.name} />
+        <StoryImage src={article.image} alt={article.imageAlt || article.title} width={720} sizes="(min-width: 768px) 55vw, calc(100vw - 2.5rem)" priority={priority} className="md:col-span-7" ratio="wide" category={article.category.slug} categoryLabel={categoryName} />
         <div className="flex flex-col gap-3 md:col-span-5 md:py-2">
           <StoryMeta article={article} />
           <h2 className="font-display text-[2rem] font-medium leading-[1.06] tracking-[-0.02em] sm:text-[2.6rem]">
@@ -128,7 +132,7 @@ export function StoryCard({ article, variant = 'standard', className, index, pri
     // A single story given the full width (sparse rails, a lone related story): image left, text right.
     return (
       <article className={cn('group relative grid gap-5 sm:grid-cols-12 sm:items-center sm:gap-8', press, className)}>
-        <StoryImage src={article.image} alt={article.imageAlt || article.title} width={560} sizes="(min-width: 640px) 40vw, calc(100vw - 2.5rem)" ratio="wide" className="sm:col-span-5" category={article.category.slug} categoryLabel={article.category.name} />
+        <StoryImage src={article.image} alt={article.imageAlt || article.title} width={560} sizes="(min-width: 640px) 40vw, calc(100vw - 2.5rem)" ratio="wide" className="sm:col-span-5" category={article.category.slug} categoryLabel={categoryName} />
         <div className="flex flex-col gap-2.5 sm:col-span-7">
           <StoryMeta article={article} />
           {headline('text-[1.5rem] sm:text-[1.85rem] leading-[1.12]')}
@@ -189,7 +193,7 @@ export function StoryCard({ article, variant = 'standard', className, index, pri
 
   return (
     <article className={cn('group relative flex flex-col gap-3', lift, className)}>
-      <StoryImage src={article.image} alt={article.imageAlt || article.title} width={640} sizes={sizes ?? '(min-width: 1024px) 33vw, (min-width: 768px) 50vw, calc(100vw - 2.5rem)'} priority={priority} category={article.category.slug} categoryLabel={article.category.name} />
+      <StoryImage src={article.image} alt={article.imageAlt || article.title} width={640} sizes={sizes ?? '(min-width: 1024px) 33vw, (min-width: 768px) 50vw, calc(100vw - 2.5rem)'} priority={priority} category={article.category.slug} categoryLabel={categoryName} />
       <StoryMeta article={article} />
       {headline('text-[1.3rem]')}
       {showWhy && article.whyItMatters ? (

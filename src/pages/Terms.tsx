@@ -1,6 +1,7 @@
 import type React from 'react';
 import { Link } from 'react-router-dom';
 import { Seo } from '@/components/seo/Seo';
+import { EnglishOnlyNote } from '@/components/layout/PageShell';
 import { FileText, ShieldCheck, Gavel, Scale, HelpCircle, ExternalLink, ArrowUpRight, MessageCircle, Users, CircleCheck, CircleX, Ban } from 'lucide-react';
 
 const sectionNav = [
@@ -23,8 +24,9 @@ const Terms: React.FC = () => {
       <Seo title="Terms of Service" description="The terms that govern your use of The Age of GenZ, our content policies and your rights and responsibilities." path="/terms/" />
 
       <div className="container mx-auto px-4 max-w-6xl">
+        <EnglishOnlyNote className="mx-auto mb-6 w-fit" />
         <section className="mb-10 text-center bg-card rounded-lg border border-border p-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-mist text-secondary-foreground rounded-full text-sm font-medium mb-4">
             <ShieldCheck className="w-4 h-4" />
             Legal Framework
           </div>
@@ -89,7 +91,7 @@ const Terms: React.FC = () => {
                   ))}
                 </ul>
               </nav>
-              <div className="mt-6 p-4 bg-primary border border-primary rounded-lg text-sm text-primary">
+              <div className="mt-6 p-4 bg-mist border border-primary/30 rounded-lg text-sm text-primary">
                 <p className="font-semibold mb-1 flex items-center gap-2">
                   <HelpCircle className="w-4 h-4" />
                   Need clarification?
@@ -263,7 +265,7 @@ const Terms: React.FC = () => {
                 <p className="text-foreground/80 leading-relaxed">
                   We respect intellectual property rights and respond to valid DMCA takedown notices. 
                   If you believe your copyrighted work has been infringed, contact us at 
-                  <a href="mailto:contact@theageofgenz.com" className="text-primary hover:text-primary ml-1">
+                  <a href="mailto:contact@theageofgenz.com" className="ml-1 text-primary underline underline-offset-2 hover:decoration-2">
                     contact@theageofgenz.com
                   </a>
                   with detailed information about the alleged infringement.
@@ -313,7 +315,7 @@ const Terms: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-primary border border-primary p-4 rounded-lg">
+              <div className="bg-mist border border-primary/30 p-4 rounded-lg">
                 <h4 className="font-semibold text-primary mb-2">Enforcement</h4>
                 <p className="text-primary text-sm">
                   Violations may result in content removal, account suspension, or termination. 
@@ -357,7 +359,7 @@ const Terms: React.FC = () => {
               
               <p className="mt-4">
                 For detailed information about our privacy practices, please review our 
-                <Link to="/privacy" className="text-primary hover:text-primary ml-1">Privacy Policy</Link>.
+                <Link to="/privacy" className="ml-1 text-primary underline underline-offset-2 hover:decoration-2">Privacy Policy</Link>.
               </p>
             </div>
           </section>
@@ -439,7 +441,7 @@ const Terms: React.FC = () => {
                 <h3 className="text-xl font-semibold mb-3 text-foreground">9.1 Termination by You</h3>
                 <p className="text-foreground/80 leading-relaxed">
                   You may terminate your account at any time by contacting us at 
-                  <a href="mailto:contact@theageofgenz.com" className="text-primary hover:text-primary ml-1">
+                  <a href="mailto:contact@theageofgenz.com" className="ml-1 text-primary underline underline-offset-2 hover:decoration-2">
                     contact@theageofgenz.com
                   </a>. 
                   Upon termination, your right to use the Service will cease immediately.
@@ -516,7 +518,7 @@ const Terms: React.FC = () => {
                       <p className="text-xs text-muted-foreground mt-1">Work together on a solution</p>
                     </div>
                     <div className="text-center p-4 bg-card rounded-lg border border-border">
-                      <div className="w-10 h-10 bg-primary rounded-lg mx-auto mb-2 flex items-center justify-center text-primary">
+                      <div className="w-10 h-10 bg-mist rounded-lg mx-auto mb-2 flex items-center justify-center text-primary">
                         <Gavel className="w-5 h-5" />
                       </div>
                       <h4 className="font-semibold text-foreground text-sm">Step 3: Legal Action</h4>
@@ -565,13 +567,13 @@ const Terms: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-8 p-6 bg-primary border border-primary rounded-lg">
+              <div className="mt-8 p-6 bg-mist border border-primary/30 rounded-lg">
                 <h3 className="text-xl font-semibold mb-3 text-primary">Contact Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-primary mb-1"><strong>Legal Inquiries:</strong></p>
                     <p className="text-primary">
-                      <a href="mailto:contact@theageofgenz.com" className="hover:underline">
+                      <a href="mailto:contact@theageofgenz.com" className="underline underline-offset-2 hover:decoration-2">
                         contact@theageofgenz.com
                       </a>
                     </p>

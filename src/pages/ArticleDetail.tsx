@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { ChevronRight, Scale } from 'lucide-react';
+import { ChevronRight, Languages, Scale } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { InitialDataContext } from '@/components/seo/context';
 import { ArticleBody } from '@/components/article/ArticleBody';
@@ -18,12 +18,13 @@ import { ErrorState } from '@/components/news/States';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAsync } from '@/hooks/useAsync';
 import { aiApi, articlesApi, ApiError } from '@/lib/api/client';
-import type { Article } from '@/lib/api/types';
+import type { Article, ArticleTranslation } from '@/lib/api/types';
+import { useI18n } from '@/lib/i18n/useI18n';
+import type { StringKey } from '@/lib/i18n/strings';
 import { articleJsonLd } from '@/lib/article/jsonLd';
 import { useReadingHeartbeat } from '@/lib/readingHeartbeat';
 import { loadArticle } from '@/lib/prefetch';
 import { categoryHref } from '@/constants/sections';
-import { formatDate } from '@/lib/utils';
 import { meaningfulUpdate } from '@/lib/dates';
 import NotFound from './NotFound';
 
@@ -39,8 +40,9 @@ function BodySkeleton() {
 
 /** Mirrors the article layout (header, 16:9 hero, body column) so nothing jumps when it loads. */
 function ArticleSkeleton() {
+  const { t } = useI18n();
   return (
-    <div className="pt-8 sm:pt-12" aria-busy="true" aria-label="Loading article">
+    <div className="pt-8 sm:pt-12" aria-busy="true" aria-label={t('article.loading')}>
       <div className="container max-w-[64rem]">
         <Skeleton className="h-3 w-40" />
         <Skeleton className="mt-5 h-12 w-full max-w-[40rem]" />
@@ -58,18 +60,22 @@ function ArticleSkeleton() {
   );
 }
 
+const ROLE_KEYS = new Set(['desk', 'staff', 'editor', 'contributor', 'columnist']);
+
 function ArticleHeader({ a }: { a: Article }) {
+  const { t, date, category } = useI18n();
   const updated = meaningfulUpdate(a);
+  const role = a.author.role && ROLE_KEYS.has(a.author.role) ? t(`author.role.${a.author.role}` as StringKey) : a.author.role;
   return (
     <>
       <header className="container max-w-[64rem]">
-        <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+        <nav aria-label={t('article.breadcrumb')} className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
           <Link to="/" className="hover:text-foreground">
-            Home
+            {t('nav.home')}
           </Link>
           <ChevronRight className="size-3" aria-hidden="true" />
           <Link to={categoryHref(a.category.slug)} className="eyebrow text-primary hover:underline">
-            {a.category.name}
+            {category(a.category.slug, a.category.name)}
           </Link>
           {a.isOpinion && <OpinionLabel className="ml-2" />}
         </nav>
@@ -83,27 +89,33 @@ function ArticleHeader({ a }: { a: Article }) {
         <div className="mt-8 flex flex-col gap-4 border-y py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span className="text-sm font-medium">
-              {a.isOpinion ? 'Opinion by ' : 'By '}
+              {a.isOpinion ? t('story.opinionBy') : t('story.by')}
               {a.author.url ? (
-                <a href={a.author.url} className="link-underline" rel="author">
-                  {a.author.name}
-                </a>
+                a.author.url.startsWith('/') ? (
+                  <Link to={a.author.url} className="link-underline" rel="author">
+                    {a.author.name}
+                  </Link>
+                ) : (
+                  <a href={a.author.url} className="link-underline" rel="author">
+                    {a.author.name}
+                  </a>
+                )
               ) : (
                 a.author.name
               )}
-              {a.author.role && !a.author.isDesk && <span className="font-normal text-muted-foreground">, {a.author.role}</span>}
+              {role && !a.author.isDesk && <span className="font-normal text-muted-foreground">, {role}</span>}
             </span>
             {a.publishedAt && (
               <time dateTime={a.publishedAt} className="data text-muted-foreground">
-                {formatDate(a.publishedAt, { month: 'long' })}
+                {date(a.publishedAt, { month: 'long' })}
               </time>
             )}
             {updated && (
               <span className="data text-muted-foreground">
-                · Updated <time dateTime={updated.toISOString()}>{formatDate(updated.toISOString(), { month: 'long' })}</time>
+                · {t('story.updated')} <time dateTime={updated.toISOString()}>{date(updated.toISOString(), { month: 'long' })}</time>
               </span>
             )}
-            <span className="data text-muted-foreground">· {a.readMinutes} min read</span>
+            <span className="data text-muted-foreground">· {t('story.minRead', { n: a.readMinutes })}</span>
           </div>
           <ShareBar article={a} />
         </div>
@@ -125,6 +137,7 @@ function ArticleHeader({ a }: { a: Article }) {
 }
 
 export default function ArticleDetail() {
+  const { t, lang } = useI18n();
   const { slug = '' } = useParams<{ slug: string }>();
   const initial = useContext(InitialDataContext);
   const initialArticle = initial.article && initial.article.slug === slug ? initial.article : undefined;
@@ -137,7 +150,9 @@ export default function ArticleDetail() {
   const preview = statePreview && statePreview.slug === slug ? statePreview : undefined;
 
   const [enriched, setEnriched] = useState<Partial<Article>>({});
-  const [bangla, setBangla] = useState<{ title?: string; tldr?: string[] } | null>(null);
+  const [bangla, setBangla] = useState<ArticleTranslation | null>(null);
+  const [bnChecked, setBnChecked] = useState(false);
+  const [showOriginal, setShowOriginal] = useState(false);
   const [related, setRelated] = useState<Article[] | null>(null);
   const [askAvailable, setAskAvailable] = useState(false);
 
@@ -146,6 +161,8 @@ export default function ArticleDetail() {
     const c = new AbortController();
     setEnriched({});
     setBangla(null);
+    setBnChecked(false);
+    setShowOriginal(false);
     setRelated(null);
     setAskAvailable(false);
     aiApi.askAvailable(article.slug, c.signal).then((ok) => !c.signal.aborted && setAskAvailable(ok));
@@ -154,8 +171,12 @@ export default function ArticleDetail() {
         if (b && !c.signal.aborted) setEnriched(Object.fromEntries(Object.entries(b).filter(([, v]) => v !== undefined)) as Partial<Article>);
       });
     }
-    if (article.titleBn || article.tldrBn) setBangla({ title: article.titleBn, tldr: article.tldrBn });
-    else aiApi.translate(article.slug, 'bn', c.signal).then((t) => !c.signal.aborted && setBangla(t));
+    if (article.titleBn || article.tldrBn) setBangla({ language: 'bn', title: article.titleBn, tldr: article.tldrBn });
+    aiApi.translate(article.slug, 'bn', c.signal).then((tr) => {
+      if (c.signal.aborted) return;
+      if (tr) setBangla(tr);
+      setBnChecked(true);
+    });
     articlesApi
       .related(article, c.signal)
       .then((r) => !c.signal.aborted && setRelated(r))
@@ -193,11 +214,27 @@ export default function ArticleDetail() {
     sources: article.sources ?? enriched.sources,
     perspectives: article.perspectives ?? enriched.perspectives,
   };
+  // Bangla interface + an approved Bangla translation: show the translated story (title, standfirst,
+  // body, TL;DR) with a switch back to the English original. SEO and JSON-LD stay on the original.
+  const translated = lang === 'bn' && !showOriginal && bangla && (bangla.title || bangla.content) ? bangla : null;
+  const view: Article = translated
+    ? {
+        ...a,
+        title: translated.title ?? a.title,
+        excerpt: translated.excerpt ?? (translated.content ? '' : a.excerpt),
+        content: translated.content ?? a.content,
+        contentBlocks: translated.content ? null : a.contentBlocks,
+        tldr: translated.tldr ?? a.tldr,
+        aiReviewed: translated.tldr ? false : a.aiReviewed,
+        whyItMatters: translated.whyItMatters ?? a.whyItMatters,
+      }
+    : a;
+  const hasBnStory = Boolean(bangla && (bangla.title || bangla.content));
   // The standfirst is shown under the headline; don't repeat it as the first body paragraph.
   const bodyBlocks =
-    a.contentBlocks && a.contentBlocks[0]?.type === 'paragraph' && a.contentBlocks[0].text.trim().toLowerCase() === a.excerpt.trim().toLowerCase()
-      ? a.contentBlocks.slice(1)
-      : a.contentBlocks;
+    view.contentBlocks && view.contentBlocks[0]?.type === 'paragraph' && view.contentBlocks[0].text.trim().toLowerCase() === view.excerpt.trim().toLowerCase()
+      ? view.contentBlocks.slice(1)
+      : view.contentBlocks;
 
   return (
     <>
@@ -212,24 +249,39 @@ export default function ArticleDetail() {
       />
       <ReadingProgress targetId="article-body" minutes={a.readMinutes} />
 
-      <article className="pt-8 sm:pt-12" aria-labelledby="article-title">
-        <ArticleHeader a={a} />
+      <article className="pt-8 sm:pt-12" aria-labelledby="article-title" lang={translated ? 'bn' : 'en'}>
+        <ArticleHeader a={view} />
+        {lang === 'bn' && (hasBnStory || bnChecked) && (
+          <div className="container mt-6 max-w-[64rem]">
+            <p lang="bn" className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-md border bg-mist/60 px-4 py-3 text-sm text-mist-foreground" role="status">
+              <Languages className="size-4 shrink-0 text-primary" aria-hidden="true" />
+              <span className="min-w-0 flex-1">
+                {hasBnStory ? (translated ? t('article.bnAvailable') : t('article.translatedNote')) : t('article.enOnly')}
+              </span>
+              {hasBnStory && (
+                <button type="button" onClick={() => setShowOriginal((v) => !v)} className="min-h-11 font-medium text-primary underline-offset-4 hover:underline sm:min-h-0">
+                  {translated ? t('article.bnShowOriginal') : t('article.bnShowTranslation')}
+                </button>
+              )}
+            </p>
+          </div>
+        )}
 
         <div className="container mt-10 max-w-[64rem]">
           <div className="grid gap-12 lg:grid-cols-12">
             <div className="min-w-0 lg:col-span-8">
-              <BriefingBox article={a} bangla={bangla} className="mb-10" />
+              <BriefingBox article={view} bangla={translated ? null : bangla} className="mb-10" />
               {a.isOpinion && (
                 <p className="mb-8 flex gap-2 rounded-md border bg-card p-3 text-sm">
                   <Scale className="mt-0.5 size-4 shrink-0 text-primary" />
-                  This is an opinion piece. It reflects the author’s view, not a news report.
+                  {t('article.opinionNote')}
                 </p>
               )}
               <div id="article-body">
-                <ArticleBody blocks={bodyBlocks} content={a.content} className="max-w-[65ch]" />
+                <ArticleBody blocks={bodyBlocks} content={view.content} className="max-w-[65ch]" />
               </div>
               {a.tags.length > 0 && (
-                <ul className="mt-10 flex flex-wrap gap-2" aria-label="Topics">
+                <ul className="mt-10 flex flex-wrap gap-2" aria-label={t('article.topics')}>
                   {a.tags.map((t) => (
                     <li key={t}>
                       <Link to={`/search?q=${encodeURIComponent(t)}`} className="rounded-full bg-muted px-3 py-1 text-xs font-medium hover:bg-mist">
@@ -255,9 +307,9 @@ export default function ArticleDetail() {
       </article>
 
       <div className="container mt-16 max-w-[64rem]">
-        <ArticleEnd article={a} related={related ? related.slice(0, 3) : null} />
+        <ArticleEnd article={view} related={related ? related.slice(0, 3) : null} />
         {/* The page's only newsletter ask, after the reader has finished. */}
-        <NewsletterBlock source="article-end" className="mt-16" title="Stories like this, explained, once a week." />
+        <NewsletterBlock source="article-end" className="mt-16" title={t('newsletter.articleTitle')} />
       </div>
       {askAvailable && <MobileAsk article={a} onUnavailable={() => setAskAvailable(false)} />}
     </>

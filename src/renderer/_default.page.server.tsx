@@ -55,7 +55,7 @@ export async function render(pageContext: PageContext) {
     .replace('<!--app-html-->', appHtml)
     .replace(
       '<!--app-data-->',
-      initialData.article || initialData.articleMissing ? `<script id="__AGZ_DATA__" type="application/json">${escapeJson(initialData)}</script>` : '',
+      initialData.article || initialData.articleMissing || initialData.author || initialData.authorMissing ? `<script id="__AGZ_DATA__" type="application/json">${escapeJson(initialData)}</script>` : '',
     );
 
   return { documentHtml: dangerouslySkipEscape(html), injectFilter };
