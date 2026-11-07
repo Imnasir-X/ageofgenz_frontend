@@ -3,17 +3,17 @@ import { TrendingUp } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { WEBSITE_LD } from '@/components/seo/seo-core';
 import { StoryCard } from '@/components/news/StoryCard';
-import { CategoryRail } from '@/components/news/CategoryRail';
+import { HomeRails } from '@/components/news/CategoryRail';
 import { AiExplainerEntry } from '@/components/news/AiExplainerEntry';
 import { NewsletterForm } from '@/components/news/NewsletterForm';
 import { BriefingSkeleton, ErrorState, LeadSkeleton, SectionHeader, StoryRowSkeleton } from '@/components/news/States';
 import { Skeleton } from '@/components/ui/skeleton';
 import { articleLinkProps } from '@/lib/prefetch';
 import { useAsync } from '@/hooks/useAsync';
-import { articlesApi } from '@/lib/api/client';
+import { articlesApi, PAGE_SIZE } from '@/lib/api/client';
 import { cached } from '@/lib/api/cache';
 import type { Article } from '@/lib/api/types';
-import { HOME_RAILS, SECTIONS } from '@/constants/sections';
+import { HOME_RAILS } from '@/constants/sections';
 import { SITE_NAME, TAGLINE, cn, truncate } from '@/lib/utils';
 
 const todayLabel = () => new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
@@ -178,10 +178,9 @@ export default function Home() {
         </div>
 
         <div className="mt-6">
-          {HOME_RAILS.map((key) => {
-            const section = SECTIONS[key];
-            return <CategoryRail key={key} slug={section.category ?? key} title={section.title} href={section.path} exclude={onPage} />;
-          })}
+          {stories.length > 0 && (
+            <HomeRails railKeys={HOME_RAILS} exclude={onPage} complete={stories.length > 0 && stories.length < PAGE_SIZE && stories.every((a) => onPage.includes(a.slug))} />
+          )}
         </div>
 
         {/* Serial position: the strongest story opens the page, the one ask (newsletter) closes it. */}
