@@ -112,11 +112,15 @@ function SecondaryGrid({ stories }: { stories: Article[] }) {
   return (
     <section className="mt-14" aria-label="Top stories">
       <SectionHeader title="Top stories" />
-      <div className="grid gap-x-10 gap-y-10 pt-5 md:grid-cols-2">
-        {stories.slice(0, 6).map((a) => (
-          <StoryCard key={a.slug} article={a} sizes="(min-width: 768px) 45vw, calc(100vw - 2.5rem)" />
-        ))}
-      </div>
+      {stories.length === 1 ? (
+        <StoryCard article={stories[0]} variant="feature" className="pt-5" />
+      ) : (
+        <div className="grid gap-x-10 gap-y-10 pt-5 md:grid-cols-2">
+          {stories.slice(0, 6).map((a) => (
+            <StoryCard key={a.slug} article={a} sizes="(min-width: 768px) 45vw, calc(100vw - 2.5rem)" />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -239,22 +243,28 @@ export default function Home() {
         ) : (
           <div className="grid gap-8 lg:grid-cols-12">
             <div className="lg:col-span-8">{loading ? <HeroSkeleton /> : plan?.lead && <StoryCard article={plan.lead} variant="hero" priority />}</div>
-            <div className={cn('lg:col-span-4', !loading && !plan?.briefing.length && 'hidden')}>{loading ? <BriefingSkeleton /> : <QuickBriefing stories={plan?.briefing ?? []} />}</div>
+            {/* The side column holds the quick briefing; with too few stories for one, the AI explainer takes its place. */}
+            <div className="lg:col-span-4">
+              {loading ? <BriefingSkeleton /> : plan?.briefing.length ? <QuickBriefing stories={plan.briefing} /> : plan?.lead && <AiExplainerEntry article={plan.lead} />}
+            </div>
           </div>
         )}
 
         {plan && <SecondaryGrid stories={plan.secondary} />}
 
-        {plan && (
+        {plan && (plan.trending.length > 0 || plan.briefing.length > 0) && (
           <div className="mt-14 grid gap-6 lg:grid-cols-12 lg:items-start lg:gap-8">
             {plan.trending.length > 0 && (
-              <div className="lg:col-span-8">
+              <div className={cn(plan.briefing.length > 0 ? 'lg:col-span-8' : 'lg:col-span-12')}>
                 <TrendingList stories={plan.trending} byViews={plan.trendingByViews} />
               </div>
             )}
-            <div className={cn('lg:col-span-4', plan.trending.length === 0 && 'lg:col-span-12')}>
-              <AiExplainerEntry article={plan.lead} />
-            </div>
+            {/* Shown here only when the side column above is taken by the quick briefing. */}
+            {plan.briefing.length > 0 && (
+              <div className={cn('lg:col-span-4', plan.trending.length === 0 && 'lg:col-span-12')}>
+                <AiExplainerEntry article={plan.lead} />
+              </div>
+            )}
           </div>
         )}
 

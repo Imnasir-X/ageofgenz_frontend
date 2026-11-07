@@ -66,7 +66,8 @@ export function ShareBar({ article, className }: { article: Article; className?:
           aria-label={`Share on ${l.label} (opens in a new tab)`}
           className={cn(
             'min-h-11 items-center rounded-md px-2 text-xs font-medium text-muted-foreground transition-colors duration-fast hover:bg-muted hover:text-foreground sm:min-h-8',
-            canShare ? 'hidden sm:inline-flex' : 'inline-flex',
+            // Phones keep one tidy row (Share or Copy link); the network links are for wider screens.
+            'hidden sm:inline-flex',
           )}
         >
           {l.label}
