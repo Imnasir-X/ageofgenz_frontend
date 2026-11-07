@@ -51,7 +51,7 @@ export function EmptyState({ title, body, className }: { title?: string; body?: 
  */
 export function StoryGridSkeleton({ count = 3, className, withImage = true }: { count?: number; className?: string; withImage?: boolean }) {
   return (
-    <div className={cn('grid gap-6 sm:grid-cols-2 lg:grid-cols-3', className)} aria-busy="true" aria-label="Loading stories">
+    <div className={cn('grid gap-6 sm:grid-cols-2 lg:grid-cols-3', className)} role="status" aria-busy="true" aria-label="Loading stories">
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="space-y-3">
           {withImage && <Skeleton className="aspect-video w-full" />}
@@ -68,7 +68,7 @@ export function StoryGridSkeleton({ count = 3, className, withImage = true }: { 
 /** Matches StoryCard variant="row": text column plus a square thumbnail. */
 export function StoryRowSkeleton({ count = 3, className }: { count?: number; className?: string }) {
   return (
-    <div className={cn('divide-y', className)} aria-busy="true" aria-label="Loading stories">
+    <div className={cn('divide-y', className)} role="status" aria-busy="true" aria-label="Loading stories">
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="flex gap-4 py-5">
           <div className="min-w-0 flex-1 space-y-2.5">
@@ -87,7 +87,7 @@ export function StoryRowSkeleton({ count = 3, className }: { count?: number; cla
 /** Matches StoryCard variant="hero": 16:9 art, meta line, two-line headline, three-line excerpt. */
 export function HeroSkeleton() {
   return (
-    <div className="flex flex-col gap-4" aria-busy="true" aria-label="Loading top story">
+    <div className="flex flex-col gap-4" role="status" aria-busy="true" aria-label="Loading top story">
       <Skeleton className="aspect-video w-full" />
       <div className="flex flex-col gap-2.5">
         <Skeleton className="h-4 w-36" />
@@ -104,7 +104,7 @@ export function HeroSkeleton() {
 export function LeadSkeleton() {
   return (
     // Same minimum height as the text-led lead cover, so either kind of lead replaces it without a jump.
-    <div className="grid min-h-[34rem] content-start gap-5 md:min-h-[30rem] md:grid-cols-12 md:gap-8" aria-busy="true" aria-label="Loading top story">
+    <div className="grid min-h-[34rem] content-start gap-5 md:min-h-[30rem] md:grid-cols-12 md:gap-8" role="status" aria-busy="true" aria-label="Loading top story">
       <Skeleton className="aspect-[3/2] w-full md:col-span-7" />
       <div className="space-y-3 md:col-span-5 md:py-2">
         <Skeleton className="h-3 w-32" />
@@ -121,7 +121,7 @@ export function LeadSkeleton() {
 /** Matches the home Quick briefing card: five numbered items. */
 export function BriefingSkeleton() {
   return (
-    <div className="h-full rounded-lg border bg-card p-6 sm:p-7" aria-busy="true" aria-label="Loading quick briefing">
+    <div className="h-full rounded-lg border bg-card p-6 sm:p-7" role="status" aria-busy="true" aria-label="Loading quick briefing">
       <Skeleton className="h-3 w-24" />
       <Skeleton className="mt-3 h-7 w-44" />
       <div className="mt-5 space-y-5">

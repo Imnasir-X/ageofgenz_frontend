@@ -81,7 +81,7 @@ function RouteTransition({ children }: { children: ReactNode }) {
 
 function PageFallback() {
   return (
-    <div className="container space-y-4 pt-12" aria-busy="true" aria-label="Loading">
+    <div className="container space-y-4 pt-12" role="status" aria-busy="true" aria-label="Loading">
       <Skeleton className="h-3 w-40" />
       <Skeleton className="h-14 w-3/4" />
       <Skeleton className="h-5 w-1/2" />
