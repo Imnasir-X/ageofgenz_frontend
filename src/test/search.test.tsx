@@ -79,7 +79,7 @@ describe('highlight', () => {
 describe('search palette', () => {
   let list: ReturnType<typeof vi.spyOn>;
   beforeEach(() => {
-    vi.useFakeTimers();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     localStorage.clear();
     clearCache();
     list = vi.spyOn(articlesApi, 'list').mockResolvedValue({ results: [story], count: 14, next: '/api/articles/?page=2' });
@@ -106,7 +106,7 @@ describe('search palette', () => {
     await flush();
     expect(list).toHaveBeenCalledTimes(1);
     expect(list).toHaveBeenCalledWith(expect.objectContaining({ search: 'clim' }));
-    expect(await screen.findByText('Climate', { selector: 'mark' })).toBeInTheDocument();
+    expect(await screen.findByText('Clim', { selector: 'mark' })).toBeInTheDocument();
     expect(screen.getByText(/See all 14 results/)).toBeInTheDocument();
   });
 
