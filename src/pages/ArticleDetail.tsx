@@ -20,6 +20,7 @@ import { useAsync } from '@/hooks/useAsync';
 import { aiApi, articlesApi, ApiError } from '@/lib/api/client';
 import type { Article } from '@/lib/api/types';
 import { articleJsonLd } from '@/lib/article/jsonLd';
+import { useReadingHeartbeat } from '@/lib/readingHeartbeat';
 import { loadArticle } from '@/lib/prefetch';
 import { categoryHref } from '@/constants/sections';
 import { formatDate } from '@/lib/utils';
@@ -128,6 +129,7 @@ export default function ArticleDetail() {
   const initial = useContext(InitialDataContext);
   const initialArticle = initial.article && initial.article.slug === slug ? initial.article : undefined;
   const { data: article, error, loading, reload } = useAsync(() => loadArticle(slug), slug, { initial: initialArticle });
+  useReadingHeartbeat(article?.id);
   // Optimistic UI: the card the reader clicked travels in router state, so the headline,
   // standfirst and image paint immediately while the full article loads.
   const location = useLocation();

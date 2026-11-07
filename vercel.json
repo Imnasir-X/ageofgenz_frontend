@@ -85,6 +85,14 @@
     {
       "source": "/reset-password/:path*",
       "destination": "/__shell/index.html"
+    },
+    {
+      "source": "/studio",
+      "destination": "/__shell/index.html"
+    },
+    {
+      "source": "/studio/:path*",
+      "destination": "/__shell/index.html"
     }
   ],
   "headers": [
@@ -110,6 +118,19 @@
         {
           "key": "Strict-Transport-Security",
           "value": "max-age=86400"
+        }
+      ]
+    },
+    {
+      "source": "/studio(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
         }
       ]
     },
