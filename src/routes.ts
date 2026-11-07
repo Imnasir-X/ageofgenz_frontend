@@ -19,6 +19,8 @@ export const ThankYou = lazyRoute(() => import('./pages/ThankYou'));
 export const Cancel = lazyRoute(() => import('./pages/Cancel'));
 export const Unsubscribe = lazyRoute(() => import('./pages/Unsubscribe'));
 export const NotFound = lazyRoute(() => import('./pages/NotFound'));
+export const EditorialPolicy = lazyRoute(() => import('./pages/EditorialPolicy'));
+export const Corrections = lazyRoute(() => import('./pages/Corrections'));
 
 /** Section URLs preserved from the previous site. */
 export const SECTION_ROUTES = [
@@ -53,6 +55,8 @@ const STATIC: Record<string, { preload: () => Promise<unknown> }> = {
   donate: Donate,
   support: Donate,
   unsubscribe: Unsubscribe,
+  'editorial-policy': EditorialPolicy,
+  corrections: Corrections,
 };
 
 /** Load the page module for a URL (used before hydration and by link prefetch). */

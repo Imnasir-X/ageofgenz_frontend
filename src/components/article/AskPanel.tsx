@@ -20,8 +20,20 @@ const SUGGESTIONS = ['What happened, in one paragraph?', 'Why does this matter t
  * "Ask about this article". Renders nothing until the backend confirms the Q&A endpoint
  * exists, and removes itself if a question later returns 404.
  */
-export function AskPanel({ article, className }: { article: Article; className?: string }) {
-  const [available, setAvailable] = useState(false);
+export function AskPanel({
+  article,
+  className,
+  available: known,
+  onUnavailable,
+}: {
+  article: Article;
+  className?: string;
+  /** When the parent already checked availability, pass it here to skip a second request. */
+  available?: boolean;
+  onUnavailable?: () => void;
+}) {
+  const [checked, setAvailable] = useState(false);
+  const available = known ?? checked;
   const [turns, setTurns] = useState<Turn[]>([]);
   const [question, setQuestion] = useState('');
   const [busy, setBusy] = useState(false);
@@ -31,12 +43,12 @@ export function AskPanel({ article, className }: { article: Article; className?:
     const c = new AbortController();
     setAvailable(false);
     setTurns([]);
-    aiApi.askAvailable(article.slug, c.signal).then((ok) => !c.signal.aborted && setAvailable(ok));
+    if (known === undefined) aiApi.askAvailable(article.slug, c.signal).then((ok) => !c.signal.aborted && setAvailable(ok));
     return () => {
       c.abort();
       controller.current?.abort();
     };
-  }, [article.slug]);
+  }, [article.slug, known]);
 
   if (!available) return null;
 
@@ -54,6 +66,7 @@ export function AskPanel({ article, className }: { article: Article; className?:
     } catch (err) {
       if (err instanceof ApiError && (err.status === 404 || err.status === 503)) {
         setAvailable(false);
+        onUnavailable?.();
         return;
       }
       settle({ error: err instanceof Error ? err.message : 'Something went wrong.' });

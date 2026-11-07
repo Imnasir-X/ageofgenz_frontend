@@ -43,7 +43,7 @@ export function ReadingProgress({ targetId, minutes }: { targetId: string; minut
         <div
           aria-hidden="true"
           className={cn(
-            'pointer-events-none fixed right-4 top-[calc(var(--header-h)+2.75rem+0.75rem)] z-30 rounded-full border bg-background/90 px-3 py-1 font-mono text-[0.7rem] text-muted-foreground shadow-sm backdrop-blur transition-opacity duration-base ease-standard xl:top-[calc(var(--header-h)+0.75rem)]',
+            'pointer-events-none fixed right-4 top-[calc(var(--header-h)+2.5rem+0.75rem)] z-30 rounded-full border bg-background/90 px-3 py-1 font-mono text-[0.7rem] text-muted-foreground shadow-sm backdrop-blur transition-opacity duration-base ease-standard xl:top-[calc(var(--header-h)+0.75rem)]',
             showPill ? 'opacity-100' : 'opacity-0',
           )}
         >

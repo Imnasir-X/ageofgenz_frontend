@@ -17,7 +17,9 @@ import {
   Cancel,
   Category,
   Contact,
+  Corrections,
   Donate,
+  EditorialPolicy,
   ForgotPassword,
   Home,
   Login,
@@ -106,6 +108,8 @@ export function AppRoutes() {
               <Route path="/article/:slug" element={<LegacyArticleRedirect />} />
               <Route path="/search" element={<SearchResults />} />
               <Route path="/about" element={<About />} />
+              <Route path="/editorial-policy" element={<EditorialPolicy />} />
+              <Route path="/corrections" element={<Corrections />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />

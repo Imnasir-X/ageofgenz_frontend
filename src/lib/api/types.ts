@@ -65,12 +65,20 @@ export interface Author {
   slug?: string;
   bio?: string;
   avatar?: string;
+  /** Author profile page, when the backend provides one. */
+  url?: string;
+  /** Job title, e.g. "Staff writer" (backend content-trust author payload). */
+  role?: string;
+  /** True for the newsroom desk byline rather than a named person. */
+  isDesk?: boolean;
 }
 
 export interface ArticleSource {
   title: string;
   url: string;
   publisher?: string;
+  /** Source type from the backend, e.g. primary, report, wire. */
+  kind?: string;
 }
 
 export interface Perspective {
@@ -92,18 +100,31 @@ export interface Article {
   contentBlocks: ContentBlock[] | null;
   image: string | null;
   imageCaption: string | null;
+  imageCredit?: string | null;
   category: Category;
   author: Author;
   isFeatured: boolean;
   isOpinion: boolean;
   publishedAt: string;
   updatedAt: string;
+  /** When the text itself last changed (backend content_updated_at), when the API sends it. */
+  contentUpdatedAt?: string;
+  /** The backend's own verdict on whether the story was meaningfully updated after publication. */
+  isUpdated?: boolean;
+  /** Server flag on home cards: published today in the newsroom time zone. */
+  publishedToday?: boolean;
+  /** Alt text for the featured image, when the newsroom wrote one. */
+  imageAlt?: string;
   readMinutes: number;
+  /** Total views, when the API includes view_count. */
+  views?: number;
   metaTitle: string;
   metaDescription: string;
   tags: string[];
   // Optional AI fields (Hermes newsroom, backend master). Empty or absent when Hermes has not run.
   tldr?: string[];
+  /** True only when the backend says an editor reviewed the AI summary. */
+  aiReviewed?: boolean;
   whyItMatters?: string;
   sources?: ArticleSource[];
   perspectives?: Perspective[];

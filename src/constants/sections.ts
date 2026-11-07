@@ -86,9 +86,6 @@ export const PRIMARY_NAV = ['trending', 'ai', 'tech', 'politics', 'world', 'busi
 /** Extra sections for the "More" menu and footer. */
 export const SECONDARY_NAV = ['culture', 'pop-media', 'crime-justice', 'insights', 'memes'] as const;
 
-/** Category rails on the home page. */
-export const HOME_RAILS = ['tech', 'politics', 'global', 'business-economy', 'science-discovery', 'sports'] as const;
-
 const TOP_LEVEL_ROUTES = new Set(['tech', 'pop-media', 'science-discovery', 'global', 'politics', 'business-economy', 'crime-justice', 'sports', 'opinion', 'trending']);
 
 /** Public URL for a backend category slug, preferring the preserved section URLs. */

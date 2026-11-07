@@ -17,7 +17,7 @@ export function WhyItMatters({ text, className }: { text?: string; className?: s
   );
 }
 
-type Variant = 'lead' | 'feature' | 'standard' | 'row' | 'compact' | 'text';
+type Variant = 'hero' | 'lead' | 'feature' | 'standard' | 'row' | 'compact' | 'text';
 
 interface StoryCardProps {
   article: Article;
@@ -26,6 +26,8 @@ interface StoryCardProps {
   index?: number;
   priority?: boolean;
   showWhy?: boolean;
+  /** `sizes` for the card image (standard variant), when the grid it sits in is known. */
+  sizes?: string;
 }
 
 /** Hover lift + press feedback, transform-only (no layout shift), disabled under reduced motion. */
@@ -33,7 +35,7 @@ const lift = 'transition-transform duration-base ease-standard motion-safe:hover
 const press = 'transition-transform duration-fast ease-standard motion-safe:active:scale-[0.995]';
 
 /** Whole-card link: the headline link stretches over the card; category links sit above it. */
-export function StoryCard({ article, variant = 'standard', className, index, priority, showWhy = true }: StoryCardProps) {
+export function StoryCard({ article, variant = 'standard', className, index, priority, showWhy = true, sizes }: StoryCardProps) {
   const headline = (size: string) => (
     <h3 className={cn('font-display font-medium leading-[1.2] tracking-[-0.01em] text-foreground', size)}>
       <Link {...articleLinkProps(article)} className="transition-colors duration-fast after:absolute after:inset-0 group-hover:text-primary">
@@ -41,6 +43,34 @@ export function StoryCard({ article, variant = 'standard', className, index, pri
       </Link>
     </h3>
   );
+
+  if (variant === 'hero') {
+    // Home lead: full-width 16:9 art (branded cover when the story has none), headline underneath.
+    return (
+      <article className={cn('group relative flex flex-col gap-4', press, className)}>
+        <StoryImage
+          src={article.image}
+          alt={article.imageAlt || article.title}
+          width={880}
+          sizes="(min-width: 1024px) 58vw, calc(100vw - 2.5rem)"
+          priority={priority}
+          ratio="video"
+          category={article.category.slug}
+          categoryLabel={article.category.name}
+        />
+        <div className="flex flex-col gap-2.5">
+          <StoryMeta article={article} />
+          <h2 className="font-display text-[1.85rem] font-medium leading-[1.08] tracking-[-0.02em] sm:text-[2.5rem]">
+            <Link {...articleLinkProps(article)} className="transition-colors duration-fast after:absolute after:inset-0 group-hover:text-primary">
+              {article.title}
+            </Link>
+          </h2>
+          {article.excerpt && <p className="line-clamp-3 font-serif text-[1.08rem] leading-[1.55] text-muted-foreground sm:text-lg">{truncate(article.excerpt, 240)}</p>}
+          {showWhy && <WhyItMatters text={article.whyItMatters} />}
+        </div>
+      </article>
+    );
+  }
 
   if (variant === 'lead' && !article.image) {
     // Text-led cover for stories without art: no placeholder blocks.
@@ -79,7 +109,7 @@ export function StoryCard({ article, variant = 'standard', className, index, pri
   if (variant === 'lead') {
     return (
       <article className={cn('group relative grid gap-5 md:grid-cols-12 md:gap-8', press, className)}>
-        <StoryImage src={article.image} alt={article.title} width={1200} priority={priority} className="md:col-span-7" ratio="wide" category={article.category.slug} categoryLabel={article.category.name} />
+        <StoryImage src={article.image} alt={article.imageAlt || article.title} width={720} sizes="(min-width: 768px) 55vw, calc(100vw - 2.5rem)" priority={priority} className="md:col-span-7" ratio="wide" category={article.category.slug} categoryLabel={article.category.name} />
         <div className="flex flex-col gap-3 md:col-span-5 md:py-2">
           <StoryMeta article={article} />
           <h2 className="font-display text-[2rem] font-medium leading-[1.06] tracking-[-0.02em] sm:text-[2.6rem]">
@@ -98,7 +128,7 @@ export function StoryCard({ article, variant = 'standard', className, index, pri
     // A single story given the full width (sparse rails, a lone related story): image left, text right.
     return (
       <article className={cn('group relative grid gap-5 sm:grid-cols-12 sm:items-center sm:gap-8', press, className)}>
-        <StoryImage src={article.image} alt={article.title} width={800} ratio="wide" className="sm:col-span-5" category={article.category.slug} categoryLabel={article.category.name} />
+        <StoryImage src={article.image} alt={article.imageAlt || article.title} width={560} sizes="(min-width: 640px) 40vw, calc(100vw - 2.5rem)" ratio="wide" className="sm:col-span-5" category={article.category.slug} categoryLabel={article.category.name} />
         <div className="flex flex-col gap-2.5 sm:col-span-7">
           <StoryMeta article={article} />
           {headline('text-[1.5rem] sm:text-[1.85rem] leading-[1.12]')}
@@ -125,7 +155,7 @@ export function StoryCard({ article, variant = 'standard', className, index, pri
           )}
         </div>
         {article.image && (
-          <StoryImage src={article.image} alt={article.title} width={320} className="w-24 shrink-0 sm:w-36" ratio="square" category={article.category.slug} />
+          <StoryImage src={article.image} alt={article.imageAlt || article.title} width={144} sizes="(min-width: 640px) 144px, 96px" className="w-24 shrink-0 sm:w-36" ratio="square" category={article.category.slug} />
         )}
       </article>
     );
@@ -159,7 +189,7 @@ export function StoryCard({ article, variant = 'standard', className, index, pri
 
   return (
     <article className={cn('group relative flex flex-col gap-3', lift, className)}>
-      <StoryImage src={article.image} alt={article.title} width={640} priority={priority} category={article.category.slug} categoryLabel={article.category.name} />
+      <StoryImage src={article.image} alt={article.imageAlt || article.title} width={640} sizes={sizes ?? '(min-width: 1024px) 33vw, (min-width: 768px) 50vw, calc(100vw - 2.5rem)'} priority={priority} category={article.category.slug} categoryLabel={article.category.name} />
       <StoryMeta article={article} />
       {headline('text-[1.3rem]')}
       {showWhy && article.whyItMatters ? (

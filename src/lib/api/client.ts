@@ -248,6 +248,57 @@ export const articlesApi = {
   },
 };
 
+/** Server-built home feed (backend /api/home/). Null when the endpoint is not deployed or fails. */
+export interface HomeFeed {
+  lead?: Article;
+  secondary: Article[];
+  briefing: Article[];
+  trending: Article[];
+  sections: { key: string; label: string; categorySlug: string | null; articles: Article[] }[];
+  latestPublishedAt: string | null;
+  /** Server verdict: newest story older than stale_after_hours (36 h). */
+  isStale: boolean;
+}
+
+const asList = (v: unknown): Article[] => (Array.isArray(v) ? v.filter((x) => x && typeof x === 'object').map(normalizeArticle) : []);
+
+export function parseHomeFeed(data: unknown): HomeFeed | null {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return null;
+  const d = data as Record<string, unknown>;
+  if (!('secondary' in d) || !Array.isArray(d.secondary)) return null;
+  const freshness = (d.freshness && typeof d.freshness === 'object' ? d.freshness : {}) as Record<string, unknown>;
+  const sections = Array.isArray(d.sections)
+    ? d.sections
+        .filter((s): s is Record<string, unknown> => Boolean(s) && typeof s === 'object')
+        .map((s) => ({
+          key: typeof s.key === 'string' ? s.key : '',
+          label: typeof s.label === 'string' ? s.label : '',
+          categorySlug: typeof s.category_slug === 'string' ? s.category_slug : null,
+          articles: asList(s.articles),
+        }))
+    : [];
+  return {
+    lead: d.lead && typeof d.lead === 'object' ? normalizeArticle(d.lead) : undefined,
+    secondary: asList(d.secondary),
+    briefing: asList(d.briefing),
+    trending: asList(d.trending),
+    sections,
+    latestPublishedAt: typeof freshness.latest_published_at === 'string' ? freshness.latest_published_at : null,
+    isStale: freshness.is_stale === true,
+  };
+}
+
+export const homeApi = {
+  async feed(signal?: AbortSignal): Promise<HomeFeed | null> {
+    try {
+      return parseHomeFeed(await request<unknown>('/api/home/', { signal, retries: 0, timeoutMs: 12000 }));
+    } catch (err) {
+      if (signal?.aborted) throw err;
+      return null;
+    }
+  },
+};
+
 export const categoriesApi = {
   async list(signal?: AbortSignal): Promise<Category[]> {
     const data = await request<Category[] | { results?: Category[] }>('/api/categories/', { params: { flat: 'true' }, signal });
@@ -412,10 +463,14 @@ export const subscriptionApi = {
     }
   },
   /** DRF @action without url_path keeps the underscore: create_checkout. */
-  createCheckout(planId: string | number) {
+  /**
+   * `marketingOptIn` is the reader's own answer to the unchecked opt-in box on /subscribe. It is
+   * always sent explicitly, because the backend defaults a missing value to true.
+   */
+  createCheckout(planId: string | number, marketingOptIn: boolean) {
     return request<CheckoutResponse>('/api/subscription/subscriptions/create_checkout/', {
       method: 'POST',
-      body: { plan_id: planId, consent_opt_in: true, consent_source: 'checkout' },
+      body: { plan_id: planId, consent_opt_in: marketingOptIn === true, consent_source: 'checkout' },
     });
   },
   cancel(id: string | number) {

@@ -11,17 +11,19 @@ const SheetDescription = SheetPrimitive.Description;
 
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content> & { side?: 'left' | 'right' }
+  React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content> & { side?: 'left' | 'right' | 'bottom' }
 >(({ side = 'right', className, children, ...props }, ref) => (
   <SheetPrimitive.Portal>
     <SheetPrimitive.Overlay className="fixed inset-0 z-50 bg-ink/40 backdrop-blur-[2px] data-[state=open]:duration-base data-[state=closed]:duration-fast data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
     <SheetPrimitive.Content
       ref={ref}
       className={cn(
-        'fixed inset-y-0 z-50 flex w-[min(22rem,88vw)] flex-col bg-background shadow-xl transition ease-standard data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-base data-[state=open]:duration-slow',
-        side === 'right'
-          ? 'right-0 border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right'
-          : 'left-0 border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left',
+        'fixed z-50 flex flex-col bg-background shadow-xl transition ease-standard data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-base data-[state=open]:duration-slow',
+        side === 'bottom'
+          ? 'inset-x-0 bottom-0 rounded-t-2xl border-t pb-[env(safe-area-inset-bottom)] data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom'
+          : side === 'right'
+            ? 'inset-y-0 right-0 w-[min(22rem,88vw)] border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right'
+            : 'inset-y-0 left-0 w-[min(22rem,88vw)] border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left',
         className,
       )}
       {...props}

@@ -27,7 +27,7 @@
  * Soft Canvas  #F6F7F3  page background
  * Electric Lime#D7FF66  rare highlights, mostly on dark
  * Mist Blue    #E9EFFF  AI panels, selected states
- * Muted Slate  #637086  secondary text and metadata
+ * Muted Slate  #556075  secondary text and metadata (5.9:1 on Soft Canvas, 6.3:1 on white)
  * Pure White   #FFFFFF  cards and reading surfaces
  * Night Surface#0F1423  dark mode background
  */
@@ -40,7 +40,7 @@
     --lime-foreground: 18 23 35;
     --mist: 233 239 255;
     --mist-foreground: 18 23 35;
-    --slate: 99 112 134;
+    --slate: 85 96 117;
 
     --background: 246 247 243;
     --foreground: 18 23 35;
@@ -53,7 +53,7 @@
     --secondary: 233 239 255;
     --secondary-foreground: 0 46 168;
     --muted: 236 238 231;
-    --muted-foreground: 99 112 134;
+    --muted-foreground: 85 96 117;
     --accent: 233 239 255;
     --accent-foreground: 0 46 168;
     --destructive: 190 32 46;
@@ -63,7 +63,7 @@
     --ring: 0 71 255;
     --radius: 0.625rem;
 
-    --header-h: 3.5rem;
+    --header-h: 3.25rem;
 
     /* Motion tokens (see tailwind.config.ts) */
     --motion-fast: 150ms;

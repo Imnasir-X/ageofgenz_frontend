@@ -81,6 +81,22 @@ export function StoryRowSkeleton({ count = 3, className }: { count?: number; cla
   );
 }
 
+/** Matches StoryCard variant="hero": 16:9 art, meta line, two-line headline, three-line excerpt. */
+export function HeroSkeleton() {
+  return (
+    <div className="flex flex-col gap-4" aria-busy="true" aria-label="Loading top story">
+      <Skeleton className="aspect-video w-full" />
+      <div className="flex flex-col gap-2.5">
+        <Skeleton className="h-4 w-36" />
+        <Skeleton className="h-[2rem] w-full sm:h-[2.7rem]" />
+        <Skeleton className="h-[2rem] w-3/4 sm:h-[2.7rem]" />
+        <Skeleton className="h-5 w-full" />
+        <Skeleton className="h-5 w-5/6" />
+      </div>
+    </div>
+  );
+}
+
 /** Matches StoryCard variant="lead" with art: 7/5 split, 3:2 image. */
 export function LeadSkeleton() {
   return (

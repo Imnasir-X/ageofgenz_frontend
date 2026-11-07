@@ -36,8 +36,9 @@ describe('API client paths match the Django backend', () => {
 
   it('starts subscription checkout under /api/subscription/subscriptions/', async () => {
     mockFetch(200, { checkout_url: 'https://checkout.stripe.com/x' });
-    await subscriptionApi.createCheckout(3);
+    await subscriptionApi.createCheckout(3, false);
     expect(new URL(calls[0].url).pathname).toBe('/api/subscription/subscriptions/create_checkout/');
+    expect(JSON.parse(String(calls[0].init?.body)).consent_opt_in).toBe(false);
   });
 
   it('hides optional AI features when the endpoint 404s', async () => {
