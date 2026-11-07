@@ -100,7 +100,6 @@ export default function Home() {
   // after it so nothing repeats above the fold.
   const briefing = featured ? [featured, ...rest].slice(0, 5) : [];
   const topStories = rest.slice(4, 10);
-  const seen = stories.slice(0, 10).map((a) => a.slug);
 
   return (
     <>
@@ -158,7 +157,7 @@ export default function Home() {
         <div className="mt-6">
           {HOME_RAILS.map((key) => {
             const section = SECTIONS[key];
-            return <CategoryRail key={key} slug={section.category ?? key} title={section.title} href={section.path} exclude={seen} />;
+            return <CategoryRail key={key} slug={section.category ?? key} title={section.title} href={section.path} />;
           })}
         </div>
 

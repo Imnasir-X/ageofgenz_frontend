@@ -83,6 +83,28 @@ const perspectiveList = (value: unknown): Perspective[] | undefined => {
   return list.length ? list : undefined;
 };
 
+/**
+ * Titles are rendered as stored, except that common acronyms which an upstream
+ * title-caser flattened ("Ai", "Nba", "Gdp") are restored. "Us" is left alone because it
+ * is also a pronoun; "U.s." is fixed.
+ */
+const ACRONYMS = ['AI', 'UK', 'EU', 'UN', 'NBA', 'NFL', 'FIFA', 'CEO', 'GDP', 'BBC', 'CNN', 'NASA', 'FBI', 'CIA', 'DOD', 'USA', 'IPO', 'EV', 'EVs', 'LLM', 'LLMs', 'GPT', 'API', 'NATO', 'IMF', 'WHO', 'ICC', 'IPL', 'BNP', 'RAB', 'IT', 'VR', 'AR', 'OpenAI', 'ChatGPT', 'TikTok', 'YouTube', 'iPhone'];
+const ACRONYM_MAP = new Map(ACRONYMS.map((a) => [a.toLowerCase(), a]));
+const SAFE_LOWER = new Set(['who', 'it']); // only fix when fully lowercase-capitalised inside a title-cased string
+export function fixTitleCase(title: string): string {
+  const titleCased = /^(\S+\s+){2,}/.test(title) && title.split(/\s+/).filter((w) => /^[a-z]/.test(w)).length <= 1;
+  return title
+    .replace(/\bU\.s\.(?=\s|$|,)/g, 'U.S.')
+    .replace(/\b[A-Za-z][A-Za-z]*\b/g, (word) => {
+      const hit = ACRONYM_MAP.get(word.toLowerCase());
+      if (!hit || word === hit) return word;
+      if (SAFE_LOWER.has(word.toLowerCase())) return word; // ambiguous English words stay as written
+      // Only touch words written like "Ai" / "Nba" (initial cap, rest lower) in a title-cased headline.
+      if (titleCased && /^[A-Z][a-z]+$/.test(word)) return hit;
+      return word;
+    });
+}
+
 export const NEWSROOM = 'The Age of GenZ Newsroom';
 
 const normalizeAuthor = (raw: Raw): Author => {
@@ -132,8 +154,11 @@ export const normalizeArticle = (input: unknown): Article => {
   const apiRead = Number(raw.estimated_read_time);
   const readMinutes = words > 0 ? Math.max(1, Math.round(words / 220)) : Math.max(1, apiRead || 1);
   const href = slug ? `/articles/${slug}/` : '/';
+  const firstBlockImage = contentBlocks?.find((b) => b.type === 'image' && /^https?:\/\//.test(b.url));
   const image =
-    strOrNull(raw.featured_image_url) ?? (str(raw.featured_image).startsWith('http') ? str(raw.featured_image) : null);
+    strOrNull(raw.featured_image_url) ??
+    (str(raw.featured_image).startsWith('http') ? str(raw.featured_image) : null) ??
+    (firstBlockImage && firstBlockImage.type === 'image' ? firstBlockImage.url : null);
   const ai = isObj(raw.ai) ? raw.ai : {};
   const pick = (key: string) => raw[key] ?? ai[key];
 
@@ -143,7 +168,7 @@ export const normalizeArticle = (input: unknown): Article => {
 
   const article: Article = {
     id: Number(raw.id) || 0,
-    title: str(raw.title) || 'Untitled',
+    title: fixTitleCase(str(raw.title) || 'Untitled'),
     slug,
     href,
     canonicalUrl: href,
@@ -164,7 +189,7 @@ export const normalizeArticle = (input: unknown): Article => {
     publishedAt: str(raw.published_at) || str(raw.created_at),
     updatedAt: str(raw.updated_at) || str(raw.published_at) || str(raw.created_at),
     readMinutes,
-    metaTitle: str(raw.meta_title) || str(raw.title),
+    metaTitle: fixTitleCase(str(raw.meta_title) || str(raw.title)),
     metaDescription: stripHtml(str(raw.meta_description)) || excerpt,
     tags,
   };

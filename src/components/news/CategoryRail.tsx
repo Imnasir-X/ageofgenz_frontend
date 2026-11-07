@@ -28,6 +28,9 @@ export function CategoryRail({ slug, title, href, exclude = [] }: { slug: string
               </Link>
             }
           />
+          {stories.length === 1 ? (
+            <StoryCard article={stories[0]} variant="row" className="max-w-3xl" />
+          ) : (
           <div className="grid gap-x-10 gap-y-2 pt-4 lg:grid-cols-12">
             <StoryCard article={stories[0]} className="lg:col-span-5" />
             {stories.length > 1 && (
@@ -38,6 +41,7 @@ export function CategoryRail({ slug, title, href, exclude = [] }: { slug: string
               </div>
             )}
           </div>
+          )}
         </section>
       )}
     </div>
