@@ -142,7 +142,7 @@ describe('author pages', () => {
   });
 
   it('renders bio, stories and pagination from the API', async () => {
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify(AUTHOR_PAYLOAD), { status: 200, headers: { 'content-type': 'application/json' } }));
+    const fetchMock = vi.fn<typeof fetch>(async () => new Response(JSON.stringify(AUTHOR_PAYLOAD), { status: 200, headers: { 'content-type': 'application/json' } }));
     vi.stubGlobal('fetch', fetchMock);
     render(
       <MemoryRouter initialEntries={['/author/demo-reporter/']}>
