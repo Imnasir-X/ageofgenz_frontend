@@ -30,6 +30,7 @@ import {
   SECTION_ROUTES,
   Section,
   Signup,
+  Studio,
   Subscribe,
   Terms,
   ThankYou,
@@ -87,6 +88,17 @@ function PageFallback() {
 }
 
 export function AppRoutes() {
+  const { pathname } = useLocation();
+  // The Studio has its own shell (no site header/footer) and is never prerendered.
+  if (pathname === '/studio' || pathname.startsWith('/studio/')) {
+    return (
+      <Suspense fallback={<PageFallback />}>
+        <Routes>
+          <Route path="/studio/*" element={<Studio />} />
+        </Routes>
+      </Suspense>
+    );
+  }
   return (
     <SearchPaletteProvider>
     <div className="flex min-h-screen flex-col">

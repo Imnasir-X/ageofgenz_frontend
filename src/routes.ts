@@ -21,6 +21,8 @@ export const Unsubscribe = lazyRoute(() => import('./pages/Unsubscribe'));
 export const NotFound = lazyRoute(() => import('./pages/NotFound'));
 export const EditorialPolicy = lazyRoute(() => import('./pages/EditorialPolicy'));
 export const Corrections = lazyRoute(() => import('./pages/Corrections'));
+/** Staff console at /studio/*: client-rendered, never prerendered or indexed. */
+export const Studio = lazyRoute(() => import('./studio/StudioApp'));
 
 /** Section URLs preserved from the previous site. */
 export const SECTION_ROUTES = [
@@ -70,5 +72,6 @@ export function preloadRoute(pathname: string): Promise<unknown> {
   if (first === 'donation') return seg[1] === 'success' ? ThankYou.preload() : Cancel.preload();
   if (first === 'newsletter') return Unsubscribe.preload();
   if (first === '__shell') return Promise.resolve();
+  if (first === 'studio') return Studio.preload();
   return (STATIC[first] ?? NotFound).preload();
 }
