@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { AuthShell, Field } from '@/components/layout/PageShell';
 import { Alert } from '@/components/ui/alert';
@@ -43,8 +42,8 @@ export default function Unsubscribe() {
                 <Input id="unsub-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </Field>
             )}
-            <Button type="submit" size="lg" className="w-full" disabled={state === 'busy' || (!token && !email.trim())}>
-              {state === 'busy' && <Loader2 className="animate-spin" />} Unsubscribe
+            <Button type="submit" size="lg" className="w-full" disabled={state === 'busy' || (!token && !email.trim())} loading={state === 'busy'}>
+              Unsubscribe
             </Button>
           </form>
         )}

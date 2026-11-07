@@ -11,7 +11,7 @@ const SOCIAL = [
   { label: 'YouTube', href: 'https://youtube.com/@theageofgenz' },
 ];
 
-const linkCls = 'text-ink-foreground/80 transition-colors hover:text-lime';
+const linkCls = 'text-ink-foreground/80 underline-offset-4 transition-colors duration-fast hover:text-ink-foreground hover:underline';
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -25,7 +25,7 @@ export function Footer() {
             Fewer feeds, more understanding: a quick briefing, the original reporting and the context behind it.
           </p>
           <div className="mt-7 max-w-sm">
-            <p className="eyebrow mb-2 text-lime">The weekly briefing</p>
+            <p className="eyebrow mb-2 text-ink-foreground/60">The weekly briefing</p>
             <NewsletterForm tone="dark" source="footer" />
           </div>
         </div>
@@ -78,11 +78,11 @@ export function Footer() {
           <p className="data">© {year} The Age of GenZ</p>
           <div className="flex flex-wrap gap-x-4 gap-y-2">
             {SOCIAL.map((s) => (
-              <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" className="hover:text-lime">
+              <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" className="underline-offset-4 transition-colors duration-fast hover:text-ink-foreground hover:underline">
                 {s.label}
               </a>
             ))}
-            <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-lime">
+            <a href={`mailto:${CONTACT_EMAIL}`} className="underline-offset-4 transition-colors duration-fast hover:text-ink-foreground hover:underline">
               {CONTACT_EMAIL}
             </a>
           </div>

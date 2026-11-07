@@ -3,6 +3,7 @@ import { Check, Link2, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { Article } from '@/lib/api/types';
 import { absoluteUrl, cn } from '@/lib/utils';
+import { toast } from '@/lib/toast';
 
 export function ShareBar({ article, className }: { article: Article; className?: string }) {
   const [copied, setCopied] = useState(false);
@@ -22,16 +23,17 @@ export function ShareBar({ article, className }: { article: Article; className?:
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
+      toast('Link copied', { description: 'Paste it anywhere to share this story.' });
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      /* clipboard blocked */
+      toast('Couldn’t copy the link', { tone: 'error', description: 'Your browser blocked clipboard access. Copy it from the address bar.' });
     }
   };
 
   return (
     <div className={cn('flex flex-wrap items-center gap-1.5', className)}>
       <Button variant="outline" size="sm" onClick={copy}>
-        {copied ? <Check /> : <Link2 />} <span aria-live="polite">{copied ? 'Copied' : 'Copy link'}</span>
+        {copied ? <Check aria-hidden="true" /> : <Link2 aria-hidden="true" />} <span>{copied ? 'Copied' : 'Copy link'}</span>
       </Button>
       {canShare && (
         <Button variant="outline" size="sm" onClick={() => navigator.share({ title: article.title, url }).catch(() => undefined)}>
@@ -39,7 +41,14 @@ export function ShareBar({ article, className }: { article: Article; className?:
         </Button>
       )}
       {links.map((l) => (
-        <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer" className="rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground">
+        <a
+          key={l.label}
+          href={l.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Share on ${l.label} (opens in a new tab)`}
+          className="inline-flex min-h-11 items-center rounded-md px-2 text-xs font-medium text-muted-foreground transition-colors duration-fast hover:bg-muted hover:text-foreground sm:min-h-8"
+        >
           {l.label}
         </a>
       ))}

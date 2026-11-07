@@ -28,7 +28,7 @@ export function BriefingBox({ article, bangla, className }: Props) {
           {article.tldr ? 'TL;DR' : 'Key points'}
         </h2>
         {hasBn && (
-          <Button variant="ghost" size="sm" onClick={() => setLang((l) => (l === 'en' ? 'bn' : 'en'))} aria-pressed={lang === 'bn'} className="h-7 text-xs">
+          <Button variant="ghost" size="sm" onClick={() => setLang((l) => (l === 'en' ? 'bn' : 'en'))} aria-pressed={lang === 'bn'} className="text-xs sm:h-7">
             <Languages /> {lang === 'en' ? 'বাংলা' : 'English'}
           </Button>
         )}
