@@ -2,6 +2,7 @@ import { AlertCircle, Newspaper, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n/useI18n';
 
 export function SectionHeader({ eyebrow, title, action, className }: { eyebrow?: string; title: string; action?: React.ReactNode; className?: string }) {
   return (
@@ -16,27 +17,29 @@ export function SectionHeader({ eyebrow, title, action, className }: { eyebrow?:
 }
 
 export function ErrorState({ message, onRetry, className }: { message?: string; onRetry?: () => void; className?: string }) {
+  const { t, lang } = useI18n();
   return (
     <div className={cn('flex flex-col items-start gap-3 rounded-lg border border-dashed bg-card p-6', className)} role="alert">
       <AlertCircle className="size-5 text-destructive" />
       <div>
-        <p className="font-medium">We couldn’t load these stories.</p>
-        <p className="text-sm text-muted-foreground">{message || 'The newsroom server may be waking up. Give it a moment.'}</p>
+        <p className="font-medium">{t('state.errorTitle')}</p>
+        <p className="text-sm text-muted-foreground">{lang === 'en' && message ? message : t('state.errorBody')}</p>
       </div>
       {onRetry && (
         <Button variant="outline" onClick={onRetry}>
-          <RotateCw /> Try again
+          <RotateCw /> {t('state.retry')}
         </Button>
       )}
     </div>
   );
 }
 
-export function EmptyState({ title = 'No stories here yet', body, className }: { title?: string; body?: string; className?: string }) {
+export function EmptyState({ title, body, className }: { title?: string; body?: string; className?: string }) {
+  const { t } = useI18n();
   return (
     <div className={cn('flex flex-col items-start gap-2 rounded-lg border bg-card p-8', className)}>
       <Newspaper className="size-5 text-primary" />
-      <p className="font-display text-2xl font-medium">{title}</p>
+      <p className="font-display text-2xl font-medium">{title ?? t('state.emptyTitle')}</p>
       {body && <p className="max-w-xl text-muted-foreground">{body}</p>}
     </div>
   );
@@ -131,27 +134,6 @@ export function BriefingSkeleton() {
             </div>
           </div>
         ))}
-      </div>
-    </div>
-  );
-}
-
-/** Matches CategoryRail: header rule, one card left, three rows right. */
-export function RailSkeleton({ title }: { title: string }) {
-  return (
-    <div aria-busy="true" aria-label={`Loading ${title}`}>
-      <div className="mb-2 flex items-end justify-between gap-4 border-b border-foreground pb-3">
-        <Skeleton className="h-8 w-40" />
-        <Skeleton className="h-4 w-24" />
-      </div>
-      <div className="grid gap-x-10 gap-y-2 pt-4 lg:grid-cols-12">
-        <div className="space-y-3 lg:col-span-5">
-          <Skeleton className="aspect-video w-full" />
-          <Skeleton className="h-3 w-24" />
-          <Skeleton className="h-6 w-full" />
-          <Skeleton className="h-6 w-3/4" />
-        </div>
-        <StoryRowSkeleton count={3} className="lg:col-span-7" />
       </div>
     </div>
   );

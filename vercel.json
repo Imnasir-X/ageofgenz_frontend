@@ -24,6 +24,11 @@
       "statusCode": 308
     },
     {
+      "source": "/author/:slug",
+      "destination": "/author/:slug/",
+      "statusCode": 308
+    },
+    {
       "source": "/articles/:slug",
       "destination": "/articles/:slug/",
       "statusCode": 308
@@ -80,6 +85,10 @@
     },
     {
       "source": "/category/:slug/",
+      "destination": "/__shell/index.html"
+    },
+    {
+      "source": "/author/:slug/",
       "destination": "/__shell/index.html"
     },
     {

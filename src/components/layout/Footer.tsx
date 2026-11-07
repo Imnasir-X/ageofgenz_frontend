@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Wordmark } from '@/components/brand/Logo';
 import { PRIMARY_NAV, SECONDARY_NAV, SECTIONS } from '@/constants/sections';
-import { CONTACT_EMAIL, TAGLINE } from '@/lib/utils';
+import { CONTACT_EMAIL } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n/useI18n';
 
 const SOCIAL = [
   { label: 'X', href: 'https://twitter.com/TheAgeOfGenZ' },
@@ -14,63 +15,64 @@ const linkCls = 'text-ink-foreground/80 underline-offset-4 transition-colors dur
 
 export function Footer() {
   const year = new Date().getFullYear();
+  const { t, section } = useI18n();
   return (
     <footer className="mt-24 bg-ink text-ink-foreground">
       <div className="container grid gap-12 py-16 lg:grid-cols-12">
         <div className="lg:col-span-5">
           <Wordmark inverted />
-          <p className="mt-5 max-w-sm font-display text-[1.75rem] font-medium leading-[1.15] tracking-[-0.015em] text-ink-foreground">{TAGLINE}</p>
+          <p className="mt-5 max-w-sm font-display text-[1.75rem] font-medium leading-[1.15] tracking-[-0.015em] text-ink-foreground">{t('tagline')}</p>
           <p className="mt-3 max-w-sm text-sm text-ink-foreground/65">
-            Fewer feeds, more understanding: a quick briefing, the original reporting and the context behind it.
+            {t('footer.blurb')}
           </p>
           <p className="mt-6">
             <Link to="/#weekly-briefing" className="text-sm font-medium text-ink-foreground underline decoration-ink-foreground/40 underline-offset-4 hover:decoration-ink-foreground">
-              Get the weekly briefing
+              {t('footer.getBriefing')}
             </Link>
           </p>
         </div>
-        <nav aria-label="Footer" className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:col-span-7">
+        <nav aria-label={t('footer.label')} className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:col-span-7">
           <div>
-            <p className="eyebrow text-ink-foreground/50">Sections</p>
+            <p className="eyebrow text-ink-foreground/50">{t('footer.sections')}</p>
             <ul className="mt-4 space-y-2.5 text-sm">
               {PRIMARY_NAV.map((key) => (
                 <li key={key}>
                   <Link className={linkCls} to={SECTIONS[key].path}>
-                    {SECTIONS[key].title}
+                    {section(key).title}
                   </Link>
                 </li>
               ))}
             </ul>
           </div>
           <div>
-            <p className="eyebrow text-ink-foreground/50">More</p>
+            <p className="eyebrow text-ink-foreground/50">{t('footer.more')}</p>
             <ul className="mt-4 space-y-2.5 text-sm">
               {SECONDARY_NAV.map((key) => (
                 <li key={key}>
                   <Link className={linkCls} to={SECTIONS[key].path}>
-                    {SECTIONS[key].title}
+                    {section(key).title}
                   </Link>
                 </li>
               ))}
               <li>
                 <Link className={linkCls} to="/search">
-                  Search
+                  {t('nav.search')}
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <p className="eyebrow text-ink-foreground/50">The Age of GenZ</p>
+            <p className="eyebrow text-ink-foreground/50">{t('footer.brand')}</p>
             <ul className="mt-4 space-y-2.5 text-sm">
-              <li><Link className={linkCls} to="/about">About us</Link></li>
-              <li><Link className={linkCls} to="/editorial-policy">Editorial policy</Link></li>
-              <li><Link className={linkCls} to="/corrections">Corrections</Link></li>
-              <li><Link className={linkCls} to="/contact">Contact</Link></li>
-              <li><Link className={linkCls} to="/subscribe">Subscribe</Link></li>
-              <li><Link className={linkCls} to="/donate">Support us</Link></li>
-              <li><Link className={linkCls} to="/privacy">Privacy</Link></li>
-              <li><Link className={linkCls} to="/terms">Terms</Link></li>
-              <li><a className={linkCls} href="/rss.xml">RSS feed</a></li>
+              <li><Link className={linkCls} to="/about">{t('footer.about')}</Link></li>
+              <li><Link className={linkCls} to="/editorial-policy">{t('footer.editorial')}</Link></li>
+              <li><Link className={linkCls} to="/corrections">{t('footer.corrections')}</Link></li>
+              <li><Link className={linkCls} to="/contact">{t('footer.contact')}</Link></li>
+              <li><Link className={linkCls} to="/subscribe">{t('footer.subscribe')}</Link></li>
+              <li><Link className={linkCls} to="/donate">{t('footer.support')}</Link></li>
+              <li><Link className={linkCls} to="/privacy">{t('footer.privacy')}</Link></li>
+              <li><Link className={linkCls} to="/terms">{t('footer.terms')}</Link></li>
+              <li><a className={linkCls} href="/rss.xml">{t('footer.rss')}</a></li>
             </ul>
           </div>
         </nav>

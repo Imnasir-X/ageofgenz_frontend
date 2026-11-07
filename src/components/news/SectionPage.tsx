@@ -14,6 +14,7 @@ import type { Article } from '@/lib/api/types';
 import { CATEGORY_LOOKUP } from '@/constants/categories';
 import { PRIMARY_NAV, SECTIONS, categoryHref, type Section } from '@/constants/sections';
 import { SITE_URL, absoluteUrl } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n/useI18n';
 
 interface Feed {
   results: Article[];
@@ -37,6 +38,7 @@ async function loadFeed(section: Section, page: number, signal: AbortSignal): Pr
 
 /** Shared layout for sections (Trending, Opinion, AI, Politics…) and /category/:slug pages. */
 export function SectionPage({ section, trail }: { section: Section; trail?: string[] }) {
+  const { t, lang, sectionOf, section: sectionText, category } = useI18n();
   const first = useAsync((signal) => loadFeed(section, 1, signal), `${section.path}|${section.category ?? ''}`);
   const [extra, setExtra] = useState<Article[]>([]);
   const [page, setPage] = useState(1);
@@ -71,6 +73,15 @@ export function SectionPage({ section, trail }: { section: Section; trail?: stri
   const children = section.category ? CATEGORY_LOOKUP[section.category]?.node.children ?? [] : [];
   const otherSections = PRIMARY_NAV.filter((k) => SECTIONS[k].path !== section.path).slice(0, 7);
   const crumbs = trail && trail.length > 1 ? trail : null;
+  // Interface text in the reader's language; SEO and JSON-LD stay in English (the canonical page).
+  const isCategoryPage = section.path.startsWith('/category/');
+  const text = isCategoryPage
+    ? {
+        title: category(section.category, section.title),
+        dek: lang === 'bn' ? t('section.categoryDek', { name: category(section.category, section.title) }) : section.dek,
+      }
+    : sectionOf(section);
+  const crumbName = (slug: string) => category(slug, CATEGORY_LOOKUP[slug]?.name ?? slug);
 
   const jsonLd: Record<string, unknown>[] = [
     {
@@ -101,20 +112,20 @@ export function SectionPage({ section, trail }: { section: Section; trail?: stri
       <Seo title={section.title} description={section.dek} path={section.path} jsonLd={jsonLd} />
       <div className="container pt-8 sm:pt-12">
         {crumbs && (
-          <nav aria-label="Breadcrumb" className="mb-4 flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+          <nav aria-label={t('article.breadcrumb')} className="mb-4 flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
             <Link to="/" className="hover:text-foreground">
-              Home
+              {t('nav.home')}
             </Link>
             {crumbs.map((slug, i) => (
               <span key={slug} className="flex items-center gap-1">
                 <ChevronRight className="size-3" />
                 {i === crumbs.length - 1 ? (
                   <span aria-current="page" className="text-foreground">
-                    {CATEGORY_LOOKUP[slug]?.name ?? slug}
+                    {crumbName(slug)}
                   </span>
                 ) : (
                   <Link to={categoryHref(slug)} className="hover:text-foreground">
-                    {CATEGORY_LOOKUP[slug]?.name ?? slug}
+                    {crumbName(slug)}
                   </Link>
                 )}
               </span>
@@ -123,13 +134,13 @@ export function SectionPage({ section, trail }: { section: Section; trail?: stri
         )}
         <header className="grid gap-6 border-b border-foreground pb-8 lg:grid-cols-12 lg:items-end">
           <div className="lg:col-span-8">
-            <p className="eyebrow text-primary">{isOpinion ? 'Opinion · Analysis · Argument' : 'Section'}</p>
-            <h1 className="mt-3 font-display text-[3rem] font-medium leading-[0.95] tracking-[-0.03em] sm:text-[4.5rem]">{section.title}</h1>
-            <p className="mt-5 max-w-2xl font-serif text-xl leading-[1.5] text-muted-foreground">{section.dek}</p>
+            <p className="eyebrow text-primary">{isOpinion ? t('section.opinionEyebrow') : t('section.eyebrow')}</p>
+            <h1 className="mt-3 font-display text-[3rem] font-medium leading-[0.95] tracking-[-0.03em] sm:text-[4.5rem]">{text.title}</h1>
+            <p className="mt-5 max-w-2xl font-serif text-xl leading-[1.5] text-muted-foreground">{text.dek}</p>
           </div>
           {children.length > 0 && (
             <nav
-              aria-label={`${section.title} topics`}
+              aria-label={t('section.topics', { title: text.title })}
               className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 lg:col-span-4 lg:mx-0 lg:flex-wrap lg:justify-end lg:px-0"
             >
               {children.map((child) => (
@@ -138,7 +149,7 @@ export function SectionPage({ section, trail }: { section: Section; trail?: stri
                   to={`/category/${child.slug}/`}
                   className="inline-flex min-h-11 shrink-0 items-center rounded-full border bg-card px-3.5 text-sm font-medium transition-colors duration-fast hover:border-primary hover:text-primary lg:min-h-9"
                 >
-                  {child.name}
+                  {category(child.slug, child.name)}
                 </Link>
               ))}
             </nav>
@@ -149,14 +160,13 @@ export function SectionPage({ section, trail }: { section: Section; trail?: stri
           <div className="mt-6 flex gap-3 rounded-lg border bg-card p-4 text-sm">
             <Scale className="mt-0.5 size-4 shrink-0 text-primary" />
             <p>
-              <span className="font-semibold">This is opinion, not news.</span> Each piece is labelled and argues a point of view. For straight
-              reporting, see{' '}
+              <span className="font-semibold">{t('section.opinionNoteStrong')}</span> {t('section.opinionNote')}{' '}
               <Link to="/politics/" className="link-underline">
-                Politics
+                {sectionText('politics').title}
               </Link>{' '}
-              and{' '}
+              {t('section.and')}{' '}
               <Link to="/world/" className="link-underline">
-                World
+                {sectionText('world').title}
               </Link>
               .
             </p>
@@ -165,7 +175,7 @@ export function SectionPage({ section, trail }: { section: Section; trail?: stri
 
         {first.data?.usedFallback && (
           <p className="mt-6 rounded-lg bg-mist px-4 py-3 text-sm text-mist-foreground">
-            Nothing is filed under {section.title} yet, so here’s the latest from {SECTIONS[section.fallback ?? '']?.title ?? 'the newsroom'}.
+            {t('section.fallback', { title: text.title, from: section.fallback && SECTIONS[section.fallback] ? sectionText(section.fallback).title : t('section.theNewsroom') })}
           </p>
         )}
 
@@ -181,11 +191,11 @@ export function SectionPage({ section, trail }: { section: Section; trail?: stri
             <div className="grid gap-8 lg:grid-cols-12">
               <EmptyState
                 className="lg:col-span-8"
-                title={`No ${section.title} stories yet`}
-                body="We publish carefully rather than constantly. Get the weekly briefing and we’ll tell you when there’s something worth reading."
+                title={t('section.emptyTitle', { title: text.title })}
+                body={t('section.emptyBody')}
               />
               <div className="rounded-lg border bg-card p-6 lg:col-span-4">
-                <p className="eyebrow text-primary">The weekly briefing</p>
+                <p className="eyebrow text-primary">{t('newsletter.eyebrow')}</p>
                 <NewsletterForm source={`empty-${section.label.toLowerCase().replace(/\W+/g, '-')}`} className="mt-4" />
               </div>
             </div>
@@ -211,28 +221,28 @@ export function SectionPage({ section, trail }: { section: Section; trail?: stri
                   {next && (
                     <div className="mt-12 flex justify-center">
                       <Button variant="outline" onClick={loadMore} disabled={loadingMore} loading={loadingMore}>
-                        More {section.title} stories
+                        {t('section.more', { title: text.title })}
                       </Button>
                     </div>
                   )}
                   {!listStories.length && !gridStories.length && (
-                    <p className="text-sm text-muted-foreground">That’s everything in {section.title} for now.</p>
+                    <p className="text-sm text-muted-foreground">{t('section.end', { title: text.title })}</p>
                   )}
                 </div>
                 <aside className="space-y-6 lg:col-span-4">
                   {section.kind === 'ai' && <AiExplainerEntry article={lead} className="h-auto" />}
                   <div className="rounded-lg border bg-card p-6">
-                    <p className="eyebrow text-primary">The weekly briefing</p>
-                    <p className="mt-2 font-display text-[1.35rem] font-medium leading-snug">The week in {section.title}, explained.</p>
+                    <p className="eyebrow text-primary">{t('newsletter.eyebrow')}</p>
+                    <p className="mt-2 font-display text-[1.35rem] font-medium leading-snug">{t('newsletter.sectionTitle', { title: text.title })}</p>
                     <NewsletterForm source={`section-${section.label.toLowerCase().replace(/\W+/g, '-')}`} className="mt-4" />
                   </div>
-                  <nav aria-label="More sections" className="rounded-lg border bg-card p-6">
-                    <p className="eyebrow">Explore</p>
+                  <nav aria-label={t('section.moreSections')} className="rounded-lg border bg-card p-6">
+                    <p className="eyebrow">{t('section.explore')}</p>
                     <ul className="mt-3 flex flex-wrap gap-2">
                       {otherSections.map((k) => (
                         <li key={k}>
                           <Link to={SECTIONS[k].path} className="inline-flex min-h-11 items-center rounded-full bg-muted px-3.5 text-sm font-medium transition-colors duration-fast hover:bg-mist hover:text-secondary-foreground lg:min-h-9">
-                            {SECTIONS[k].label}
+                            {sectionText(k).label}
                           </Link>
                         </li>
                       ))}

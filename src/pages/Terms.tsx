@@ -1,6 +1,7 @@
 import type React from 'react';
 import { Link } from 'react-router-dom';
 import { Seo } from '@/components/seo/Seo';
+import { EnglishOnlyNote } from '@/components/layout/PageShell';
 import { FileText, ShieldCheck, Gavel, Scale, HelpCircle, ExternalLink, ArrowUpRight, MessageCircle, Users, CircleCheck, CircleX, Ban } from 'lucide-react';
 
 const sectionNav = [
@@ -23,8 +24,9 @@ const Terms: React.FC = () => {
       <Seo title="Terms of Service" description="The terms that govern your use of The Age of GenZ, our content policies and your rights and responsibilities." path="/terms/" />
 
       <div className="container mx-auto px-4 max-w-6xl">
+        <EnglishOnlyNote className="mx-auto mb-6 w-fit" />
         <section className="mb-10 text-center bg-card rounded-lg border border-border p-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-mist text-secondary-foreground rounded-full text-sm font-medium mb-4">
             <ShieldCheck className="w-4 h-4" />
             Legal Framework
           </div>

@@ -1,6 +1,6 @@
 import { CATEGORY_DESCRIPTORS } from '../constants/categories';
 import { SECTIONS } from '../constants/sections';
-import { normalizeArticle } from '../lib/api/normalize';
+import { normalizeArticle, normalizeAuthorProfile } from '../lib/api/normalize';
 import type { InitialData } from '../components/seo/context';
 
 const API = (process.env.VITE_API_URL || 'https://ageofgenz-backend.onrender.com').replace(/\/$/, '');
@@ -50,7 +50,14 @@ async function fetchJson(url: string, timeoutMs = 25000): Promise<unknown> {
 export async function prerender() {
   const data = (await fetchJson(`${API}/api/articles/slugs/`)) as { slugs?: string[] } | null;
   const slugs = Array.isArray(data?.slugs) ? data.slugs.filter(Boolean) : [];
-  return [...new Set([...STATIC_ROUTES, ...slugs.map((s) => `/articles/${s}/`)])];
+  // Author pages (GET /api/authors/): one prerendered page per active author with a safe slug.
+  const authors = await fetchJson(`${API}/api/authors/`);
+  const authorSlugs = Array.isArray(authors)
+    ? authors
+        .map((a) => (a && typeof a === 'object' ? (a as { slug?: unknown }).slug : null))
+        .filter((s): s is string => typeof s === 'string' && /^[a-z0-9][a-z0-9-]*$/i.test(s))
+    : [];
+  return [...new Set([...STATIC_ROUTES, ...slugs.map((s) => `/articles/${s}/`), ...authorSlugs.map((s) => `/author/${s}/`)])];
 }
 
 /** Fetch the article before render so prerendered HTML carries the full body, not a skeleton. */
@@ -62,6 +69,13 @@ export async function onBeforeRender(pageContext: { urlOriginal: string }) {
     const raw = await fetchJson(`${API}/api/articles/${encodeURIComponent(slug)}/?include_blocks=1`);
     if (raw && typeof raw === 'object' && '__missing' in raw) initialData.articleMissing = true;
     else if (raw) initialData.article = normalizeArticle(raw);
+  }
+  const author = pageContext.urlOriginal.match(/^\/author\/([^/?#]+)/);
+  if (author) {
+    const slug = decodeURIComponent(author[1]);
+    const raw = await fetchJson(`${API}/api/authors/${encodeURIComponent(slug)}/`);
+    if (raw && typeof raw === 'object' && '__missing' in raw) initialData.authorMissing = true;
+    else if (raw) initialData.author = normalizeAuthorProfile(raw, 1);
   }
   return { pageContext: { initialData } };
 }

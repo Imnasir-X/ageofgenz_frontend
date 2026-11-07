@@ -8,8 +8,10 @@ import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
 import { PRIMARY_NAV, SECONDARY_NAV, SECTIONS } from '@/constants/sections';
-import { TAGLINE, cn } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useSearchPalette } from '@/hooks/useSearchPalette';
+import { useI18n } from '@/lib/i18n/useI18n';
+import { LanguageToggle } from '@/lib/i18n/LanguageToggle';
 
 const navClass = ({ isActive }: { isActive: boolean }) =>
   cn(
@@ -19,6 +21,7 @@ const navClass = ({ isActive }: { isActive: boolean }) =>
   );
 
 function MoreMenu() {
+  const { t, section } = useI18n();
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
   const wrap = useRef<HTMLDivElement>(null);
@@ -59,13 +62,13 @@ function MoreMenu() {
         aria-controls="more-sections"
         onClick={() => setOpen((v) => !v)}
       >
-        More <ChevronDown className={cn('size-3.5 transition-transform duration-base ease-standard', open && 'rotate-180')} aria-hidden="true" />
+        {t('nav.more')} <ChevronDown className={cn('size-3.5 transition-transform duration-base ease-standard', open && 'rotate-180')} aria-hidden="true" />
       </button>
       {open && (
         <div id="more-sections" className="absolute left-0 top-full z-50 w-56 origin-top-left animate-in fade-in-0 zoom-in-95 rounded-lg border bg-popover p-1.5 shadow-lg duration-fast">
           {SECONDARY_NAV.map((key) => (
             <Link key={key} to={SECTIONS[key].path} className="block rounded-md px-3 py-2 text-sm transition-colors duration-fast hover:bg-muted">
-              {SECTIONS[key].title}
+              {section(key).title}
             </Link>
           ))}
         </div>
@@ -77,20 +80,21 @@ function MoreMenu() {
 /** Opens the search palette. Desktop shows the shortcut so the faster path is discoverable. */
 function SearchButton() {
   const { open } = useSearchPalette();
+  const { t } = useI18n();
   return (
     <>
-      <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Search" aria-keyshortcuts="Control+K Meta+K /" onClick={() => open()}>
+      <Button variant="ghost" size="icon" className="lg:hidden" aria-label={t('nav.search')} aria-keyshortcuts="Control+K Meta+K /" onClick={() => open()}>
         <Search />
       </Button>
       <button
         type="button"
         onClick={() => open()}
-        aria-label="Search stories"
+        aria-label={t('nav.searchStories')}
         aria-keyshortcuts="Control+K Meta+K /"
         className="mr-1 hidden h-9 w-52 items-center gap-2 rounded-md border bg-card px-3 text-sm text-muted-foreground transition-colors duration-fast ease-standard hover:border-foreground/30 hover:text-foreground lg:flex"
       >
         <Search className="size-4" aria-hidden="true" />
-        <span>Search</span>
+        <span>{t('nav.search')}</span>
         <kbd className="ml-auto rounded border bg-muted px-1.5 font-mono text-[0.68rem]">/</kbd>
       </button>
     </>
@@ -102,6 +106,7 @@ const sheetLink = ({ isActive }: { isActive: boolean }) =>
 
 export function Header() {
   const { theme, toggle } = useTheme();
+  const { t, section } = useI18n();
   const { isAuthenticated, user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const { pathname } = useLocation();
@@ -110,14 +115,14 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur-sm supports-[backdrop-filter]:bg-background/85">
       <div className="container flex h-[var(--header-h)] items-center gap-3">
-        <Link to="/" className="shrink-0" aria-label="The Age of GenZ, home">
+        <Link to="/" className="shrink-0" aria-label={t('nav.homeLink')}>
           <Wordmark />
         </Link>
 
-        <nav aria-label="Sections" className="ml-4 hidden min-w-0 items-center xl:flex">
+        <nav aria-label={t('nav.sections')} className="ml-4 hidden min-w-0 items-center xl:flex">
           {PRIMARY_NAV.map((key) => (
             <NavLink key={key} to={SECTIONS[key].path} className={navClass}>
-              {SECTIONS[key].label}
+              {section(key).label}
             </NavLink>
           ))}
           <MoreMenu />
@@ -125,27 +130,28 @@ export function Header() {
 
         <div className="ml-auto flex items-center gap-0.5">
           <SearchButton />
-          <Button variant="ghost" size="icon" onClick={toggle} aria-label={theme === 'dark' ? 'Use light theme' : 'Use dark theme'}>
+          <LanguageToggle />
+          <Button variant="ghost" size="icon" onClick={toggle} aria-label={theme === 'dark' ? t('nav.themeLight') : t('nav.themeDark')}>
             {theme === 'dark' ? <Sun /> : <Moon />}
           </Button>
           <div className="hidden items-center gap-1 sm:flex">
             {isAuthenticated ? (
               <Button variant="ghost" size="sm" onClick={logout} title={user?.email}>
-                <LogOut /> Sign out
+                <LogOut /> {t('nav.signOut')}
               </Button>
             ) : (
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/login">Sign in</Link>
+                <Link to="/login">{t('nav.signIn')}</Link>
               </Button>
             )}
             <Button size="sm" asChild>
-              <Link to="/subscribe">Subscribe</Link>
+              <Link to="/subscribe">{t('nav.subscribe')}</Link>
             </Button>
           </div>
 
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="xl:hidden" aria-label="Open menu">
+              <Button variant="ghost" size="icon" className="xl:hidden" aria-label={t('nav.openMenu')}>
                 <Menu />
               </Button>
             </SheetTrigger>
@@ -156,15 +162,15 @@ export function Header() {
                     <Wordmark />
                   </span>
                 </SheetTitle>
-                <SheetDescription className="mt-2 text-xs text-muted-foreground">{TAGLINE}</SheetDescription>
+                <SheetDescription className="mt-2 text-xs text-muted-foreground">{t('tagline')}</SheetDescription>
               </div>
-              <nav aria-label="All sections" className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-3">
+              <nav aria-label={t('nav.allSections')} className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-3">
                 <NavLink to="/" end className={sheetLink}>
-                  Latest
+                  {t('nav.latest')}
                 </NavLink>
                 {[...PRIMARY_NAV, ...SECONDARY_NAV].map((key) => (
                   <NavLink key={key} to={SECTIONS[key].path} className={sheetLink}>
-                    {SECTIONS[key].title}
+                    {section(key).title}
                   </NavLink>
                 ))}
               </nav>
@@ -173,17 +179,17 @@ export function Header() {
               <div className="flex flex-col gap-2 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
                 {isAuthenticated ? (
                   <Button variant="outline" onClick={logout}>
-                    <LogOut /> Sign out
+                    <LogOut /> {t('nav.signOut')}
                   </Button>
                 ) : (
                   <Button variant="outline" asChild>
                     <Link to="/login">
-                      <User /> Sign in
+                      <User /> {t('nav.signIn')}
                     </Link>
                   </Button>
                 )}
                 <Button size="lg" asChild>
-                  <Link to="/subscribe">Subscribe</Link>
+                  <Link to="/subscribe">{t('nav.subscribe')}</Link>
                 </Button>
               </div>
             </SheetContent>
@@ -193,16 +199,16 @@ export function Header() {
 
       {/* Swipeable category tabs. The right edge fades out so it reads as "more to the side". */}
       <nav
-        aria-label="Sections (compact)"
+        aria-label={t('nav.sectionsCompact')}
         className="no-scrollbar overflow-x-auto border-t [mask-image:linear-gradient(to_right,#000_calc(100%-3rem),transparent)] xl:hidden"
       >
         <div className="container flex h-10 items-center gap-0.5 pr-10">
           <NavLink to="/" end className={navClass}>
-            Latest
+            {t('nav.latest')}
           </NavLink>
           {PRIMARY_NAV.map((key) => (
             <NavLink key={key} to={SECTIONS[key].path} className={navClass}>
-              {SECTIONS[key].label}
+              {section(key).label}
             </NavLink>
           ))}
         </div>

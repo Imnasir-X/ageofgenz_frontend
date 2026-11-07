@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Toaster } from '@/components/ui/toaster';
 import { SearchPaletteProvider } from '@/components/search/SearchPalette';
 import { SECTIONS } from '@/constants/sections';
+import { LanguageProvider } from '@/lib/i18n/LanguageProvider';
 
 import {
   About,
@@ -33,6 +34,7 @@ import {
   Studio,
   Subscribe,
   Terms,
+  AuthorPage,
   ThankYou,
   Unsubscribe,
 } from './routes';
@@ -118,6 +120,7 @@ export function AppRoutes() {
               <Route path="/category/:slug" element={<Category />} />
               <Route path="/articles/:slug/*" element={<ArticleDetail />} />
               <Route path="/article/:slug" element={<LegacyArticleRedirect />} />
+              <Route path="/author/:slug/*" element={<AuthorPage />} />
               <Route path="/search" element={<SearchResults />} />
               <Route path="/about" element={<About />} />
               <Route path="/editorial-policy" element={<EditorialPolicy />} />
@@ -156,7 +159,9 @@ export function AppProviders({ children, initialData = {}, seo = null }: { child
   return (
     <SeoContext.Provider value={seo}>
       <InitialDataContext.Provider value={initialData}>
-        <AuthProvider>{children}</AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </LanguageProvider>
       </InitialDataContext.Provider>
     </SeoContext.Provider>
   );

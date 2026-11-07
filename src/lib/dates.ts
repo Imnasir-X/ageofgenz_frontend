@@ -1,4 +1,6 @@
 import type { Article } from '@/lib/api/types';
+import type { Lang } from '@/lib/i18n/context';
+import { translate } from '@/lib/i18n/format';
 
 /** The newsroom's home time zone: "today" on the home page means today in Dhaka. */
 export const NEWSROOM_TZ = 'Asia/Dhaka';
@@ -12,13 +14,8 @@ const valid = (iso?: string | null): Date | null => {
   return Number.isNaN(d.getTime()) ? null : d;
 };
 
-export const formatNewsroomDate = (d: Date, opts: Intl.DateTimeFormatOptions = { weekday: 'long', month: 'long', day: 'numeric' }) =>
-  d.toLocaleDateString('en-US', { timeZone: NEWSROOM_TZ, ...opts });
-
-export function isTodayInDhaka(iso: string | null | undefined, now: Date = new Date()): boolean {
-  const d = valid(iso);
-  return Boolean(d && dayKey(d) === dayKey(now));
-}
+export const formatNewsroomDate = (d: Date, opts: Intl.DateTimeFormatOptions = { weekday: 'long', month: 'long', day: 'numeric' }, lang: Lang = 'en') =>
+  d.toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en-US', { timeZone: NEWSROOM_TZ, ...opts });
 
 /**
  * Masthead label for the home page. "Today's briefing" only when the newest story really is from
@@ -29,17 +26,18 @@ export function homeFreshnessLabel(
   now: Date = new Date(),
   /** Server verdict (/api/home/ published_today and freshness.is_stale) when available; it wins over the client clock. */
   serverToday?: boolean,
+  lang: Lang = 'en',
 ): { label: string; date: string; isToday: boolean } {
   const newest = valid(newestIso);
   const today = serverToday ?? Boolean(newest && dayKey(newest) === dayKey(now));
   if (today) {
-    return { label: 'Today’s briefing', date: formatNewsroomDate(now), isToday: true };
+    return { label: translate(lang, 'home.todaysBriefing'), date: formatNewsroomDate(now, undefined, lang), isToday: true };
   }
-  if (!newest) return { label: 'Latest', date: '', isToday: false };
+  if (!newest) return { label: translate(lang, 'nav.latest'), date: '', isToday: false };
   const sameYear = dayKey(newest).slice(0, 4) === dayKey(now).slice(0, 4);
   return {
-    label: 'Latest',
-    date: `Newest story ${formatNewsroomDate(newest, { month: 'long', day: 'numeric', ...(sameYear ? {} : { year: 'numeric' }) })}`,
+    label: translate(lang, 'nav.latest'),
+    date: translate(lang, 'home.newestStory', { date: formatNewsroomDate(newest, { month: 'long', day: 'numeric', ...(sameYear ? {} : { year: 'numeric' }) }, lang) }),
     isToday: false,
   };
 }

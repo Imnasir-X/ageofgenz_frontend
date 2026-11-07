@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { Languages } from 'lucide-react';
-import type { Article } from '@/lib/api/types';
+import type { Article, ArticleTranslation } from '@/lib/api/types';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { keyPoints } from '@/lib/article/keyPoints';
+import { useI18n } from '@/lib/i18n/useI18n';
 
 interface Props {
   article: Article;
-  bangla?: { title?: string; tldr?: string[] } | null;
+  /** Approved Bangla translation, offered as a TL;DR switch while the page is read in English. */
+  bangla?: ArticleTranslation | null;
   className?: string;
 }
 
@@ -19,27 +21,30 @@ interface Props {
  * - Otherwise nothing at all.
  */
 export function BriefingBox({ article, bangla, className }: Props) {
-  const [lang, setLang] = useState<'en' | 'bn'>('en');
+  const { t } = useI18n();
+  const [local, setLocal] = useState<'en' | 'bn'>('en');
   const hasAny = Boolean(article.tldr?.length || article.whyItMatters || keyPoints(article).length);
   const hasBn = Boolean(bangla && (bangla.tldr?.length || bangla.title));
+  const showBn = hasBn && local === 'bn';
   const extracted = article.tldr ? [] : keyPoints(article);
-  const points = lang === 'bn' && bangla?.tldr?.length ? bangla.tldr : article.tldr ?? (extracted.length ? extracted : undefined);
+  const points = showBn && bangla?.tldr?.length ? bangla.tldr : article.tldr ?? (extracted.length ? extracted : undefined);
+  const why = showBn && bangla?.whyItMatters ? bangla.whyItMatters : article.whyItMatters;
   if (!hasAny) return null;
 
   return (
-    <section id="explainer" className={cn('rounded-lg border bg-card', className)} aria-labelledby="briefing-title" lang={lang === 'bn' ? 'bn' : undefined}>
+    <section id="explainer" className={cn('rounded-lg border bg-card', className)} aria-labelledby="briefing-title" lang={showBn ? 'bn' : undefined}>
       <div className="flex items-center justify-between gap-3 border-b px-5 py-3 sm:px-6">
         <h2 id="briefing-title" className="eyebrow text-foreground">
-          {article.tldr ? 'TL;DR' : points && points.length > 0 ? 'Key points' : 'Why it matters'}
+          {article.tldr ? t('briefing.tldr') : points && points.length > 0 ? t('briefing.keyPoints') : t('story.whyItMatters')}
         </h2>
         {hasBn && (
-          <Button variant="ghost" size="sm" onClick={() => setLang((l) => (l === 'en' ? 'bn' : 'en'))} aria-pressed={lang === 'bn'} className="text-xs sm:h-7">
-            <Languages /> {lang === 'en' ? 'বাংলা' : 'English'}
+          <Button variant="ghost" size="sm" onClick={() => setLocal((l) => (l === 'en' ? 'bn' : 'en'))} aria-pressed={showBn} className="text-xs sm:h-7">
+            <Languages aria-hidden="true" /> <span lang={showBn ? 'en' : 'bn'}>{showBn ? 'English' : 'বাংলা'}</span>
           </Button>
         )}
       </div>
       <div className="px-5 py-5 sm:px-6">
-        {lang === 'bn' && bangla?.title && <p className="mb-3 font-serif text-lg font-semibold leading-snug">{bangla.title}</p>}
+        {showBn && bangla?.title && <p className="mb-3 font-serif text-lg font-semibold leading-snug">{bangla.title}</p>}
         {points && points.length > 0 ? (
           <ul className="space-y-3">
             {points.slice(0, 5).map((p, i) => (
@@ -50,19 +55,19 @@ export function BriefingBox({ article, bangla, className }: Props) {
             ))}
           </ul>
         ) : null}
-        {article.whyItMatters && (
+        {why && (
           <div className="mt-5 rounded-md bg-mist px-4 py-3 text-mist-foreground">
-            <p className="eyebrow text-secondary-foreground">Why it matters</p>
-            <p className="mt-1.5 text-[0.95rem] leading-relaxed">{article.whyItMatters}</p>
+            <p className="eyebrow text-secondary-foreground">{t('story.whyItMatters')}</p>
+            <p className="mt-1.5 text-[0.95rem] leading-relaxed">{why}</p>
           </div>
         )}
         <p className="data mt-4 text-muted-foreground">
           {article.tldr
             ? article.aiReviewed
-              ? 'AI summary, reviewed by editors'
-              : 'AI summary of this article'
+              ? t('briefing.aiReviewed')
+              : t('briefing.ai')
             : points && points.length > 0
-              ? 'Sentences quoted from the article'
+              ? t('briefing.quoted')
               : null}
         </p>
       </div>
