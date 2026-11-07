@@ -119,7 +119,7 @@ export function SearchPaletteDialog({ open, onOpenChange, initialQuery = '' }: P
                 onValueChange={setQuery}
                 placeholder="Search stories, topics, places"
                 aria-label="Search stories"
-                className="h-14 min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground"
+                className="h-14 min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
                 onKeyDown={(e) => {
                   // Shift+Enter (or Cmd/Ctrl+Enter) jumps straight to the full results page.
                   if (e.key === 'Enter' && (e.shiftKey || e.metaKey || e.ctrlKey) && typing) {
