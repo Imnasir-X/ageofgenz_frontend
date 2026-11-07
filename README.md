@@ -1,3 +1,5 @@
+> **Run the full stack locally** (backend + this frontend + demo data, one command): see [LOCAL_RUN.md](LOCAL_RUN.md).
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
