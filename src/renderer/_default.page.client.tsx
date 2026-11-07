@@ -3,6 +3,7 @@ import { createRoot, hydrateRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { AppProviders } from '../App';
 import type { InitialData } from '../components/seo/context';
+import { normalizeArticle } from '../lib/api/normalize';
 import '../styles/fonts';
 import '../styles/globals.css';
 
@@ -14,7 +15,9 @@ function readInitialData(): InitialData {
   const el = document.getElementById('__AGZ_DATA__');
   if (!el?.textContent) return {};
   try {
-    return JSON.parse(el.textContent) as InitialData;
+    const data = JSON.parse(el.textContent) as InitialData;
+    if (data.articleRaw && !data.article) data.article = normalizeArticle(data.articleRaw);
+    return data;
   } catch {
     return {};
   }

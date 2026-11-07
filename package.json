@@ -53,6 +53,6 @@
     "typescript-eslint": "^8.24.1",
     "vite": "^6.4.5",
     "vite-plugin-ssr": "^0.4.142",
-    "vitest": "^3.2.4"
+    "vitest": "^5.1.0"
   }
 }

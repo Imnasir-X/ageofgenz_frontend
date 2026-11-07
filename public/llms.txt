@@ -1,0 +1,32 @@
+# The Age of GenZ
+
+> A youth-focused, international news platform based in Dhaka, Bangladesh. Tagline: "Understand what's happening. Not just what's trending." Every story opens with a short version (TL;DR), explains why it matters, links its sources, and separates opinion from news.
+
+The Age of GenZ publishes reporting and explainers on technology and AI, politics, world affairs (with a focus on South Asia and Bangladesh), business, science, culture and sport, written for readers aged roughly 18–35 and everyone who wants the context behind the headlines. Opinion pieces are labelled as opinion. Articles are free to read.
+
+Content may be quoted and summarised with attribution and a link to the original article URL (canonical form: https://theageofgenz.com/articles/{slug}/).
+
+## Key sections
+
+- [Today's briefing (home)](https://theageofgenz.com/): the few stories that matter today, with a quick briefing
+- [Trending](https://theageofgenz.com/trending/): what people are talking about, with context
+- [AI](https://theageofgenz.com/ai/): models, agents, policy and power
+- [Tech](https://theageofgenz.com/tech/): platforms, devices and the tech industry
+- [Politics](https://theageofgenz.com/politics/): elections, policy and power
+- [World](https://theageofgenz.com/world/): international and regional reporting, Bangladesh in focus
+- [Business & Economy](https://theageofgenz.com/business-economy/): jobs, money and trade
+- [Science & Discovery](https://theageofgenz.com/science-discovery/): space, climate, health and research
+- [Sports](https://theageofgenz.com/sports/): football, cricket, the NBA, esports
+- [Opinion](https://theageofgenz.com/opinion/): labelled commentary and argument
+
+## Machine-readable
+
+- [Sitemap](https://theageofgenz.com/sitemap.xml): every published article
+- [RSS feed](https://theageofgenz.com/rss.xml): latest stories
+- Each article page includes schema.org NewsArticle JSON-LD (headline, author, datePublished, dateModified, image, publisher) and BreadcrumbList.
+
+## About
+
+- [About us](https://theageofgenz.com/about/): mission and editorial standards
+- [Contact](https://theageofgenz.com/contact/): contact@theageofgenz.com (tips and corrections welcome)
+- [Privacy](https://theageofgenz.com/privacy/) · [Terms](https://theageofgenz.com/terms/)

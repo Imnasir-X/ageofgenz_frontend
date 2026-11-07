@@ -15,6 +15,8 @@ export interface InitialData {
   path?: string;
   article?: Article | null;
   articleMissing?: boolean;
+  /** Raw API payload embedded by the article edge function (normalised on the client). */
+  articleRaw?: unknown;
 }
 
 export const InitialDataContext = createContext<InitialData>({});

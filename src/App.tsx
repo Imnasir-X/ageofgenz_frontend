@@ -106,6 +106,8 @@ export function AppRoutes() {
               <Route path="/donation/cancelled" element={<Cancel />} />
               <Route path="/unsubscribe" element={<Unsubscribe />} />
               <Route path="/newsletter/unsubscribe" element={<Unsubscribe />} />
+              {/* Neutral shell used by the article edge function and dynamic rewrites. */}
+              <Route path="/__shell" element={<PageFallback />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

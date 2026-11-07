@@ -45,7 +45,7 @@ export async function render(pageContext: PageContext) {
 
   const pathname = urlOriginal.split(/[?#]/)[0];
   const normalized = pathname.endsWith('/') ? pathname : `${pathname}/`;
-  const head = seoTagsToHtml(buildSeoTags(seo.props ?? { noindex: normalized === '/404/' }, seo.path || pathname));
+  const head = seoTagsToHtml(buildSeoTags(seo.props ?? { noindex: normalized === '/404/' || normalized === '/__shell/' }, seo.path || pathname));
   const template = fs.readFileSync(path.resolve(process.cwd(), 'index.html'), 'utf-8');
 
   const html = template

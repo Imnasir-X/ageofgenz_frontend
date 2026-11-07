@@ -1,18 +1,28 @@
 {
-  "name": "theageofgenz - The Age Of GenZ",
-  "short_name": "theageofgenz",
-  "description": "News You Can Vibe With - Breaking news, politics, culture & tech from a Gen Z perspective",
+  "name": "The Age of GenZ",
+  "short_name": "The Age of GenZ",
+  "description": "Understand what's happening. Not just what's trending.",
   "start_url": "/",
   "id": "/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
-  "background_color": "#f9fafb",
-  "theme_color": "#f97316",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "background_color": "#F6F7F3",
+  "theme_color": "#0047FF",
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "en-US",
   "dir": "ltr",
-  "categories": ["news", "entertainment", "lifestyle", "politics", "social"],
+  "categories": [
+    "news",
+    "entertainment",
+    "lifestyle",
+    "politics",
+    "social"
+  ],
   "edge_side_panel": {
     "preferred_width": 400
   },
@@ -100,7 +110,7 @@
       "type": "image/png"
     },
     {
-      "src": "/favicon-32x32.png", 
+      "src": "/favicon-32x32.png",
       "sizes": "32x32",
       "type": "image/png"
     },
@@ -123,14 +133,14 @@
     },
     {
       "src": "/logo.png",
-      "sizes": "512x512", 
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
       "src": "/logo.png",
       "sizes": "512x512",
-      "type": "image/png", 
+      "type": "image/png",
       "purpose": "maskable"
     }
   ],
@@ -143,7 +153,7 @@
       "label": "theageofgenz homepage on desktop"
     },
     {
-      "src": "/screenshot-mobile.png", 
+      "src": "/screenshot-mobile.png",
       "sizes": "390x844",
       "type": "image/png",
       "form_factor": "narrow",

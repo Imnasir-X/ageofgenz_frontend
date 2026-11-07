@@ -25,7 +25,9 @@ export const STATIC_ROUTES = [
   '/unsubscribe/',
   '/donation/success/',
   '/donation/cancelled/',
+  '/newsletter/unsubscribe/',
   '/404/',
+  '/__shell/',
 ];
 
 async function fetchJson(url: string, timeoutMs = 25000): Promise<unknown> {
