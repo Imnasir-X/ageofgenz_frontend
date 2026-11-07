@@ -241,10 +241,10 @@ export default function Home() {
         {home.error && !plan ? (
           <ErrorState message={home.error.message} onRetry={home.reload} />
         ) : (
-          <div className="grid gap-8 lg:grid-cols-12">
-            <div className="lg:col-span-8">{loading ? <HeroSkeleton /> : plan?.lead && <StoryCard article={plan.lead} variant="hero" priority />}</div>
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-12">
+            <div className="min-w-0 lg:col-span-8">{loading ? <HeroSkeleton /> : plan?.lead && <StoryCard article={plan.lead} variant="hero" priority />}</div>
             {/* The side column holds the quick briefing; with too few stories for one, the AI explainer takes its place. */}
-            <div className="lg:col-span-4">
+            <div className="min-w-0 lg:col-span-4">
               {loading ? <BriefingSkeleton /> : plan?.briefing.length ? <QuickBriefing stories={plan.briefing} /> : plan?.lead && <AiExplainerEntry article={plan.lead} />}
             </div>
           </div>
@@ -253,9 +253,9 @@ export default function Home() {
         {plan && <SecondaryGrid stories={plan.secondary} />}
 
         {plan && (plan.trending.length > 0 || plan.briefing.length > 0) && (
-          <div className="mt-14 grid gap-6 lg:grid-cols-12 lg:items-start lg:gap-8">
+          <div className="mt-14 grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-12 lg:items-start lg:gap-8">
             {plan.trending.length > 0 && (
-              <div className={cn(plan.briefing.length > 0 ? 'lg:col-span-8' : 'lg:col-span-12')}>
+              <div className={cn('min-w-0', plan.briefing.length > 0 ? 'lg:col-span-8' : 'lg:col-span-12')}>
                 <TrendingList stories={plan.trending} byViews={plan.trendingByViews} />
               </div>
             )}

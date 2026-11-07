@@ -55,7 +55,9 @@ describe('planHome (no-repeat home layout)', () => {
     ]);
     const slugs = allSlugs(plan);
     expect(new Set(slugs).size).toBe(slugs.length);
-    expect(plan.sections.map((s) => s.key)).toEqual(['ai']);
+    // Eight latest stories fill lead, secondary and briefing; trending is then filled from the pools.
+    expect(plan.trending.map((a) => a.slug)).toEqual(['s50', 's51']);
+    expect(plan.sections).toHaveLength(0);
   });
 
   it('sanitises a server plan that repeats a story', () => {

@@ -97,12 +97,22 @@ export function sanitizePlan(input: Omit<HomePlan, 'shown'>): HomePlan {
   return { lead, secondary, briefing, trending, trendingByViews: input.trendingByViews, sections, shown: [...order] };
 }
 
-/** Plan with section rows added later (client fallback: category lists arrive after the latest feed). */
+/**
+ * Plan with section rows added later (client fallback: category lists arrive after the latest feed).
+ * A latest page of 12 is used up by lead, secondary and briefing, so when trending came out empty
+ * it is filled from the category stories first (page order), then the rows take what is left.
+ */
 export function addSections(plan: HomePlan, sectionPools: SectionPool[]): HomePlan {
   if (plan.sections.length) return plan;
   const { take, order } = createDeduper(plan.shown);
+  let { trending, trendingByViews } = plan;
+  if (!trending.length) {
+    const pooled = sectionPools.flatMap((s) => s.stories);
+    trendingByViews = hasViews(pooled);
+    trending = take(trendingByViews ? [...pooled].sort((a, b) => (b.views ?? 0) - (a.views ?? 0)) : pooled, LIMITS.trending);
+  }
   const sections = sectionPools
     .map((s) => ({ key: s.key, title: s.title, href: s.href, stories: take(s.stories, LIMITS.section) }))
     .filter((s) => s.stories.length > 0);
-  return { ...plan, sections, shown: [...order] };
+  return { ...plan, trending, trendingByViews, sections, shown: [...order] };
 }
