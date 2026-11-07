@@ -1,6 +1,7 @@
 import type React from 'react';
 import { Link } from 'react-router-dom';
 import { Seo } from '@/components/seo/Seo';
+import { Lock, RefreshCw, ShieldCheck } from 'lucide-react';
 
 const Privacy: React.FC = () => {
   return (
@@ -288,21 +289,21 @@ const Privacy: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="text-center p-4 bg-card rounded-lg border border-border">
                     <div className="w-12 h-12 bg-mist rounded-lg mx-auto mb-3 flex items-center justify-center">
-                      <span className="text-2xl">🔒</span>
+                      <Lock className="size-5 text-primary" aria-hidden="true" />
                     </div>
                     <h4 className="font-semibold text-foreground mb-1">Encryption</h4>
                     <p className="text-sm text-muted-foreground">SSL/TLS encryption for data transmission</p>
                   </div>
                   <div className="text-center p-4 bg-card rounded-lg border border-border">
                     <div className="w-12 h-12 bg-mist rounded-lg mx-auto mb-3 flex items-center justify-center">
-                      <span className="text-2xl">🛡️</span>
+                      <ShieldCheck className="size-5 text-primary" aria-hidden="true" />
                     </div>
                     <h4 className="font-semibold text-foreground mb-1">Access Controls</h4>
                     <p className="text-sm text-muted-foreground">Limited access to authorized personnel</p>
                   </div>
                   <div className="text-center p-4 bg-card rounded-lg border border-border">
-                    <div className="w-12 h-12 bg-yellow-100 rounded-lg mx-auto mb-3 flex items-center justify-center">
-                      <span className="text-2xl">🔄</span>
+                    <div className="w-12 h-12 bg-mist rounded-lg mx-auto mb-3 flex items-center justify-center">
+                      <RefreshCw className="size-5 text-primary" aria-hidden="true" />
                     </div>
                     <h4 className="font-semibold text-foreground mb-1">Regular Backups</h4>
                     <p className="text-sm text-muted-foreground">Secure data backup and recovery</p>

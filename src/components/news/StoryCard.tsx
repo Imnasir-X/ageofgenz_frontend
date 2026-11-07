@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import type { Article } from '@/lib/api/types';
 import { cn, truncate } from '@/lib/utils';
 import { StoryImage } from './StoryImage';
@@ -61,7 +62,7 @@ export function StoryCard({ article, variant = 'standard', className, index, pri
           </p>
         )}
         <p className="mt-9 inline-flex items-center gap-2 text-sm font-medium text-lime">
-          Read the story <span aria-hidden="true">→</span>
+          Read the story <ArrowRight className="size-4" aria-hidden="true" />
         </p>
       </article>
     );

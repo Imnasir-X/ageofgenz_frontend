@@ -1,7 +1,7 @@
 import type React from 'react';
 import { Link } from 'react-router-dom';
 import { Seo } from '@/components/seo/Seo';
-import { FileText, ShieldCheck, Gavel, Scale, HelpCircle, ExternalLink, ArrowUpRight, MessageCircle, Users } from 'lucide-react';
+import { FileText, ShieldCheck, Gavel, Scale, HelpCircle, ExternalLink, ArrowUpRight, MessageCircle, Users, CircleCheck, CircleX, Ban } from 'lucide-react';
 
 const sectionNav = [
   { id: 'agreement', title: 'Agreement and Acceptance' },
@@ -192,7 +192,7 @@ const Terms: React.FC = () => {
                 <h3 className="text-xl font-semibold mb-3 text-foreground">3.2 Account Responsibilities</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-4 bg-mist border border-primary/30 rounded-lg">
-                    <h4 className="font-semibold text-primary mb-2">✅ You Must</h4>
+                    <h4 className="font-semibold text-primary mb-2 flex items-center gap-1.5"><CircleCheck className="size-4" aria-hidden="true" /> You Must</h4>
                     <ul className="text-primary text-sm space-y-1">
                       <li>• Use your real identity</li>
                       <li>• Provide valid email address</li>
@@ -201,7 +201,7 @@ const Terms: React.FC = () => {
                     </ul>
                   </div>
                   <div className="p-4 bg-muted border border-destructive/40 rounded-lg">
-                    <h4 className="font-semibold text-destructive mb-2">❌ You Must Not</h4>
+                    <h4 className="font-semibold text-destructive mb-2 flex items-center gap-1.5"><CircleX className="size-4" aria-hidden="true" /> You Must Not</h4>
                     <ul className="text-destructive text-sm space-y-1">
                       <li>• Create multiple accounts</li>
                       <li>• Share account credentials</li>
@@ -286,7 +286,7 @@ const Terms: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div className="p-4 border border-destructive/40 rounded-lg">
-                    <h4 className="font-semibold text-destructive mb-2">🚫 Prohibited Content</h4>
+                    <h4 className="font-semibold text-destructive mb-2 flex items-center gap-1.5"><Ban className="size-4" aria-hidden="true" /> Prohibited Content</h4>
                     <ul className="text-destructive text-sm space-y-1">
                       <li>• Illegal, harmful, or threatening material</li>
                       <li>• Harassment, hate speech, or discrimination</li>
@@ -300,7 +300,7 @@ const Terms: React.FC = () => {
                 
                 <div className="space-y-4">
                   <div className="p-4 border border-destructive/40 rounded-lg">
-                    <h4 className="font-semibold text-destructive mb-2">🚫 Prohibited Activities</h4>
+                    <h4 className="font-semibold text-destructive mb-2 flex items-center gap-1.5"><Ban className="size-4" aria-hidden="true" /> Prohibited Activities</h4>
                     <ul className="text-destructive text-sm space-y-1">
                       <li>• Attempting to gain unauthorized access</li>
                       <li>• Interfering with Service functionality</li>
