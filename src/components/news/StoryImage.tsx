@@ -32,7 +32,7 @@ export function StoryImage({ src, alt, className, width = 800, priority = false,
         decoding="async"
         fetchPriority={priority ? 'high' : 'auto'}
         onError={() => setFailed(true)}
-        className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+        className="absolute inset-0 h-full w-full object-cover transition-transform duration-slow ease-standard motion-safe:group-hover:scale-[1.03]"
       />
     </div>
   );

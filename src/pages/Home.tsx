@@ -1,12 +1,14 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, TrendingUp } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { WEBSITE_LD } from '@/components/seo/seo-core';
 import { StoryCard } from '@/components/news/StoryCard';
 import { CategoryRail } from '@/components/news/CategoryRail';
 import { AiExplainerEntry } from '@/components/news/AiExplainerEntry';
 import { NewsletterForm } from '@/components/news/NewsletterForm';
-import { ErrorState, LeadSkeleton, SectionHeader, StoryGridSkeleton } from '@/components/news/States';
+import { BriefingSkeleton, ErrorState, LeadSkeleton, SectionHeader, StoryRowSkeleton } from '@/components/news/States';
+import { Skeleton } from '@/components/ui/skeleton';
+import { articleLinkProps } from '@/lib/prefetch';
 import { useAsync } from '@/hooks/useAsync';
 import { articlesApi } from '@/lib/api/client';
 import { cached } from '@/lib/api/cache';
@@ -17,7 +19,7 @@ import { SITE_NAME, TAGLINE, truncate } from '@/lib/utils';
 const todayLabel = () => new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
 function QuickBriefing({ stories }: { stories: Article[] }) {
-  const items = stories.slice(0, 5).map((a) => ({ key: a.slug, title: a.title, href: a.href, line: a.whyItMatters || truncate(a.excerpt, 120) }));
+  const items = stories.slice(0, 5).map((a) => ({ key: a.slug, article: a, title: a.title, href: a.href, line: a.whyItMatters || truncate(a.excerpt, 120) }));
   if (!items.length) return null;
 
   return (
@@ -34,7 +36,7 @@ function QuickBriefing({ stories }: { stories: Article[] }) {
             </span>
             <div className="min-w-0">
               {item.href ? (
-                <Link to={item.href} className="font-display text-[1.1rem] font-medium leading-[1.25] hover:text-primary">
+                <Link {...articleLinkProps(item.article)} className="font-display text-[1.1rem] font-medium leading-[1.25] transition-colors duration-fast hover:text-primary">
                   {item.title}
                 </Link>
               ) : (
@@ -57,18 +59,18 @@ function TrendingBand({ stories }: { stories: Article[] }) {
         <h2 id="trending-now" className="flex items-center gap-2 font-display text-[1.6rem] font-medium leading-none tracking-[-0.015em]">
           <TrendingUp className="size-5 text-primary" /> Trending now
         </h2>
-        <Link to="/trending/" className="text-sm font-medium text-primary hover:underline">
+        <Link to="/trending/" className="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline sm:min-h-0">
           See all
         </Link>
       </div>
       <ol className="grid gap-x-10 sm:grid-cols-2">
         {stories.slice(0, 6).map((a, i) => (
-          <li key={a.slug} className="group relative flex gap-4 border-b py-5 last:border-0 sm:[&:nth-last-child(2):nth-child(odd)]:border-0">
+          <li key={a.slug} className="group relative flex gap-4 border-b py-5 transition-transform duration-fast ease-standard last:border-0 motion-safe:active:scale-[0.995] sm:[&:nth-last-child(2):nth-child(odd)]:border-0">
             <span className="w-8 shrink-0 font-mono text-2xl font-medium leading-none text-primary" aria-hidden="true">
               {i + 1}
             </span>
             <div className="min-w-0">
-              <Link to={a.href} className="font-display text-[1.12rem] font-medium leading-[1.25] after:absolute after:inset-0 group-hover:text-primary">
+              <Link {...articleLinkProps(a)} className="font-display text-[1.12rem] font-medium leading-[1.25] transition-colors duration-fast after:absolute after:inset-0 group-hover:text-primary">
                 {a.title}
               </Link>
               <p className="data mt-1.5 text-muted-foreground">
@@ -120,12 +122,25 @@ export default function Home() {
             <div className="lg:col-span-8">{latest.loading && !featured ? <LeadSkeleton /> : featured && <StoryCard article={featured} variant="lead" priority />}</div>
             <div className="lg:col-span-4">
               {latest.loading && !stories.length ? (
-                <StoryGridSkeleton count={1} className="sm:grid-cols-1 lg:grid-cols-1" />
+                <BriefingSkeleton />
               ) : (
                 <QuickBriefing stories={briefing} />
               )}
             </div>
           </div>
+        )}
+
+        {latest.loading && !stories.length && (
+          <section className="mt-16" aria-label="Loading top stories">
+            <div className="mb-2 border-b border-foreground pb-3">
+              <Skeleton className="h-3 w-32" />
+              <Skeleton className="mt-2 h-8 w-48" />
+            </div>
+            <div className="grid gap-x-12 md:grid-cols-2">
+              <StoryRowSkeleton count={2} />
+              <StoryRowSkeleton count={2} className="hidden md:block" />
+            </div>
+          </section>
         )}
 
         {topStories.length > 0 && (
@@ -140,7 +155,16 @@ export default function Home() {
         )}
 
         <div className="mt-16 grid gap-6 lg:grid-cols-12 lg:items-start lg:gap-8">
-          <div className="lg:col-span-8">{latest.loading && !stories.length ? <StoryGridSkeleton count={2} /> : <TrendingBand stories={stories} />}</div>
+          <div className="lg:col-span-8">
+            {latest.loading && !stories.length ? (
+              <div className="rounded-lg border bg-card p-6 sm:p-8" aria-busy="true" aria-label="Loading trending stories">
+                <Skeleton className="h-7 w-44" />
+                <StoryRowSkeleton count={3} className="mt-3" />
+              </div>
+            ) : (
+              <TrendingBand stories={stories} />
+            )}
+          </div>
           <div className="lg:col-span-4">
             <AiExplainerEntry article={featured} />
           </div>
@@ -153,6 +177,7 @@ export default function Home() {
           })}
         </div>
 
+        {/* Serial position: the strongest story opens the page, the one ask (newsletter) closes it. */}
         <section className="mt-12 grid gap-6 rounded-lg border bg-mist/60 p-7 sm:p-12 lg:grid-cols-12 lg:items-center" aria-labelledby="newsletter-home">
           <div className="lg:col-span-7">
             <p className="eyebrow text-primary">The weekly briefing</p>
@@ -166,11 +191,6 @@ export default function Home() {
           </div>
         </section>
 
-        <div className="mt-12 flex justify-center">
-          <Link to="/trending/" className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline">
-            Browse everything that’s trending <ArrowRight className="size-4" />
-          </Link>
-        </div>
       </div>
     </>
   );

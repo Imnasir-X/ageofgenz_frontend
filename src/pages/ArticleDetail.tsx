@@ -1,41 +1,108 @@
 import { useContext, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { ChevronRight, Scale } from 'lucide-react';
 import { Seo } from '@/components/seo/Seo';
 import { InitialDataContext } from '@/components/seo/context';
 import { ArticleBody } from '@/components/article/ArticleBody';
+import { ArticleEnd } from '@/components/article/ArticleEnd';
 import { BriefingBox } from '@/components/article/BriefingBox';
 import { SourcesList } from '@/components/article/SourcesList';
 import { AskPanel } from '@/components/article/AskPanel';
 import { ShareBar } from '@/components/article/ShareBar';
 import { ReadingProgress } from '@/components/article/ReadingProgress';
-import { StoryCard } from '@/components/news/StoryCard';
 import { StoryImage } from '@/components/news/StoryImage';
 import { OpinionLabel } from '@/components/news/StoryMeta';
 import { NewsletterForm } from '@/components/news/NewsletterForm';
-import { ErrorState, SectionHeader } from '@/components/news/States';
+import { ErrorState } from '@/components/news/States';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAsync } from '@/hooks/useAsync';
 import { aiApi, articlesApi, ApiError } from '@/lib/api/client';
-import { NEWSROOM } from '@/lib/api/normalize';
 import type { Article } from '@/lib/api/types';
+import { articleJsonLd } from '@/lib/article/jsonLd';
+import { loadArticle } from '@/lib/prefetch';
 import { categoryHref } from '@/constants/sections';
-import { SITE_NAME, SITE_URL, absoluteUrl, formatDate } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
 import NotFound from './NotFound';
 
+function BodySkeleton() {
+  return (
+    <div className="space-y-3" aria-hidden="true">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <Skeleton key={i} className={i % 4 === 3 ? 'h-4 w-2/3' : 'h-4 w-full'} />
+      ))}
+    </div>
+  );
+}
+
+/** Mirrors the article layout (header, 16:9 hero, body column) so nothing jumps when it loads. */
 function ArticleSkeleton() {
   return (
-    <div className="container max-w-3xl pt-12" aria-busy="true" aria-label="Loading article">
-      <Skeleton className="h-3 w-40" />
-      <Skeleton className="mt-5 h-12 w-full" />
-      <Skeleton className="mt-3 h-12 w-3/4" />
-      <Skeleton className="mt-6 h-5 w-2/3" />
-      <div className="mt-10 space-y-3">
-        {Array.from({ length: 7 }).map((_, i) => (
-          <Skeleton key={i} className="h-4 w-full" />
-        ))}
+    <div className="pt-8 sm:pt-12" aria-busy="true" aria-label="Loading article">
+      <div className="container max-w-[64rem]">
+        <Skeleton className="h-3 w-40" />
+        <Skeleton className="mt-5 h-12 w-full max-w-[40rem]" />
+        <Skeleton className="mt-3 h-12 w-3/4 max-w-[32rem]" />
+        <Skeleton className="mt-6 h-6 w-2/3" />
+        <Skeleton className="mt-8 h-14 w-full" />
+        <Skeleton className="mt-8 aspect-video w-full" />
+      </div>
+      <div className="container mt-10 max-w-[64rem]">
+        <div className="max-w-[65ch]">
+          <BodySkeleton />
+        </div>
       </div>
     </div>
+  );
+}
+
+function ArticleHeader({ a }: { a: Article }) {
+  const updated = a.updatedAt && a.publishedAt && new Date(a.updatedAt).getTime() - new Date(a.publishedAt).getTime() > 3_600_000;
+  return (
+    <>
+      <header className="container max-w-[64rem]">
+        <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+          <Link to="/" className="hover:text-foreground">
+            Home
+          </Link>
+          <ChevronRight className="size-3" aria-hidden="true" />
+          <Link to={categoryHref(a.category.slug)} className="eyebrow text-primary hover:underline">
+            {a.category.name}
+          </Link>
+          {a.isOpinion && <OpinionLabel className="ml-2" />}
+        </nav>
+        <h1
+          id="article-title"
+          className="mt-5 max-w-[22ch] font-display text-[2.4rem] font-medium leading-[1.04] tracking-[-0.025em] sm:text-[3.4rem] lg:text-[4rem]"
+        >
+          {a.title}
+        </h1>
+        {a.excerpt && <p className="mt-5 max-w-[40rem] font-serif text-[1.3rem] leading-[1.5] text-muted-foreground sm:text-[1.4rem]">{a.excerpt}</p>}
+        <div className="mt-8 flex flex-col gap-4 border-y py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span className="text-sm font-medium">{a.isOpinion ? `Opinion by ${a.author.name}` : `By ${a.author.name}`}</span>
+            {a.publishedAt && (
+              <time dateTime={a.publishedAt} className="data text-muted-foreground">
+                {formatDate(a.publishedAt, { month: 'long' })}
+              </time>
+            )}
+            {updated && (
+              <span className="data text-muted-foreground">
+                · Updated <time dateTime={a.updatedAt}>{formatDate(a.updatedAt, { month: 'long' })}</time>
+              </span>
+            )}
+            <span className="data text-muted-foreground">· {a.readMinutes} min read</span>
+          </div>
+          <ShareBar article={a} />
+        </div>
+      </header>
+
+      {a.image && (
+        <figure className="container mt-8 max-w-[64rem]">
+          <StoryImage src={a.image} alt={a.imageCaption || a.title} width={1400} priority ratio="video" />
+          {a.imageCaption && <figcaption className="mt-2 text-sm text-muted-foreground">{a.imageCaption}</figcaption>}
+        </figure>
+      )}
+    </>
   );
 }
 
@@ -43,18 +110,23 @@ export default function ArticleDetail() {
   const { slug = '' } = useParams<{ slug: string }>();
   const initial = useContext(InitialDataContext);
   const initialArticle = initial.article && initial.article.slug === slug ? initial.article : undefined;
-  const { data: article, error, loading, reload } = useAsync((signal) => articlesApi.bySlug(slug, signal), slug, { initial: initialArticle });
+  const { data: article, error, loading, reload } = useAsync(() => loadArticle(slug), slug, { initial: initialArticle });
+  // Optimistic UI: the card the reader clicked travels in router state, so the headline,
+  // standfirst and image paint immediately while the full article loads.
+  const location = useLocation();
+  const statePreview = (location.state as { preview?: Article } | null)?.preview;
+  const preview = statePreview && statePreview.slug === slug ? statePreview : undefined;
 
   const [enriched, setEnriched] = useState<Partial<Article>>({});
   const [bangla, setBangla] = useState<{ title?: string; tldr?: string[] } | null>(null);
-  const [related, setRelated] = useState<Article[]>([]);
+  const [related, setRelated] = useState<Article[] | null>(null);
 
   useEffect(() => {
     if (!article) return;
     const c = new AbortController();
     setEnriched({});
     setBangla(null);
-    setRelated([]);
+    setRelated(null);
     if (!article.tldr || !article.whyItMatters || !article.sources) {
       aiApi.brief(article.slug, c.signal).then((b) => {
         if (b && !c.signal.aborted) setEnriched(Object.fromEntries(Object.entries(b).filter(([, v]) => v !== undefined)) as Partial<Article>);
@@ -65,7 +137,7 @@ export default function ArticleDetail() {
     articlesApi
       .related(article, c.signal)
       .then((r) => !c.signal.aborted && setRelated(r))
-      .catch(() => undefined);
+      .catch(() => !c.signal.aborted && setRelated([]));
     return () => c.abort();
   }, [article]);
 
@@ -76,6 +148,18 @@ export default function ArticleDetail() {
       <div className="container max-w-3xl pt-12">
         <ErrorState message={error.message} onRetry={reload} />
       </div>
+    );
+  }
+  if ((loading || !article) && preview) {
+    return (
+      <article className="pt-8 sm:pt-12" aria-labelledby="article-title" aria-busy="true">
+        <ArticleHeader a={preview} />
+        <div className="container mt-10 max-w-[64rem]">
+          <div className="max-w-[65ch]">
+            <BodySkeleton />
+          </div>
+        </div>
+      </article>
     );
   }
   if (loading || !article) return <ArticleSkeleton />;
@@ -92,7 +176,6 @@ export default function ArticleDetail() {
     a.contentBlocks && a.contentBlocks[0]?.type === 'paragraph' && a.contentBlocks[0].text.trim().toLowerCase() === a.excerpt.trim().toLowerCase()
       ? a.contentBlocks.slice(1)
       : a.contentBlocks;
-  const updated = a.updatedAt && a.publishedAt && new Date(a.updatedAt).getTime() - new Date(a.publishedAt).getTime() > 3_600_000;
 
   return (
     <>
@@ -105,52 +188,10 @@ export default function ArticleDetail() {
         article={{ publishedTime: a.publishedAt, modifiedTime: a.updatedAt, section: a.category.name, author: a.author.name }}
         jsonLd={articleJsonLd(a)}
       />
-      <ReadingProgress targetId="article-body" />
+      <ReadingProgress targetId="article-body" minutes={a.readMinutes} />
 
       <article className="pt-8 sm:pt-12" aria-labelledby="article-title">
-        <header className="container max-w-[64rem]">
-          <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-            <Link to="/" className="hover:text-foreground">
-              Home
-            </Link>
-            <ChevronRight className="size-3" />
-            <Link to={categoryHref(a.category.slug)} className="eyebrow text-primary hover:underline">
-              {a.category.name}
-            </Link>
-            {a.isOpinion && <OpinionLabel className="ml-2" />}
-          </nav>
-          <h1
-            id="article-title"
-            className="mt-5 max-w-[22ch] font-display text-[2.4rem] font-medium leading-[1.04] tracking-[-0.025em] sm:text-[3.4rem] lg:text-[4rem]"
-          >
-            {a.title}
-          </h1>
-          {a.excerpt && <p className="mt-5 max-w-[40rem] font-serif text-[1.3rem] leading-[1.5] text-muted-foreground sm:text-[1.4rem]">{a.excerpt}</p>}
-          <div className="mt-8 flex flex-col gap-4 border-y py-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-              <span className="text-sm font-medium">{a.isOpinion ? `Opinion by ${a.author.name}` : `By ${a.author.name}`}</span>
-              {a.publishedAt && (
-                <time dateTime={a.publishedAt} className="data text-muted-foreground">
-                  {formatDate(a.publishedAt, { month: 'long' })}
-                </time>
-              )}
-              {updated && (
-                <span className="data text-muted-foreground">
-                  · Updated <time dateTime={a.updatedAt}>{formatDate(a.updatedAt, { month: 'long' })}</time>
-                </span>
-              )}
-              <span className="data text-muted-foreground">· {a.readMinutes} min read</span>
-            </div>
-            <ShareBar article={a} />
-          </div>
-        </header>
-
-        {a.image && (
-          <figure className="container mt-8 max-w-[64rem]">
-            <StoryImage src={a.image} alt={a.imageCaption || a.title} width={1400} priority ratio="video" />
-            {a.imageCaption && <figcaption className="mt-2 text-sm text-muted-foreground">{a.imageCaption}</figcaption>}
-          </figure>
-        )}
+        <ArticleHeader a={a} />
 
         <div className="container mt-10 max-w-[64rem]">
           <div className="grid gap-12 lg:grid-cols-12">
@@ -197,17 +238,8 @@ export default function ArticleDetail() {
         </div>
       </article>
 
-      <div className="container mt-20 max-w-[64rem]">
-        {related.length > 0 && (
-          <section aria-label="Related stories">
-            <SectionHeader title="Keep following this story" eyebrow="Related" />
-            <div className="grid gap-x-8 gap-y-10 pt-4 sm:grid-cols-2 lg:grid-cols-3">
-              {related.slice(0, 3).map((r) => (
-                <StoryCard key={r.slug} article={r} showWhy={false} />
-              ))}
-            </div>
-          </section>
-        )}
+      <div className="container mt-16 max-w-[64rem]">
+        <ArticleEnd article={a} related={related ? related.slice(0, 3) : null} />
       </div>
     </>
   );

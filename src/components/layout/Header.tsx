@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { ChevronDown, LogOut, Menu, Moon, Sun, User } from 'lucide-react';
+import { ChevronDown, LogOut, Menu, Moon, Search, Sun, User } from 'lucide-react';
 import { Wordmark } from '@/components/brand/Logo';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -9,32 +9,62 @@ import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
 import { PRIMARY_NAV, SECONDARY_NAV, SECTIONS } from '@/constants/sections';
 import { TAGLINE, cn } from '@/lib/utils';
-import { SearchPopover } from './SearchPopover';
+import { useSearchPalette } from '@/hooks/useSearchPalette';
 
 const navClass = ({ isActive }: { isActive: boolean }) =>
   cn(
-    'relative whitespace-nowrap px-2.5 py-1.5 text-[0.875rem] font-medium transition-colors',
-    isActive ? 'text-primary' : 'text-foreground/70 hover:text-foreground',
+    'relative inline-flex min-h-11 items-center whitespace-nowrap rounded-md px-2.5 text-[0.875rem] font-medium transition-colors duration-fast ease-standard xl:min-h-9',
+    "after:absolute after:inset-x-2.5 after:bottom-1 after:h-0.5 after:origin-left after:rounded-full after:bg-primary after:transition-transform after:duration-base after:ease-standard",
+    isActive ? 'text-primary after:scale-x-100' : 'text-foreground/70 after:scale-x-0 hover:text-foreground',
   );
 
 function MoreMenu() {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
+  const wrap = useRef<HTMLDivElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
   useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        button.current?.focus();
+      }
+    };
+    const onDown = (e: PointerEvent) => {
+      if (wrap.current && !wrap.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onDown);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('pointerdown', onDown);
+    };
+  }, [open]);
   return (
-    <div className="relative" onMouseLeave={() => setOpen(false)}>
+    <div
+      ref={wrap}
+      className="relative"
+      onMouseLeave={() => setOpen(false)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) setOpen(false);
+      }}
+    >
       <button
+        ref={button}
         type="button"
-        className="flex items-center gap-1 px-2.5 py-1.5 text-[0.875rem] font-medium text-foreground/70 hover:text-foreground"
+        className="flex min-h-9 items-center gap-1 rounded-md px-2.5 text-[0.875rem] font-medium text-foreground/70 transition-colors duration-fast hover:text-foreground"
         aria-expanded={open}
+        aria-controls="more-sections"
         onClick={() => setOpen((v) => !v)}
       >
-        More <ChevronDown className="size-3.5" />
+        More <ChevronDown className={cn('size-3.5 transition-transform duration-base ease-standard', open && 'rotate-180')} aria-hidden="true" />
       </button>
       {open && (
-        <div className="absolute left-0 top-full z-50 w-56 animate-fade-up rounded-lg border bg-popover p-1.5 shadow-lg">
+        <div id="more-sections" className="absolute left-0 top-full z-50 w-56 origin-top-left animate-in fade-in-0 zoom-in-95 rounded-lg border bg-popover p-1.5 shadow-lg duration-fast">
           {SECONDARY_NAV.map((key) => (
-            <Link key={key} to={SECTIONS[key].path} className="block rounded-md px-3 py-2 text-sm hover:bg-muted">
+            <Link key={key} to={SECTIONS[key].path} className="block rounded-md px-3 py-2 text-sm transition-colors duration-fast hover:bg-muted">
               {SECTIONS[key].title}
             </Link>
           ))}
@@ -44,8 +74,31 @@ function MoreMenu() {
   );
 }
 
+/** Opens the search palette. Desktop shows the shortcut so the faster path is discoverable. */
+function SearchButton() {
+  const { open } = useSearchPalette();
+  return (
+    <>
+      <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Search" aria-keyshortcuts="Control+K Meta+K /" onClick={() => open()}>
+        <Search />
+      </Button>
+      <button
+        type="button"
+        onClick={() => open()}
+        aria-label="Search stories"
+        aria-keyshortcuts="Control+K Meta+K /"
+        className="mr-1 hidden h-9 w-52 items-center gap-2 rounded-md border bg-card px-3 text-sm text-muted-foreground transition-colors duration-fast ease-standard hover:border-foreground/30 hover:text-foreground lg:flex"
+      >
+        <Search className="size-4" aria-hidden="true" />
+        <span>Search</span>
+        <kbd className="ml-auto rounded border bg-muted px-1.5 font-mono text-[0.68rem]">/</kbd>
+      </button>
+    </>
+  );
+}
+
 const sheetLink = ({ isActive }: { isActive: boolean }) =>
-  cn('rounded-md px-3 py-2.5 font-display text-lg font-medium', isActive ? 'bg-mist text-secondary-foreground' : 'hover:bg-muted');
+  cn('flex min-h-11 items-center rounded-md px-3 font-display text-lg font-medium transition-colors duration-fast', isActive ? 'bg-mist text-secondary-foreground' : 'hover:bg-muted');
 
 export function Header() {
   const { theme, toggle } = useTheme();
@@ -71,7 +124,7 @@ export function Header() {
         </nav>
 
         <div className="ml-auto flex items-center gap-0.5">
-          <SearchPopover />
+          <SearchButton />
           <Button variant="ghost" size="icon" onClick={toggle} aria-label={theme === 'dark' ? 'Use light theme' : 'Use dark theme'}>
             {theme === 'dark' ? <Sun /> : <Moon />}
           </Button>
@@ -96,7 +149,7 @@ export function Header() {
                 <Menu />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="overflow-y-auto">
+            <SheetContent side="right">
               <div className="border-b px-5 py-4">
                 <SheetTitle asChild>
                   <span>
@@ -105,7 +158,7 @@ export function Header() {
                 </SheetTitle>
                 <SheetDescription className="mt-2 text-xs text-muted-foreground">{TAGLINE}</SheetDescription>
               </div>
-              <nav aria-label="All sections" className="flex flex-col px-3 py-3">
+              <nav aria-label="All sections" className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-3">
                 <NavLink to="/" end className={sheetLink}>
                   Today’s briefing
                 </NavLink>
@@ -115,11 +168,9 @@ export function Header() {
                   </NavLink>
                 ))}
               </nav>
+              {/* Primary actions sit at the bottom of the sheet: the thumb zone on a phone. */}
               <Separator />
-              <div className="flex flex-col gap-2 p-5">
-                <Button asChild>
-                  <Link to="/subscribe">Subscribe</Link>
-                </Button>
+              <div className="flex flex-col gap-2 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
                 {isAuthenticated ? (
                   <Button variant="outline" onClick={logout}>
                     <LogOut /> Sign out
@@ -131,8 +182,8 @@ export function Header() {
                     </Link>
                   </Button>
                 )}
-                <Button variant="ghost" asChild>
-                  <Link to="/donate">Support our journalism</Link>
+                <Button size="lg" asChild>
+                  <Link to="/subscribe">Subscribe</Link>
                 </Button>
               </div>
             </SheetContent>
@@ -141,7 +192,7 @@ export function Header() {
       </div>
 
       <nav aria-label="Sections (compact)" className="no-scrollbar overflow-x-auto border-t xl:hidden">
-        <div className="container flex h-10 items-center gap-1">
+        <div className="container flex h-11 items-center gap-1">
           <NavLink to="/" end className={navClass}>
             Briefing
           </NavLink>

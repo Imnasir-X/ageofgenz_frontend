@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, type ReactNode } from 'react';
+import { Suspense, lazy, useEffect, useRef, type ReactNode } from 'react';
 import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import { AuthProvider } from '@/context/AuthContext';
 import { InitialDataContext, SeoContext, type InitialData, type SeoCollector } from '@/components/seo/context';
@@ -7,6 +7,8 @@ import { Footer } from '@/components/layout/Footer';
 import { Analytics } from '@/components/layout/Analytics';
 import { ErrorBoundary } from '@/components/layout/ErrorBoundary';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Toaster } from '@/components/ui/toaster';
+import { SearchPaletteProvider } from '@/components/search/SearchPalette';
 import { SECTIONS } from '@/constants/sections';
 
 const Home = lazy(() => import('./pages/Home'));
@@ -53,12 +55,39 @@ function LegacyArticleRedirect() {
   return <Navigate to={slug ? `/articles/${slug}/` : '/'} replace />;
 }
 
-function ScrollToTop() {
+/**
+ * On client-side navigation: scroll to top (unless a hash targets an anchor) and move focus
+ * to <main> so screen readers announce the new page. Skipped on the first render.
+ */
+function NavigationEffects() {
   const { pathname } = useLocation();
+  const first = useRef(true);
   useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
     if (!window.location.hash) window.scrollTo(0, 0);
+    document.getElementById('main')?.focus({ preventScroll: true });
   }, [pathname]);
   return null;
+}
+
+/**
+ * Route transition: an opacity-only fade (no transform, so no layout shift) keyed by path.
+ * The first paint is never animated, so prerendered HTML shows instantly and hydrates cleanly.
+ */
+function RouteTransition({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation();
+  const initialPath = useRef(pathname);
+  const navigated = useRef(false);
+  if (pathname !== initialPath.current) navigated.current = true;
+  const animate = navigated.current;
+  return (
+    <div key={pathname} className={animate ? 'motion-safe:animate-route-in' : undefined}>
+      {children}
+    </div>
+  );
 }
 
 function PageFallback() {
@@ -73,13 +102,15 @@ function PageFallback() {
 
 export function AppRoutes() {
   return (
+    <SearchPaletteProvider>
     <div className="flex min-h-screen flex-col">
-      <ScrollToTop />
+      <NavigationEffects />
       <Analytics />
       <Header />
-      <main id="main" className="flex-1 outline-none" tabIndex={-1}>
+      <main id="main" className="flex-1 outline-none focus-visible:ring-0" tabIndex={-1}>
         <ErrorBoundary>
           <Suspense fallback={<PageFallback />}>
+            <RouteTransition>
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/home" element={<Home />} />
@@ -110,11 +141,14 @@ export function AppRoutes() {
               <Route path="/__shell" element={<PageFallback />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </RouteTransition>
           </Suspense>
         </ErrorBoundary>
       </main>
       <Footer />
+      <Toaster />
     </div>
+    </SearchPaletteProvider>
   );
 }
 
