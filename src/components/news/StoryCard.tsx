@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import type { Article } from '@/lib/api/types';
 import { cn, truncate } from '@/lib/utils';
 import { StoryImage } from './StoryImage';
+import { CoverArt } from './CoverArt';
 import { StoryMeta } from './StoryMeta';
 import { articleLinkProps } from '@/lib/prefetch';
 
@@ -16,7 +17,7 @@ export function WhyItMatters({ text, className }: { text?: string; className?: s
   );
 }
 
-type Variant = 'lead' | 'standard' | 'row' | 'compact' | 'text';
+type Variant = 'lead' | 'feature' | 'standard' | 'row' | 'compact' | 'text';
 
 interface StoryCardProps {
   article: Article;
@@ -44,7 +45,8 @@ export function StoryCard({ article, variant = 'standard', className, index, pri
   if (variant === 'lead' && !article.image) {
     // Text-led cover for stories without art: no placeholder blocks.
     return (
-      <article className={cn('group relative overflow-hidden rounded-lg bg-ink px-6 py-8 text-ink-foreground sm:px-10 sm:py-12', press, className)}>
+      <article className={cn('group relative isolate overflow-hidden rounded-lg bg-ink px-6 py-8 text-ink-foreground sm:px-10 sm:py-12', press, className)}>
+        <CoverArt category={article.category.slug} size="lg" className="-z-10 opacity-90" />
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           {article.isOpinion && (
             <span className="rounded-full border border-ink-foreground/60 px-2 py-0.5 font-mono text-[0.68rem] uppercase tracking-wider">Opinion</span>
@@ -77,7 +79,7 @@ export function StoryCard({ article, variant = 'standard', className, index, pri
   if (variant === 'lead') {
     return (
       <article className={cn('group relative grid gap-5 md:grid-cols-12 md:gap-8', press, className)}>
-        <StoryImage src={article.image} alt={article.title} width={1200} priority={priority} className="md:col-span-7" ratio="wide" />
+        <StoryImage src={article.image} alt={article.title} width={1200} priority={priority} className="md:col-span-7" ratio="wide" category={article.category.slug} categoryLabel={article.category.name} />
         <div className="flex flex-col gap-3 md:col-span-5 md:py-2">
           <StoryMeta article={article} />
           <h2 className="font-display text-[2rem] font-medium leading-[1.06] tracking-[-0.02em] sm:text-[2.6rem]">
@@ -87,6 +89,24 @@ export function StoryCard({ article, variant = 'standard', className, index, pri
           </h2>
           {article.excerpt && <p className="font-serif text-lg leading-[1.55] text-muted-foreground">{truncate(article.excerpt, 240)}</p>}
           {showWhy && <WhyItMatters text={article.whyItMatters} />}
+        </div>
+      </article>
+    );
+  }
+
+  if (variant === 'feature') {
+    // A single story given the full width (sparse rails, a lone related story): image left, text right.
+    return (
+      <article className={cn('group relative grid gap-5 sm:grid-cols-12 sm:items-center sm:gap-8', press, className)}>
+        <StoryImage src={article.image} alt={article.title} width={800} ratio="wide" className="sm:col-span-5" category={article.category.slug} categoryLabel={article.category.name} />
+        <div className="flex flex-col gap-2.5 sm:col-span-7">
+          <StoryMeta article={article} />
+          {headline('text-[1.5rem] sm:text-[1.85rem] leading-[1.12]')}
+          {showWhy && article.whyItMatters ? (
+            <WhyItMatters text={article.whyItMatters} className="text-[0.88rem]" />
+          ) : (
+            article.excerpt && <p className="line-clamp-3 text-[0.95rem] leading-relaxed text-muted-foreground">{article.excerpt}</p>
+          )}
         </div>
       </article>
     );
@@ -104,7 +124,9 @@ export function StoryCard({ article, variant = 'standard', className, index, pri
             article.excerpt && <p className="mt-2 line-clamp-2 text-[0.9rem] leading-relaxed text-muted-foreground">{article.excerpt}</p>
           )}
         </div>
-        {article.image && <StoryImage src={article.image} alt={article.title} width={320} className="w-24 shrink-0 sm:w-36" ratio="square" />}
+        {article.image && (
+          <StoryImage src={article.image} alt={article.title} width={320} className="w-24 shrink-0 sm:w-36" ratio="square" category={article.category.slug} />
+        )}
       </article>
     );
   }
@@ -136,8 +158,8 @@ export function StoryCard({ article, variant = 'standard', className, index, pri
   }
 
   return (
-    <article className={cn('group relative flex flex-col gap-3', lift, !article.image && 'border-t border-foreground pt-4', className)}>
-      {article.image && <StoryImage src={article.image} alt={article.title} width={640} priority={priority} />}
+    <article className={cn('group relative flex flex-col gap-3', lift, className)}>
+      <StoryImage src={article.image} alt={article.title} width={640} priority={priority} category={article.category.slug} categoryLabel={article.category.name} />
       <StoryMeta article={article} />
       {headline('text-[1.3rem]')}
       {showWhy && article.whyItMatters ? (

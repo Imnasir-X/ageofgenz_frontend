@@ -32,19 +32,24 @@ export function CategoryRail({ slug, title, href, exclude = [] }: { slug: string
               </Link>
             }
           />
+          {/* Layout adapts to how many stories there are, so a thin section never looks empty. */}
           {stories.length === 1 ? (
-            <StoryCard article={stories[0]} variant="row" className="max-w-3xl" />
+            <StoryCard article={stories[0]} variant="feature" className="pt-4" />
+          ) : stories.length === 2 ? (
+            <div className="grid gap-x-10 gap-y-8 pt-4 md:grid-cols-2">
+              {stories.map((a) => (
+                <StoryCard key={a.slug} article={a} />
+              ))}
+            </div>
           ) : (
-          <div className="grid gap-x-10 gap-y-2 pt-4 lg:grid-cols-12">
-            <StoryCard article={stories[0]} className="lg:col-span-5" />
-            {stories.length > 1 && (
+            <div className="grid gap-x-10 gap-y-2 pt-4 lg:grid-cols-12">
+              <StoryCard article={stories[0]} className="lg:col-span-5" />
               <div className="divide-y lg:col-span-7">
                 {stories.slice(1).map((a) => (
                   <StoryCard key={a.slug} article={a} variant="row" />
                 ))}
               </div>
-            )}
-          </div>
+            </div>
           )}
         </section>
       )}

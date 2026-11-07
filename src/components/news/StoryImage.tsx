@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { PLACEHOLDER_IMAGE, optimizeImage } from '@/lib/image';
+import { optimizeImage } from '@/lib/image';
+import { CoverArt } from './CoverArt';
 
 const RATIOS = {
   video: 'aspect-[16/9]',
@@ -16,16 +17,26 @@ interface StoryImageProps {
   width?: number;
   priority?: boolean;
   ratio?: keyof typeof RATIOS;
+  /** Category slug and label for the branded fallback cover. */
+  category?: string;
+  categoryLabel?: string;
 }
 
-export function StoryImage({ src, alt, className, width = 800, priority = false, ratio = 'video' }: StoryImageProps) {
+/** Story art in a fixed aspect box (no CLS). Missing or broken art falls back to the branded CoverArt. */
+export function StoryImage({ src, alt, className, width = 800, priority = false, ratio = 'video', category, categoryLabel }: StoryImageProps) {
   const [failed, setFailed] = useState(false);
-  const url = !src || failed ? PLACEHOLDER_IMAGE : optimizeImage(src, width);
+  if (!src || failed) {
+    return (
+      <div className={cn('relative overflow-hidden rounded-md bg-ink', RATIOS[ratio], className)}>
+        <CoverArt category={category} label={categoryLabel} size={width <= 360 ? 'sm' : width >= 1200 ? 'lg' : 'md'} className="transition-transform duration-slow ease-standard motion-safe:group-hover:scale-[1.03]" />
+      </div>
+    );
+  }
   return (
     <div className={cn('relative overflow-hidden rounded-md bg-mist', RATIOS[ratio], className)}>
       <img
-        src={url}
-        alt={!src || failed ? '' : alt}
+        src={optimizeImage(src, width)}
+        alt={alt}
         width={width}
         height={Math.round((width * 9) / 16)}
         loading={priority ? 'eager' : 'lazy'}

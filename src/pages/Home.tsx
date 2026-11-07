@@ -14,7 +14,7 @@ import { articlesApi } from '@/lib/api/client';
 import { cached } from '@/lib/api/cache';
 import type { Article } from '@/lib/api/types';
 import { HOME_RAILS, SECTIONS } from '@/constants/sections';
-import { SITE_NAME, TAGLINE, truncate } from '@/lib/utils';
+import { SITE_NAME, TAGLINE, cn, truncate } from '@/lib/utils';
 
 const todayLabel = () => new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
@@ -23,7 +23,7 @@ function QuickBriefing({ stories }: { stories: Article[] }) {
   if (!items.length) return null;
 
   return (
-    <aside className="h-full rounded-lg border bg-card p-6 sm:p-7" aria-labelledby="quick-briefing">
+    <aside className="rounded-lg border bg-card p-6 sm:p-7" aria-labelledby="quick-briefing">
       <p className="eyebrow text-primary">In two minutes</p>
       <h2 id="quick-briefing" className="mt-2 font-display text-[1.6rem] font-medium leading-none tracking-[-0.015em]">
         Quick briefing
@@ -63,7 +63,8 @@ function TrendingBand({ stories }: { stories: Article[] }) {
           See all
         </Link>
       </div>
-      <ol className="grid gap-x-10 sm:grid-cols-2">
+      {/* Fits its content: one column for a short list, two only when there are enough to fill them. */}
+      <ol className={cn('grid gap-x-10', stories.length > 3 && 'sm:grid-cols-2')}>
         {stories.slice(0, 6).map((a, i) => (
           <li key={a.slug} className="group relative flex gap-4 border-b py-5 transition-transform duration-fast ease-standard last:border-0 motion-safe:active:scale-[0.995] sm:[&:nth-last-child(2):nth-child(odd)]:border-0">
             <span className="w-8 shrink-0 font-mono text-2xl font-medium leading-none text-primary" aria-hidden="true">
@@ -94,6 +95,12 @@ export default function Home() {
   // after it so nothing repeats above the fold.
   const briefing = featured ? [featured, ...rest].slice(0, 5) : [];
   const topStories = rest.slice(4, 10);
+  // Trending repeats the briefing when the newsroom has only a handful of live stories; show it
+  // only when it adds stories the reader has not just seen.
+  const trending = stories.length > briefing.length ? stories : [];
+  // Rails skip stories already on the page, so a thin newsroom never shows the same story six
+  // times; rails left with nothing collapse.
+  const onPage = [...briefing, ...topStories].map((a) => a.slug);
 
   return (
     <>
@@ -155,17 +162,17 @@ export default function Home() {
         )}
 
         <div className="mt-16 grid gap-6 lg:grid-cols-12 lg:items-start lg:gap-8">
-          <div className="lg:col-span-8">
+          <div className={cn('lg:col-span-8', !latest.loading && trending.length === 0 && 'hidden')}>
             {latest.loading && !stories.length ? (
               <div className="rounded-lg border bg-card p-6 sm:p-8" aria-busy="true" aria-label="Loading trending stories">
                 <Skeleton className="h-7 w-44" />
                 <StoryRowSkeleton count={3} className="mt-3" />
               </div>
             ) : (
-              <TrendingBand stories={stories} />
+              <TrendingBand stories={trending} />
             )}
           </div>
-          <div className="lg:col-span-4">
+          <div className={cn('lg:col-span-4', !latest.loading && trending.length === 0 && 'lg:col-span-12')}>
             <AiExplainerEntry article={featured} />
           </div>
         </div>
@@ -173,7 +180,7 @@ export default function Home() {
         <div className="mt-6">
           {HOME_RAILS.map((key) => {
             const section = SECTIONS[key];
-            return <CategoryRail key={key} slug={section.category ?? key} title={section.title} href={section.path} />;
+            return <CategoryRail key={key} slug={section.category ?? key} title={section.title} href={section.path} exclude={onPage} />;
           })}
         </div>
 

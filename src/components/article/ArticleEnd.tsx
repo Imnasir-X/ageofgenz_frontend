@@ -68,8 +68,8 @@ export function ArticleEnd({ article, related, className }: { article: Article; 
           <>
             {/* One primary next read (Hick's law), large and fully clickable (Fitts's law). */}
             <article className="group relative grid gap-5 rounded-lg border bg-card p-4 transition-[transform,box-shadow] duration-base ease-standard hover:shadow-md motion-safe:hover:-translate-y-0.5 motion-safe:active:scale-[0.995] sm:p-5 md:grid-cols-12 md:gap-8">
-              {next.image && <StoryImage src={next.image} alt={next.title} width={800} ratio="wide" className="md:col-span-5" />}
-              <div className={cn('flex flex-col justify-center gap-2', next.image ? 'md:col-span-7' : 'md:col-span-12')}>
+              <StoryImage src={next.image} alt={next.title} width={800} ratio="wide" className="md:col-span-5" category={next.category.slug} categoryLabel={next.category.name} />
+              <div className="flex flex-col justify-center gap-2 md:col-span-7">
                 <p className="eyebrow text-primary">Up next</p>
                 <h3 className="font-display text-[1.6rem] font-medium leading-[1.12] tracking-[-0.015em] sm:text-[1.9rem]">
                   <Link {...articleLinkProps(next)} className="transition-colors duration-fast after:absolute after:inset-0 group-hover:text-primary">
