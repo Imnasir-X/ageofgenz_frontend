@@ -271,7 +271,7 @@ const Privacy: React.FC = () => {
               </div>
             </div>
             
-            <div className="mt-6 p-4 bg-primary border border-primary rounded-lg">
+            <div className="mt-6 p-4 bg-mist border border-primary/30 rounded-lg">
               <h4 className="font-semibold text-primary mb-2">How to Exercise Your Rights</h4>
               <p className="text-primary text-sm">
                 Contact us at <a href="mailto:contact@theageofgenz.com" className="underline">contact@theageofgenz.com</a> 
