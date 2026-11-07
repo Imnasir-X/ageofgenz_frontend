@@ -10,7 +10,7 @@ export default function NotFound() {
   return (
     <>
       <Seo title="Page not found" description="This page doesn’t exist or has moved." noindex />
-      <div className="container grid gap-12 py-16 sm:py-24 lg:grid-cols-12">
+      <div className="container grid grid-cols-1 gap-12 py-16 sm:py-24 lg:grid-cols-12">
         <div className="lg:col-span-7">
           <p className="eyebrow text-primary">{t('notFound.eyebrow')}</p>
           <h1 className="mt-4 font-display text-5xl font-medium leading-[1.02] tracking-[-0.025em] sm:text-7xl">{t('notFound.title')}</h1>
