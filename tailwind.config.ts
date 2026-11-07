@@ -49,14 +49,33 @@ const config: Config = {
       maxWidth: {
         prose: '68ch',
       },
+      // Motion tokens: three durations, one ease-out curve. Every transition in the app uses these.
+      // Reduced motion is honoured globally in globals.css and with motion-safe: on transforms.
+      transitionDuration: {
+        fast: 'var(--motion-fast)',
+        base: 'var(--motion-base)',
+        slow: 'var(--motion-slow)',
+      },
+      transitionTimingFunction: {
+        standard: 'var(--ease-standard)',
+      },
       keyframes: {
         'fade-up': {
           from: { opacity: '0', transform: 'translateY(6px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
+        'route-in': {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
+        shimmer: {
+          '100%': { transform: 'translateX(100%)' },
+        },
       },
       animation: {
-        'fade-up': 'fade-up 240ms ease-out both',
+        'fade-up': 'fade-up var(--motion-slow) var(--ease-standard) both',
+        'route-in': 'route-in var(--motion-base) var(--ease-standard) both',
+        shimmer: 'shimmer 1.4s infinite',
       },
     },
   },
