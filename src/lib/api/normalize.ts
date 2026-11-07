@@ -106,6 +106,7 @@ export function fixTitleCase(title: string): string {
 }
 
 export const NEWSROOM = 'The Age of GenZ Newsroom';
+export const WPM = 230;
 
 const normalizeAuthor = (raw: Raw): Author => {
   const a = raw.author;
@@ -122,6 +123,8 @@ const normalizeAuthor = (raw: Raw): Author => {
     if (str(a.slug)) author.slug = str(a.slug);
     if (str(a.bio)) author.bio = str(a.bio);
     if (str(a.avatar)) author.avatar = str(a.avatar);
+    const url = str(a.url) || str(a.profile_url);
+    if (/^(https?:\/\/|\/)/.test(url)) author.url = url;
   }
   return author;
 };
@@ -152,7 +155,9 @@ export const normalizeArticle = (input: unknown): Article => {
   const category = normalizeCategory(raw);
   const words = (blocksText(contentBlocks) || stripHtml(content)).split(/\s+/).filter(Boolean).length;
   const apiRead = Number(raw.estimated_read_time);
-  const readMinutes = words > 0 ? Math.max(1, Math.round(words / 220)) : Math.max(1, apiRead || 1);
+  // Reading time from the text itself (~230 wpm). The API value is only used when there is no
+  // body to count (list payloads), and only when it is plausible.
+  const readMinutes = words >= 50 ? Math.max(1, Math.ceil(words / WPM)) : apiRead > 0 && apiRead < 120 ? Math.round(apiRead) : 1;
   const href = slug ? `/articles/${slug}/` : '/';
   const firstBlockImage = contentBlocks?.find((b) => b.type === 'image' && /^https?:\/\//.test(b.url));
   const image =
@@ -178,6 +183,7 @@ export const normalizeArticle = (input: unknown): Article => {
     contentBlocks,
     image,
     imageCaption: strOrNull(raw.featured_image_caption) ?? strOrNull(raw.caption),
+    imageCredit: strOrNull(raw.featured_image_credit) ?? strOrNull(raw.image_credit) ?? strOrNull(raw.photo_credit),
     category,
     author: normalizeAuthor(raw),
     isFeatured: Boolean(raw.is_featured),
@@ -196,6 +202,8 @@ export const normalizeArticle = (input: unknown): Article => {
 
   const tldr = stringList(pick('tldr') ?? pick('tl_dr') ?? pick('summary_points'));
   if (tldr) article.tldr = tldr;
+  const reviewed = pick('tldr_reviewed') ?? pick('summary_reviewed') ?? pick('reviewed_by_editor') ?? pick('is_reviewed');
+  if (reviewed === true) article.aiReviewed = true;
   const why = pick('why_it_matters');
   if (typeof why === 'string' && why.trim()) article.whyItMatters = why.trim();
   const sources = sourceList(pick('sources'));

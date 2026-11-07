@@ -12,6 +12,8 @@ export const STATIC_ROUTES = [
   ...CATEGORY_DESCRIPTORS.map((d) => `/category/${d.slug}/`),
   '/search/',
   '/about/',
+  '/editorial-policy/',
+  '/corrections/',
   '/contact/',
   '/privacy/',
   '/terms/',

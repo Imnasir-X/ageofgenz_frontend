@@ -65,6 +65,8 @@ export interface Author {
   slug?: string;
   bio?: string;
   avatar?: string;
+  /** Author profile page, when the backend provides one. */
+  url?: string;
 }
 
 export interface ArticleSource {
@@ -92,6 +94,7 @@ export interface Article {
   contentBlocks: ContentBlock[] | null;
   image: string | null;
   imageCaption: string | null;
+  imageCredit?: string | null;
   category: Category;
   author: Author;
   isFeatured: boolean;
@@ -104,6 +107,8 @@ export interface Article {
   tags: string[];
   // Optional AI fields (Hermes newsroom, backend master). Empty or absent when Hermes has not run.
   tldr?: string[];
+  /** True only when the backend says an editor reviewed the AI summary. */
+  aiReviewed?: boolean;
   whyItMatters?: string;
   sources?: ArticleSource[];
   perspectives?: Perspective[];

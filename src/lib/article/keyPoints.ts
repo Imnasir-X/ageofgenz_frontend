@@ -1,5 +1,5 @@
 import type { Article } from '@/lib/api/types';
-import { stripHtml, truncate } from '@/lib/utils';
+import { stripHtml } from '@/lib/utils';
 
 const norm = (t: string) => t.replace(/\s+/g, ' ').trim().toLowerCase();
 
@@ -13,8 +13,10 @@ export function keyPoints(article: Article, max = 3): string[] {
   for (const p of paragraphs) {
     const text = p.trim();
     if (!text || norm(text) === excerpt || text.length < 60) continue;
-    const sentence = text.match(/^.+?[.!?](?=\s+[A-Z“"‘']|$)/)?.[0] ?? text;
-    out.push(truncate(sentence, 240));
+    // Only whole sentences: a point that would need cutting is skipped, never truncated.
+    const sentence = (text.match(/^.+?[.!?][”"’']?(?=\s+[A-Z“"‘']|$)/)?.[0] ?? text).trim();
+    if (sentence.length > 320 || !/[.!?][”"’']?$/.test(sentence)) continue;
+    out.push(sentence);
     if (out.length >= max) break;
   }
   return out;

@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { Wordmark } from '@/components/brand/Logo';
-import { NewsletterForm } from '@/components/news/NewsletterForm';
 import { PRIMARY_NAV, SECONDARY_NAV, SECTIONS } from '@/constants/sections';
 import { CONTACT_EMAIL, TAGLINE } from '@/lib/utils';
 
@@ -24,10 +23,11 @@ export function Footer() {
           <p className="mt-3 max-w-sm text-sm text-ink-foreground/65">
             Fewer feeds, more understanding: a quick briefing, the original reporting and the context behind it.
           </p>
-          <div className="mt-7 max-w-sm">
-            <p className="eyebrow mb-2 text-ink-foreground/60">The weekly briefing</p>
-            <NewsletterForm tone="dark" source="footer" />
-          </div>
+          <p className="mt-6">
+            <Link to="/#weekly-briefing" className="text-sm font-medium text-ink-foreground underline decoration-ink-foreground/40 underline-offset-4 hover:decoration-ink-foreground">
+              Get the weekly briefing
+            </Link>
+          </p>
         </div>
         <nav aria-label="Footer" className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:col-span-7">
           <div>
@@ -63,6 +63,8 @@ export function Footer() {
             <p className="eyebrow text-ink-foreground/50">The Age of GenZ</p>
             <ul className="mt-4 space-y-2.5 text-sm">
               <li><Link className={linkCls} to="/about">About us</Link></li>
+              <li><Link className={linkCls} to="/editorial-policy">Editorial policy</Link></li>
+              <li><Link className={linkCls} to="/corrections">Corrections</Link></li>
               <li><Link className={linkCls} to="/contact">Contact</Link></li>
               <li><Link className={linkCls} to="/subscribe">Subscribe</Link></li>
               <li><Link className={linkCls} to="/donate">Support us</Link></li>

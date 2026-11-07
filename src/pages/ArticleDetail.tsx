@@ -8,11 +8,12 @@ import { ArticleEnd } from '@/components/article/ArticleEnd';
 import { BriefingBox } from '@/components/article/BriefingBox';
 import { SourcesList } from '@/components/article/SourcesList';
 import { AskPanel } from '@/components/article/AskPanel';
+import { MobileAsk } from '@/components/article/MobileAsk';
+import { NewsletterBlock } from '@/components/news/NewsletterBlock';
 import { ShareBar } from '@/components/article/ShareBar';
 import { ReadingProgress } from '@/components/article/ReadingProgress';
 import { StoryImage } from '@/components/news/StoryImage';
 import { OpinionLabel } from '@/components/news/StoryMeta';
-import { NewsletterForm } from '@/components/news/NewsletterForm';
 import { ErrorState } from '@/components/news/States';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAsync } from '@/hooks/useAsync';
@@ -79,7 +80,16 @@ function ArticleHeader({ a }: { a: Article }) {
         {a.excerpt && <p className="mt-5 max-w-[40rem] font-serif text-[1.3rem] leading-[1.5] text-muted-foreground sm:text-[1.4rem]">{a.excerpt}</p>}
         <div className="mt-8 flex flex-col gap-4 border-y py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <span className="text-sm font-medium">{a.isOpinion ? `Opinion by ${a.author.name}` : `By ${a.author.name}`}</span>
+            <span className="text-sm font-medium">
+              {a.isOpinion ? 'Opinion by ' : 'By '}
+              {a.author.url ? (
+                <a href={a.author.url} className="link-underline" rel="author">
+                  {a.author.name}
+                </a>
+              ) : (
+                a.author.name
+              )}
+            </span>
             {a.publishedAt && (
               <time dateTime={a.publishedAt} className="data text-muted-foreground">
                 {formatDate(a.publishedAt, { month: 'long' })}
@@ -99,7 +109,12 @@ function ArticleHeader({ a }: { a: Article }) {
       {a.image && (
         <figure className="container mt-8 max-w-[64rem]">
           <StoryImage src={a.image} alt={a.imageCaption || a.title} width={1400} priority ratio="video" />
-          {a.imageCaption && <figcaption className="mt-2 text-sm text-muted-foreground">{a.imageCaption}</figcaption>}
+          {(a.imageCaption || a.imageCredit) && (
+            <figcaption className="mt-2 text-sm text-muted-foreground">
+              {a.imageCaption}
+              {a.imageCredit && <span className="data ml-2 uppercase tracking-wide">{a.imageCredit}</span>}
+            </figcaption>
+          )}
         </figure>
       )}
     </>
@@ -120,6 +135,7 @@ export default function ArticleDetail() {
   const [enriched, setEnriched] = useState<Partial<Article>>({});
   const [bangla, setBangla] = useState<{ title?: string; tldr?: string[] } | null>(null);
   const [related, setRelated] = useState<Article[] | null>(null);
+  const [askAvailable, setAskAvailable] = useState(false);
 
   useEffect(() => {
     if (!article) return;
@@ -127,6 +143,8 @@ export default function ArticleDetail() {
     setEnriched({});
     setBangla(null);
     setRelated(null);
+    setAskAvailable(false);
+    aiApi.askAvailable(article.slug, c.signal).then((ok) => !c.signal.aborted && setAskAvailable(ok));
     if (!article.tldr || !article.whyItMatters || !article.sources) {
       aiApi.brief(article.slug, c.signal).then((b) => {
         if (b && !c.signal.aborted) setEnriched(Object.fromEntries(Object.entries(b).filter(([, v]) => v !== undefined)) as Partial<Article>);
@@ -217,22 +235,16 @@ export default function ArticleDetail() {
                   ))}
                 </ul>
               )}
-              <div className="mt-12 lg:hidden">
-                <AskPanel article={a} />
-              </div>
               <div className="mt-12">
                 <SourcesList article={a} />
               </div>
             </div>
             <aside className="hidden lg:col-span-4 lg:block">
-              <div className="sticky top-[calc(var(--header-h)+1.5rem)] space-y-5">
-                <AskPanel article={a} />
-                <div className="rounded-lg border bg-card p-5">
-                  <p className="eyebrow text-primary">The weekly briefing</p>
-                  <p className="mt-2 font-display text-lg font-medium leading-snug">Stories like this, explained, once a week.</p>
-                  <NewsletterForm source="article-aside" className="mt-4" />
+              {askAvailable && (
+                <div className="sticky top-[calc(var(--header-h)+1.5rem)]">
+                  <AskPanel article={a} available onUnavailable={() => setAskAvailable(false)} />
                 </div>
-              </div>
+              )}
             </aside>
           </div>
         </div>
@@ -240,7 +252,10 @@ export default function ArticleDetail() {
 
       <div className="container mt-16 max-w-[64rem]">
         <ArticleEnd article={a} related={related ? related.slice(0, 3) : null} />
+        {/* The page's only newsletter ask, after the reader has finished. */}
+        <NewsletterBlock source="article-end" className="mt-16" title="Stories like this, explained, once a week." />
       </div>
+      {askAvailable && <MobileAsk article={a} onUnavailable={() => setAskAvailable(false)} />}
     </>
   );
 }

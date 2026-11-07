@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Languages } from 'lucide-react';
 import type { Article } from '@/lib/api/types';
 import { Button } from '@/components/ui/button';
-import { cn, truncate } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { keyPoints } from '@/lib/article/keyPoints';
 
 interface Props {
@@ -12,20 +12,25 @@ interface Props {
 }
 
 /**
- * TL;DR + "Why it matters", shown near the top of every article. Uses the backend's AI
- * summary when present; otherwise the editor's standfirst. Never invents a summary.
+ * TL;DR + "Why it matters", near the top of every article.
+ * - The AI TL;DR only when the backend provides one, labelled as AI (and as editor-reviewed
+ *   only when the backend says so).
+ * - Otherwise up to three complete sentences taken verbatim from the article (never cut).
+ * - Otherwise nothing at all.
  */
 export function BriefingBox({ article, bangla, className }: Props) {
   const [lang, setLang] = useState<'en' | 'bn'>('en');
+  const hasAny = Boolean(article.tldr?.length || article.whyItMatters || keyPoints(article).length);
   const hasBn = Boolean(bangla && (bangla.tldr?.length || bangla.title));
   const extracted = article.tldr ? [] : keyPoints(article);
   const points = lang === 'bn' && bangla?.tldr?.length ? bangla.tldr : article.tldr ?? (extracted.length ? extracted : undefined);
+  if (!hasAny) return null;
 
   return (
     <section id="explainer" className={cn('rounded-lg border bg-card', className)} aria-labelledby="briefing-title" lang={lang === 'bn' ? 'bn' : undefined}>
       <div className="flex items-center justify-between gap-3 border-b px-5 py-3 sm:px-6">
         <h2 id="briefing-title" className="eyebrow text-foreground">
-          {article.tldr ? 'TL;DR' : 'Key points'}
+          {article.tldr ? 'TL;DR' : points && points.length > 0 ? 'Key points' : 'Why it matters'}
         </h2>
         {hasBn && (
           <Button variant="ghost" size="sm" onClick={() => setLang((l) => (l === 'en' ? 'bn' : 'en'))} aria-pressed={lang === 'bn'} className="text-xs sm:h-7">
@@ -44,9 +49,7 @@ export function BriefingBox({ article, bangla, className }: Props) {
               </li>
             ))}
           </ul>
-        ) : (
-          <p className="font-serif text-[1.08rem] leading-[1.55]">{truncate(article.excerpt || article.metaDescription || article.title, 360)}</p>
-        )}
+        ) : null}
         {article.whyItMatters && (
           <div className="mt-5 rounded-md bg-mist px-4 py-3 text-mist-foreground">
             <p className="eyebrow text-secondary-foreground">Why it matters</p>
@@ -54,7 +57,13 @@ export function BriefingBox({ article, bangla, className }: Props) {
           </div>
         )}
         <p className="data mt-4 text-muted-foreground">
-          {article.tldr ? 'AI-assisted summary of this article' : 'Opening lines of the article’s main points'}
+          {article.tldr
+            ? article.aiReviewed
+              ? 'AI summary, reviewed by editors'
+              : 'AI summary of this article'
+            : points && points.length > 0
+              ? 'Sentences quoted from the article'
+              : null}
         </p>
       </div>
     </section>
