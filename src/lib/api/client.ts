@@ -13,7 +13,6 @@ import type {
   AuthUser,
   Category,
   CheckoutResponse,
-  Digest,
   LoginResponse,
   RegisterPayload,
   SubscriptionPlan,
@@ -257,67 +256,84 @@ export const categoriesApi = {
 };
 
 // ---------------------------------------------------------------------------
-// Optional AI endpoints (backend feat/hermes-agent). Contract documented in README.
+// Optional AI endpoints: Hermes newsroom on backend master (newsroom/urls.py,
+// mounted at /api/newsroom/). Every call degrades to null / "unavailable" on
+// 404 or 503 so the site works with or without Hermes deployed.
+//
+//   GET  /api/newsroom/articles/<slug>/summary/             -> { id, slug, title, tldr, why_it_matters }
+//   GET  /api/newsroom/articles/<slug>/translations/<lang>/ -> { article_slug, language, title, excerpt, content, tldr, why_it_matters, is_approved, updated_at }
+//   POST /api/newsroom/articles/<slug>/ask/  { question }   -> { question, answer, answerable, quotes[], grounded_on, ai_generated }
+//   GET  /api/newsroom/articles/<slug>/related/?limit=n     -> [{ id, title, slug, excerpt, tldr, category (slug), published_at, featured_image_url }]
+//
+// tldr / why_it_matters are also on the article detail payload itself. There is no
+// public digest endpoint (POST /api/newsroom/digest/ is staff-only and drafts a
+// newsletter), so the home briefing is built from live articles.
 // ---------------------------------------------------------------------------
 
+const NEWSROOM = '/api/newsroom/articles';
+const slugPath = (slug: string) => `${NEWSROOM}/${encodeURIComponent(slug)}`;
+
+const titleCase = (slug: string) => slug.replace(/[-_]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
+
 export const aiApi = {
-  /** TL;DR, why it matters, sources and perspectives for one article. */
+  /** TL;DR and why it matters for one live article. */
   async brief(slug: string, signal?: AbortSignal): Promise<Partial<Article> | null> {
-    const data = await optional(
-      request<Record<string, unknown>>(`/api/ai/articles/${encodeURIComponent(slug)}/brief/`, { signal, retries: 0, anonymous: true }),
-    );
+    const data = await optional(request<Record<string, unknown>>(`${slugPath(slug)}/summary/`, { signal, retries: 0, anonymous: true }));
     if (!data) return null;
-    const a = normalizeArticle({ slug, ...data });
-    return { tldr: a.tldr, whyItMatters: a.whyItMatters, sources: a.sources, perspectives: a.perspectives };
+    const a = normalizeArticle({ slug, tldr: data.tldr, why_it_matters: data.why_it_matters });
+    if (!a.tldr && !a.whyItMatters) return null;
+    return { tldr: a.tldr, whyItMatters: a.whyItMatters };
   },
 
+  /** Approved translation (Bangla by default). 404 when none is approved yet. */
   async translate(slug: string, lang = 'bn', signal?: AbortSignal): Promise<{ title?: string; tldr?: string[] } | null> {
     const data = await optional(
-      request<Record<string, unknown>>(`/api/ai/articles/${encodeURIComponent(slug)}/translate/`, {
-        params: { lang },
-        signal,
-        retries: 0,
-        anonymous: true,
-      }),
+      request<Record<string, unknown>>(`${slugPath(slug)}/translations/${encodeURIComponent(lang)}/`, { signal, retries: 0, anonymous: true }),
     );
-    if (!data) return null;
-    const a = normalizeArticle({ slug, translations: { bn: data } });
+    if (!data || data.is_approved === false) return null;
+    const a = normalizeArticle({ slug, translations: { bn: { title: data.title, tldr: data.tldr } } });
     return a.titleBn || a.tldrBn ? { title: a.titleBn, tldr: a.tldrBn } : null;
   },
 
-  /** Is the Q&A endpoint deployed? A GET on a POST-only DRF view answers 405; a missing route answers 404. */
+  /** Is the Q&A endpoint deployed? A GET on the POST-only view answers 405; a missing route 404; disabled 503. */
   async askAvailable(slug: string, signal?: AbortSignal): Promise<boolean> {
     try {
-      await request(`/api/ai/articles/${encodeURIComponent(slug)}/ask/`, { signal, retries: 0, anonymous: true, timeoutMs: 8000 });
+      await request(`${slugPath(slug)}/ask/`, { signal, retries: 0, anonymous: true, timeoutMs: 8000 });
       return true;
     } catch (err) {
       return err instanceof ApiError && [401, 403, 405].includes(err.status);
     }
   },
 
+  /** Answers are grounded only on the article text; quotes are exact sentences from it. */
   async ask(slug: string, question: string, signal?: AbortSignal): Promise<AskResponse> {
-    const data = await request<{ answer?: string; sources?: unknown[] }>(`/api/ai/articles/${encodeURIComponent(slug)}/ask/`, {
+    const data = await request<{ answer?: unknown; answerable?: unknown; quotes?: unknown }>(`${slugPath(slug)}/ask/`, {
       method: 'POST',
       body: { question },
       signal,
+      anonymous: true,
       timeoutMs: 45000,
     });
-    return { answer: typeof data?.answer === 'string' ? data.answer : '', sources: normalizeArticle({ sources: data?.sources }).sources };
+    const quotes = Array.isArray(data?.quotes) ? data.quotes.filter((q): q is string => typeof q === 'string' && q.trim() !== '') : [];
+    return {
+      answer: typeof data?.answer === 'string' ? data.answer : '',
+      answerable: typeof data?.answerable === 'boolean' ? data.answerable : undefined,
+      quotes,
+    };
   },
 
-  async related(slug: string, signal?: AbortSignal): Promise<Article[] | null> {
-    const data = await optional(
-      request<unknown>(`/api/ai/articles/${encodeURIComponent(slug)}/related/`, { signal, retries: 0, anonymous: true }),
-    );
-    if (!data) return null;
-    const list = normalizeList(data).results.filter((a) => a.slug);
+  async related(slug: string, signal?: AbortSignal, limit = 4): Promise<Article[] | null> {
+    const data = await optional(request<unknown>(`${slugPath(slug)}/related/`, { params: { limit }, signal, retries: 0, anonymous: true }));
+    if (!Array.isArray(data)) return null;
+    const rows = data.map((row) => {
+      if (row && typeof row === 'object' && typeof (row as Record<string, unknown>).category === 'string') {
+        const cat = (row as Record<string, string>).category;
+        return { ...(row as object), category: { id: 0, slug: cat, name: titleCase(cat) } };
+      }
+      return row;
+    });
+    const list = normalizeList(rows).results.filter((a) => a.slug);
     return list.length ? list : null;
-  },
-
-  async digest(signal?: AbortSignal): Promise<Digest | null> {
-    const data = await optional(request<Digest>('/api/ai/digest/', { signal, retries: 0, anonymous: true }));
-    if (!data || !Array.isArray(data.items) || data.items.length === 0) return null;
-    return data;
   },
 };
 

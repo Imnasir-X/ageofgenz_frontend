@@ -102,7 +102,7 @@ export interface Article {
   metaTitle: string;
   metaDescription: string;
   tags: string[];
-  // Optional AI-era fields (feat/hermes-agent backend). Absent on the current API.
+  // Optional AI fields (Hermes newsroom, backend master). Empty or absent when Hermes has not run.
   tldr?: string[];
   whyItMatters?: string;
   sources?: ArticleSource[];
@@ -177,18 +177,8 @@ export interface CheckoutResponse {
 
 export interface AskResponse {
   answer: string;
-  sources?: ArticleSource[];
-}
-
-export interface DigestItem {
-  title: string;
-  slug?: string;
-  summary?: string;
-  why_it_matters?: string;
-}
-
-export interface Digest {
-  headline?: string;
-  generated_at?: string;
-  items: DigestItem[];
+  /** false when the article does not answer the question. */
+  answerable?: boolean;
+  /** Exact sentences from the article the answer rests on. */
+  quotes: string[];
 }

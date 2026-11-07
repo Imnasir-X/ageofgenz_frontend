@@ -8,28 +8,21 @@ import { AiExplainerEntry } from '@/components/news/AiExplainerEntry';
 import { NewsletterForm } from '@/components/news/NewsletterForm';
 import { ErrorState, LeadSkeleton, SectionHeader, StoryGridSkeleton } from '@/components/news/States';
 import { useAsync } from '@/hooks/useAsync';
-import { aiApi, articlesApi } from '@/lib/api/client';
+import { articlesApi } from '@/lib/api/client';
 import { cached } from '@/lib/api/cache';
-import type { Article, Digest } from '@/lib/api/types';
+import type { Article } from '@/lib/api/types';
 import { HOME_RAILS, SECTIONS } from '@/constants/sections';
 import { SITE_NAME, TAGLINE, truncate } from '@/lib/utils';
 
 const todayLabel = () => new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
-function QuickBriefing({ stories, digest }: { stories: Article[]; digest: Digest | null }) {
-  const items = digest
-    ? digest.items.slice(0, 5).map((item) => ({
-        key: item.slug || item.title,
-        title: item.title,
-        href: item.slug ? `/articles/${item.slug}/` : undefined,
-        line: item.why_it_matters || item.summary || '',
-      }))
-    : stories.slice(0, 5).map((a) => ({ key: a.slug, title: a.title, href: a.href, line: a.whyItMatters || truncate(a.excerpt, 120) }));
+function QuickBriefing({ stories }: { stories: Article[] }) {
+  const items = stories.slice(0, 5).map((a) => ({ key: a.slug, title: a.title, href: a.href, line: a.whyItMatters || truncate(a.excerpt, 120) }));
   if (!items.length) return null;
 
   return (
     <aside className="h-full rounded-lg border bg-card p-6 sm:p-7" aria-labelledby="quick-briefing">
-      <p className="eyebrow text-primary">{digest ? 'AI-assisted digest' : 'In two minutes'}</p>
+      <p className="eyebrow text-primary">In two minutes</p>
       <h2 id="quick-briefing" className="mt-2 font-display text-[1.6rem] font-medium leading-none tracking-[-0.015em]">
         Quick briefing
       </h2>
@@ -91,7 +84,6 @@ function TrendingBand({ stories }: { stories: Article[] }) {
 
 export default function Home() {
   const latest = useAsync((signal) => cached('latest', () => articlesApi.latest(signal)), 'latest');
-  const digest = useAsync((signal) => cached('digest', () => aiApi.digest(signal)), 'digest');
 
   const stories = latest.data ?? [];
   const featured = stories.find((a) => a.isFeatured && !a.isOpinion) ?? stories[0];
@@ -130,7 +122,7 @@ export default function Home() {
               {latest.loading && !stories.length ? (
                 <StoryGridSkeleton count={1} className="sm:grid-cols-1 lg:grid-cols-1" />
               ) : (
-                <QuickBriefing stories={briefing} digest={digest.data ?? null} />
+                <QuickBriefing stories={briefing} />
               )}
             </div>
           </div>

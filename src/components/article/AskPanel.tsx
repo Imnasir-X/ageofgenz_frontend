@@ -3,13 +3,14 @@ import { Loader2, MessagesSquare, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { aiApi, ApiError } from '@/lib/api/client';
-import type { Article, ArticleSource } from '@/lib/api/types';
+import type { Article } from '@/lib/api/types';
 import { cn } from '@/lib/utils';
 
 interface Turn {
   q: string;
   a?: string;
-  sources?: ArticleSource[];
+  quotes?: string[];
+  answerable?: boolean;
   error?: string;
 }
 
@@ -49,9 +50,9 @@ export function AskPanel({ article, className }: { article: Article; className?:
     const settle = (patch: Partial<Turn>) => setTurns((t) => t.map((turn, i) => (i === t.length - 1 ? { ...turn, ...patch } : turn)));
     try {
       const res = await aiApi.ask(article.slug, text, controller.current.signal);
-      settle({ a: res.answer || 'No answer this time.', sources: res.sources });
+      settle({ a: res.answer || 'No answer this time.', quotes: res.quotes, answerable: res.answerable });
     } catch (err) {
-      if (err instanceof ApiError && err.status === 404) {
+      if (err instanceof ApiError && (err.status === 404 || err.status === 503)) {
         setAvailable(false);
         return;
       }
@@ -66,7 +67,7 @@ export function AskPanel({ article, className }: { article: Article; className?:
       <h2 id="ask-title" className="flex items-center gap-2 font-display text-xl font-medium">
         <MessagesSquare className="size-4 text-primary" /> Ask about this article
       </h2>
-      <p className="mt-1 text-xs text-mist-foreground/75">Answers draw on this story and its sources. AI can make mistakes, so check the sources.</p>
+      <p className="mt-1 text-xs text-mist-foreground/75">Answers draw only on this story’s text. AI can make mistakes, so check the article.</p>
 
       {turns.length > 0 && (
         <div className="mt-4 max-h-[26rem] space-y-4 overflow-y-auto pr-1" aria-live="polite">
@@ -80,13 +81,11 @@ export function AskPanel({ article, className }: { article: Article; className?:
                   <Loader2 className="size-3.5 animate-spin" /> Reading the article…
                 </p>
               )}
-              {turn.sources && turn.sources.length > 0 && (
-                <ul className="flex flex-wrap gap-2">
-                  {turn.sources.slice(0, 4).map((s) => (
-                    <li key={s.url}>
-                      <a href={s.url} target="_blank" rel="noopener noreferrer nofollow" className="rounded-full bg-card px-2.5 py-1 text-xs text-primary hover:underline">
-                        {s.publisher || s.title}
-                      </a>
+              {turn.quotes && turn.quotes.length > 0 && (
+                <ul className="space-y-1.5 border-l-2 border-primary/30 pl-3">
+                  {turn.quotes.slice(0, 3).map((q) => (
+                    <li key={q} className="text-xs italic leading-relaxed text-mist-foreground/80">
+                      “{q}”
                     </li>
                   ))}
                 </ul>

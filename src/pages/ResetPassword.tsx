@@ -29,7 +29,7 @@ export default function ResetPassword() {
       setDone(true);
     } catch (err) {
       setError(
-        `${err instanceof Error ? err.message : 'The reset failed.'} If this link is old, request a new one. If you just submitted, try signing in with your new password first.`,
+        `${err instanceof Error ? err.message : 'The reset failed.'} If this link is old or already used, request a new one.`,
       );
     } finally {
       setBusy(false);
