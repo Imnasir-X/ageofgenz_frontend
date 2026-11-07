@@ -12,6 +12,8 @@ export interface Toast {
 
 type Listener = () => void;
 let toasts: Toast[] = [];
+/** Stable empty snapshot for SSR/hydration (useSyncExternalStore requires a cached value). */
+const SERVER_SNAPSHOT: Toast[] = [];
 let seq = 0;
 const listeners = new Set<Listener>();
 const timers = new Map<number, ReturnType<typeof setTimeout>>();
@@ -39,5 +41,5 @@ export const toastStore = {
     return () => listeners.delete(l);
   },
   get: () => toasts,
-  getServer: (): Toast[] => [],
+  getServer: (): Toast[] => SERVER_SNAPSHOT,
 };

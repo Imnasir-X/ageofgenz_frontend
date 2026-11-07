@@ -21,7 +21,7 @@ let routeChunk: Promise<unknown> | null = null;
 /** Warm the article route's JS chunk once. */
 export const prefetchArticleRoute = () => {
   if (typeof window === 'undefined') return Promise.resolve();
-  if (!routeChunk) routeChunk = import('@/pages/ArticleDetail').catch(() => (routeChunk = null));
+  if (!routeChunk) routeChunk = import('@/routes').then((r) => r.ArticleDetail.preload()).catch(() => (routeChunk = null));
   return routeChunk;
 };
 

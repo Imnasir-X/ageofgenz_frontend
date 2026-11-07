@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useRef, type ReactNode } from 'react';
+import { Suspense, useEffect, useRef, type ReactNode } from 'react';
 import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import { AuthProvider } from '@/context/AuthContext';
 import { InitialDataContext, SeoContext, type InitialData, type SeoCollector } from '@/components/seo/context';
@@ -11,44 +11,28 @@ import { Toaster } from '@/components/ui/toaster';
 import { SearchPaletteProvider } from '@/components/search/SearchPalette';
 import { SECTIONS } from '@/constants/sections';
 
-const Home = lazy(() => import('./pages/Home'));
-const Section = lazy(() => import('./pages/Section'));
-const Category = lazy(() => import('./pages/Category'));
-const ArticleDetail = lazy(() => import('./pages/ArticleDetail'));
-const SearchResults = lazy(() => import('./pages/SearchResults'));
-const About = lazy(() => import('./pages/About'));
-const Contact = lazy(() => import('./pages/Contact'));
-const Privacy = lazy(() => import('./pages/Privacy'));
-const Terms = lazy(() => import('./pages/Terms'));
-const Login = lazy(() => import('./pages/Login'));
-const Signup = lazy(() => import('./pages/Signup'));
-const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
-const ResetPassword = lazy(() => import('./pages/ResetPassword'));
-const Subscribe = lazy(() => import('./pages/Subscribe'));
-const Donate = lazy(() => import('./pages/Donate'));
-const ThankYou = lazy(() => import('./pages/ThankYou'));
-const Cancel = lazy(() => import('./pages/Cancel'));
-const Unsubscribe = lazy(() => import('./pages/Unsubscribe'));
-const NotFound = lazy(() => import('./pages/NotFound'));
-
-/** Section URLs preserved from the previous site. */
-export const SECTION_ROUTES = [
-  'trending',
-  'opinion',
-  'ai',
-  'culture',
-  'politics',
-  'world',
-  'sports',
-  'insights',
-  'memes',
-  'tech',
-  'pop-media',
-  'science-discovery',
-  'global',
-  'business-economy',
-  'crime-justice',
-] as const;
+import {
+  About,
+  ArticleDetail,
+  Cancel,
+  Category,
+  Contact,
+  Donate,
+  ForgotPassword,
+  Home,
+  Login,
+  NotFound,
+  Privacy,
+  ResetPassword,
+  SearchResults,
+  SECTION_ROUTES,
+  Section,
+  Signup,
+  Subscribe,
+  Terms,
+  ThankYou,
+  Unsubscribe,
+} from './routes';
 
 function LegacyArticleRedirect() {
   const { slug } = useParams<{ slug: string }>();
