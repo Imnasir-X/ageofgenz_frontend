@@ -11,6 +11,15 @@ if (missing.length) {
   console.error(`[postbuild] prerender is missing: ${missing.join(', ')}`);
   process.exit(1);
 }
+// The Studio (/studio) is a staff console: it must never be prerendered or listed for crawlers.
+if (fs.existsSync(path.join(out, 'studio'))) {
+  console.error('[postbuild] /studio was prerendered; it must stay client-only.');
+  process.exit(1);
+}
+if (fs.existsSync(path.join(out, 'llms.txt')) && /\/studio/.test(fs.readFileSync(path.join(out, 'llms.txt'), 'utf-8'))) {
+  console.error('[postbuild] llms.txt must not mention /studio.');
+  process.exit(1);
+}
 fs.copyFileSync(path.join(out, '404/index.html'), path.join(out, '404.html'));
 const pages = [];
 const walk = (dir) => {

@@ -164,7 +164,7 @@ export default function Today() {
                   <> Articles published at {fmtHourRange(hours.data.publishing.best_hour)} earned the most views in their first two days.</>
                 )}
               </p>
-              <Button variant="link" size="sm" asChild><Link to="/studio/analytics">See the hours</Link></Button>
+              <Button variant="link" size="sm" className="px-0" asChild><Link to="/studio/analytics">See the hours</Link></Button>
             </div>
           ) : (
             <NotEnoughData needed={hours.data?.reading.needed} sample={hours.data?.reading.sample} />
