@@ -5,6 +5,7 @@ import { InitialDataContext, SeoContext, type InitialData, type SeoCollector } f
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Analytics } from '@/components/layout/Analytics';
+import { CookieBanner } from '@/components/layout/CookieBanner';
 import { ErrorBoundary } from '@/components/layout/ErrorBoundary';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Toaster } from '@/components/ui/toaster';
@@ -150,6 +151,7 @@ export function AppRoutes() {
       </main>
       <Footer />
       <Toaster />
+      <CookieBanner />
     </div>
     </SearchPaletteProvider>
   );

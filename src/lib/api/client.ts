@@ -325,6 +325,7 @@ export const categoriesApi = {
 //
 //   GET  /api/newsroom/articles/<slug>/summary/             -> { id, slug, title, tldr, why_it_matters }
 //   GET  /api/newsroom/articles/<slug>/translations/<lang>/ -> { article_slug, language, title, excerpt, content, tldr, why_it_matters, is_approved, updated_at }
+//   GET  /api/newsroom/articles/<slug>/ask/                 -> { available, method: 'POST', slug } (probe; 503 when Q&A is off)
 //   POST /api/newsroom/articles/<slug>/ask/  { question }   -> { question, answer, answerable, quotes[], grounded_on, ai_generated }
 //   GET  /api/newsroom/articles/<slug>/related/?limit=n     -> [{ id, title, slug, excerpt, tldr, category (slug), published_at, featured_image_url }]
 //
@@ -356,11 +357,16 @@ export const aiApi = {
     return data ? normalizeTranslation(data, lang) : null;
   },
 
-  /** Is the Q&A endpoint deployed? A GET on the POST-only view answers 405; a missing route 404; disabled 503. */
+  /**
+   * Is reader Q&A on for this article? The backend answers GET /ask/ with
+   * `{ available: true, method: 'POST' }` (200), 503 when Q&A is switched off, and 404 for a
+   * draft or missing article. Older backends only had POST and answered the probe with 405,
+   * which still counts as available.
+   */
   async askAvailable(slug: string, signal?: AbortSignal): Promise<boolean> {
     try {
-      await request(`${slugPath(slug)}/ask/`, { signal, retries: 0, anonymous: true, timeoutMs: 8000 });
-      return true;
+      const data = await request<{ available?: unknown } | null>(`${slugPath(slug)}/ask/`, { signal, retries: 0, anonymous: true, timeoutMs: 8000 });
+      return !(data && typeof data === 'object' && data.available === false);
     } catch (err) {
       return err instanceof ApiError && [401, 403, 405].includes(err.status);
     }
