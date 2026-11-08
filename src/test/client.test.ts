@@ -49,7 +49,20 @@ describe('API client paths match the Django backend', () => {
     expect(await aiApi.askAvailable('x')).toBe(false);
   });
 
-  it('treats a 405 on the ask endpoint as available (POST-only view)', async () => {
+  it('probes the ask endpoint with GET and reads { available } from the backend', async () => {
+    mockFetch(200, { available: true, method: 'POST', slug: 'x' });
+    expect(await aiApi.askAvailable('x')).toBe(true);
+    expect(new URL(calls[0].url).pathname).toBe('/api/newsroom/articles/x/ask/');
+    expect(calls[0].init?.method ?? 'GET').toBe('GET');
+
+    mockFetch(200, { available: false });
+    expect(await aiApi.askAvailable('x')).toBe(false);
+
+    mockFetch(503, { detail: 'Reader Q&A is disabled.', available: false });
+    expect(await aiApi.askAvailable('x')).toBe(false);
+  });
+
+  it('still treats a 405 on the ask endpoint as available (older POST-only backend)', async () => {
     mockFetch(405, { detail: 'Method "GET" not allowed.' });
     expect(await aiApi.askAvailable('x')).toBe(true);
   });

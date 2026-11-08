@@ -3,6 +3,9 @@ import { Wordmark } from '@/components/brand/Logo';
 import { PRIMARY_NAV, SECONDARY_NAV, SECTIONS } from '@/constants/sections';
 import { CONTACT_EMAIL } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n/useI18n';
+import { openCookieSettings } from '@/lib/cookieConsent';
+
+const GA_ID = import.meta.env.VITE_GA_ID;
 
 const SOCIAL = [
   { label: 'X', href: 'https://twitter.com/TheAgeOfGenZ' },
@@ -72,6 +75,13 @@ export function Footer() {
               <li><Link className={linkCls} to="/donate">{t('footer.support')}</Link></li>
               <li><Link className={linkCls} to="/privacy">{t('footer.privacy')}</Link></li>
               <li><Link className={linkCls} to="/terms">{t('footer.terms')}</Link></li>
+              {GA_ID && (
+                <li>
+                  <button type="button" className={linkCls} onClick={openCookieSettings}>
+                    {t('footer.cookies')}
+                  </button>
+                </li>
+              )}
               <li><a className={linkCls} href="/rss.xml">{t('footer.rss')}</a></li>
             </ul>
           </div>
